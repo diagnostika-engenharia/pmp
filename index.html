@@ -1907,13 +1907,58 @@ function getIAConfig(){
 function setIAConfig(cfg){ localStorage.setItem('ia_config',JSON.stringify(cfg)); }
 function iaAtivada(){ const c=getIAConfig(); return c.ativada===true && !!c.apiKey; }
 
+const IA_PROVEDORES={
+  gemini:{
+    nome:'🔵 Google Gemini',
+    badge:'GRÁTIS',
+    keyPrefix:'AIza',
+    keyHelp:'Acesse <a href="https://aistudio.google.com/app/apikey" target="_blank"><b>aistudio.google.com/app/apikey</b></a> · faça login com conta Google · clique em <b>Create API key</b> · copie a chave (começa com <code>AIza</code>)',
+    custoNota:'<b>Grátis</b> até 15 análises/minuto e 1500/dia no Gemini Flash · sem precisar cartão de crédito',
+    modelos:[
+      {id:'gemini-2.0-flash',nome:'Gemini 2.0 Flash — rápido e grátis (recomendado)'},
+      {id:'gemini-2.5-flash',nome:'Gemini 2.5 Flash — mais preciso (grátis)'},
+      {id:'gemini-2.5-pro',nome:'Gemini 2.5 Pro — máxima precisão (pago)'}
+    ]
+  },
+  claude:{
+    nome:'🟣 Anthropic Claude',
+    badge:'',
+    keyPrefix:'sk-ant-',
+    keyHelp:'Acesse <a href="https://console.anthropic.com/" target="_blank"><b>console.anthropic.com</b></a> · crie conta · vá em <b>API Keys</b> → <b>Create Key</b> · copie a chave (começa com <code>sk-ant-</code>)',
+    custoNota:'~US$ 0.003 por análise (Haiku) · adicione US$ 5 de crédito no console (dura ~1600 análises)',
+    modelos:[
+      {id:'claude-haiku-4-5',nome:'Claude Haiku 4.5 — rápido e econômico'},
+      {id:'claude-sonnet-4-5',nome:'Claude Sonnet 4.5 — mais preciso (3x mais caro)'}
+    ]
+  },
+  openai:{
+    nome:'🟢 OpenAI',
+    badge:'',
+    keyPrefix:'sk-',
+    keyHelp:'Acesse <a href="https://platform.openai.com/api-keys" target="_blank"><b>platform.openai.com/api-keys</b></a> · faça login · clique em <b>Create new secret key</b> · copie (começa com <code>sk-</code>)',
+    custoNota:'~US$ 0.002 por análise (4o-mini) · precisa adicionar crédito mínimo de US$ 5',
+    modelos:[
+      {id:'gpt-4o-mini',nome:'GPT-4o-mini — rápido e econômico'},
+      {id:'gpt-4o',nome:'GPT-4o — mais preciso (10x mais caro)'}
+    ]
+  }
+};
+
 function showConfigIA(){
   const cfg=getIAConfig();
+  const prov=cfg.provedor||'gemini';
   const overlay=document.createElement('div');
   overlay.className='modal-overlay'; overlay.id='cfg-ia-modal';
   overlay.onclick=e=>{ if(e.target===overlay) overlay.remove(); };
+
+  const provedorBtns=Object.entries(IA_PROVEDORES).map(([k,p])=>`
+    <button class="prov-btn ${prov===k?'prov-active':''}" data-prov="${k}" style="flex:1;padding:11px 8px;border:2px solid var(--gray2);border-radius:10px;background:var(--white);cursor:pointer;font-size:11.5px;font-weight:600;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:3px;transition:all .2s;position:relative">
+      <span style="font-size:13px">${p.nome}</span>
+      ${p.badge?`<span style="position:absolute;top:-7px;right:-7px;background:#1B8A4A;color:#fff;font-size:8px;font-weight:800;padding:2px 6px;border-radius:8px;letter-spacing:.4px">${p.badge}</span>`:''}
+    </button>`).join('');
+
   overlay.innerHTML=`
-  <div class="modal" style="max-width:520px">
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto">
     <button class="modal-close" onclick="document.getElementById('cfg-ia-modal').remove()">×</button>
     <h3>🤖 Assistente IA · Análise de Patologias</h3>
 
@@ -1929,63 +1974,113 @@ function showConfigIA(){
     </div>
 
     <div class="cfg-section">
-      <h4>🔑 Chave da API Anthropic</h4>
-      <input type="password" class="form-input" id="cfg-apikey" placeholder="sk-ant-api..." value="${cfg.apiKey||''}" style="font-family:monospace;font-size:12px">
-      <div class="cfg-help">
-        Como obter:<br>
-        1. Acesse <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> e crie uma conta<br>
-        2. Vá em <b>API Keys</b> → <b>Create Key</b><br>
-        3. Copie a chave (começa com <code>sk-ant-</code>) e cole acima<br>
-        4. <b>Custo:</b> ~US$ 0.003 por análise de foto (Claude Haiku) · adicione crédito de US$ 5 no console (dura ~1600 análises)
-      </div>
+      <h4>🌐 Provedor de IA</h4>
+      <div style="display:flex;gap:6px;margin-bottom:8px" id="prov-selector">${provedorBtns}</div>
+    </div>
+
+    <div class="cfg-section">
+      <h4>🔑 Chave da API</h4>
+      <input type="password" class="form-input" id="cfg-apikey" placeholder="cole aqui sua chave" value="${cfg.apiKey||''}" style="font-family:monospace;font-size:12px">
+      <div class="cfg-help" id="cfg-help-key">${IA_PROVEDORES[prov].keyHelp}<div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(123,31,162,.3)"><b>💰 Custo:</b> <span id="cfg-help-cost">${IA_PROVEDORES[prov].custoNota}</span></div></div>
     </div>
 
     <div class="cfg-section">
       <h4>⚙ Modelo</h4>
-      <select class="form-input" id="cfg-modelo" style="cursor:pointer">
-        <option value="claude-haiku-4-5" ${(!cfg.modelo||cfg.modelo==='claude-haiku-4-5')?'selected':''}>Claude Haiku 4.5 — rápido e econômico (recomendado)</option>
-        <option value="claude-sonnet-4-5" ${cfg.modelo==='claude-sonnet-4-5'?'selected':''}>Claude Sonnet 4.5 — mais preciso (3x mais caro)</option>
-      </select>
+      <select class="form-input" id="cfg-modelo" style="cursor:pointer"></select>
     </div>
 
     <div style="display:flex;gap:8px;margin-top:18px">
       <button class="btn-primary" style="flex:1;margin:0" onclick="salvarConfigIA()">Salvar</button>
-      <button class="btn-primary" style="flex:0 0 auto;margin:0;background:#7B1FA2;padding:0 16px" onclick="testarIA()">Testar conexão</button>
+      <button class="btn-primary" style="flex:0 0 auto;margin:0;background:#7B1FA2;padding:0 16px" onclick="testarIA()">Testar</button>
     </div>
     <div id="cfg-teste-resultado" style="margin-top:10px"></div>
-  </div>`;
+  </div>
+  <style>
+  .prov-btn.prov-active{border-color:#7B1FA2!important;background:rgba(123,31,162,.05)!important;color:#7B1FA2!important;box-shadow:0 2px 8px rgba(123,31,162,.15)}
+  </style>`;
   document.body.appendChild(overlay);
+
+  // Seletor de provedor
+  const atualizarProvedor=(p)=>{
+    overlay.querySelectorAll('.prov-btn').forEach(b=>b.classList.toggle('prov-active',b.dataset.prov===p));
+    document.getElementById('cfg-help-key').innerHTML=IA_PROVEDORES[p].keyHelp+`<div style="margin-top:6px;padding-top:6px;border-top:1px dashed rgba(123,31,162,.3)"><b>💰 Custo:</b> ${IA_PROVEDORES[p].custoNota}</div>`;
+    const sel=document.getElementById('cfg-modelo');
+    sel.innerHTML=IA_PROVEDORES[p].modelos.map(m=>`<option value="${m.id}" ${cfg.modelo===m.id?'selected':''}>${m.nome}</option>`).join('');
+    overlay.dataset.provedor=p;
+  };
+  overlay.querySelectorAll('.prov-btn').forEach(b=>b.onclick=()=>atualizarProvedor(b.dataset.prov));
+  atualizarProvedor(prov);
 }
 
 function salvarConfigIA(){
   const ativada=document.getElementById('cfg-switch-ia').classList.contains('on');
   const apiKey=document.getElementById('cfg-apikey').value.trim();
   const modelo=document.getElementById('cfg-modelo').value;
-  setIAConfig({ativada,apiKey,modelo});
+  const provedor=document.getElementById('cfg-ia-modal').dataset.provedor||'gemini';
+  setIAConfig({ativada,apiKey,modelo,provedor});
   document.getElementById('cfg-ia-modal')?.remove();
-  showToast(ativada?'🤖 IA ativada':'IA desativada');
+  showToast(ativada?'🤖 IA ativada · '+IA_PROVEDORES[provedor].nome:'IA desativada');
+  render();
 }
 
 async function testarIA(){
   const apiKey=document.getElementById('cfg-apikey').value.trim();
   const modelo=document.getElementById('cfg-modelo').value;
+  const provedor=document.getElementById('cfg-ia-modal').dataset.provedor||'gemini';
   const div=document.getElementById('cfg-teste-resultado');
   div.innerHTML='<div style="color:var(--text2);font-size:12px">⏳ Testando conexão…</div>';
   try{
+    const txt=await chamarIA({provedor,apiKey,modelo,prompt:'Diga apenas "OK".',maxTokens:30});
+    div.innerHTML='<div style="background:rgba(27,138,74,.15);border-left:3px solid #1B8A4A;padding:8px 10px;font-size:12px;border-radius:4px;color:var(--text)">✅ Conexão OK · resposta: <i>'+txt.substring(0,100)+'</i></div>';
+  }catch(e){ div.innerHTML='<div class="ai-error">❌ '+e.message+'</div>'; }
+}
+
+// — Chamada unificada para qualquer provedor —
+async function chamarIA({provedor,apiKey,modelo,prompt,imageB64,maxTokens=1024}){
+  if(!apiKey) throw new Error('Chave da API não configurada');
+
+  if(provedor==='claude'){
+    const content=[];
+    if(imageB64) content.push({type:'image',source:{type:'base64',media_type:'image/jpeg',data:imageB64}});
+    content.push({type:'text',text:prompt});
     const r=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({model:modelo,max_tokens:50,messages:[{role:'user',content:'Diga apenas "OK" em uma palavra.'}]})
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:modelo,max_tokens:maxTokens,messages:[{role:'user',content}]})
     });
-    const data=await r.json();
-    if(data.error){ div.innerHTML='<div class="ai-error">❌ Erro: '+data.error.message+'</div>'; return; }
-    div.innerHTML='<div style="background:rgba(27,138,74,.15);border-left:3px solid #1B8A4A;padding:8px 10px;font-size:12px;border-radius:4px;color:var(--text)">✅ Conexão OK · resposta: <i>'+(data.content?.[0]?.text||'?')+'</i></div>';
-  }catch(e){ div.innerHTML='<div class="ai-error">❌ Erro de rede: '+e.message+'</div>'; }
+    const d=await r.json();
+    if(d.error) throw new Error(d.error.message);
+    return d.content?.[0]?.text||'';
+  }
+
+  if(provedor==='openai'){
+    const content=[{type:'text',text:prompt}];
+    if(imageB64) content.push({type:'image_url',image_url:{url:'data:image/jpeg;base64,'+imageB64}});
+    const r=await fetch('https://api.openai.com/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({model:modelo,max_tokens:maxTokens,messages:[{role:'user',content}]})
+    });
+    const d=await r.json();
+    if(d.error) throw new Error(d.error.message);
+    return d.choices?.[0]?.message?.content||'';
+  }
+
+  if(provedor==='gemini'){
+    const parts=[{text:prompt}];
+    if(imageB64) parts.unshift({inline_data:{mime_type:'image/jpeg',data:imageB64}});
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${modelo}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const r=await fetch(url,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts}],generationConfig:{maxOutputTokens:maxTokens,temperature:0.4}})
+    });
+    const d=await r.json();
+    if(d.error) throw new Error(d.error.message);
+    return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  }
+
+  throw new Error('Provedor desconhecido: '+provedor);
 }
 
 // — Analisar foto com IA dentro do editor —
@@ -2058,35 +2153,22 @@ Responda APENAS em JSON estrito, sem texto adicional:
   panel.innerHTML=`<div class="ai-panel-header">🤖 Analisando imagem com IA…</div><div style="font-size:11px;color:#BBB">Aguarde 3-8 segundos</div>`;
 
   try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'x-api-key':cfg.apiKey,
-        'anthropic-version':'2023-06-01',
-        'anthropic-dangerous-direct-browser-access':'true'
-      },
-      body:JSON.stringify({
-        model:cfg.modelo||'claude-haiku-4-5',
-        max_tokens:1024,
-        messages:[{
-          role:'user',
-          content:[
-            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
-            {type:'text',text:prompt}
-          ]
-        }]
-      })
+    const provedor=cfg.provedor||'gemini';
+    const modeloDefault={gemini:'gemini-2.0-flash',claude:'claude-haiku-4-5',openai:'gpt-4o-mini'}[provedor];
+    const texto=await chamarIA({
+      provedor,
+      apiKey:cfg.apiKey,
+      modelo:cfg.modelo||modeloDefault,
+      prompt,
+      imageB64:b64,
+      maxTokens:1024
     });
-    const data=await resp.json();
-    if(data.error){ panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ ${data.error.message}</div>`; return; }
-    const texto=data.content?.[0]?.text||'';
     const match=texto.match(/\{[\s\S]*\}/);
     if(!match){ panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ Resposta sem JSON válido.</div><pre style="font-size:10px;color:#999;white-space:pre-wrap;margin-top:6px">${texto.substring(0,400)}</pre>`; return; }
     const r=JSON.parse(match[0]);
     renderResultadoIA(panel,r);
   }catch(e){
-    panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ Erro de rede/CORS: ${e.message}</div>`;
+    panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ ${e.message}</div>`;
   }
 }
 
