@@ -1664,9 +1664,9 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
   img.onload=()=>{ canvas.width=img.width; canvas.height=img.height; editorState.bgImage=img; redrawEditor(); aplicarZoom(); _atualizarIndicadorFonte(); };
   img.src=dataURL;
 
-  overlay.querySelectorAll('.fe-tool').forEach(b=>{
+  overlay.querySelectorAll('.fe-tool[data-tool]').forEach(b=>{
     b.onclick=()=>{
-      overlay.querySelectorAll('.fe-tool').forEach(x=>x.classList.remove('active'));
+      overlay.querySelectorAll('.fe-tool[data-tool]').forEach(x=>x.classList.remove('active'));
       b.classList.add('active'); editorState.tool=b.dataset.tool;
       // ao trocar de ferramenta, limpa seleção
       editorState.selectedIdx=-1; redrawEditor();
