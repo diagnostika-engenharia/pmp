@@ -1,0 +1,2546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#155B67">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Diagnóstika">
+<title>Diagnóstika — Manutenção Preventiva</title>
+<link rel="manifest" href="manifest.json">
+<style>
+/* ── Reset & Tokens ─────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --teal:#155B67;--teal-dk:#0D3C44;--teal-md:#1E7A8A;
+  --turq:#00B4AC;--turq-lt:#CCF0EE;--turq-dk:#008A83;
+  --lime:#8DB72A;--lime-lt:#EDF5D8;
+  --red:#C00000;--red-lt:#FFEAEA;--red-md:#E53935;
+  --green:#1B8A4A;--green-lt:#E8F5EE;
+  --gray:#F0F4F5;--gray2:#E0EAEC;--gray3:#A8BFC2;--gray4:#5A7A7E;
+  --white:#FFFFFF;--text:#1A2E31;--text2:#4A6568;
+  --shadow:0 2px 12px rgba(21,91,103,.12);
+  --shadow-lg:0 8px 32px rgba(21,91,103,.18);
+  --r:14px;--r-sm:8px;
+  --nav-h:64px;--header-h:56px;
+}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--gray);color:var(--text);font-size:15px}
+#app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;background:var(--white);position:relative;overflow:hidden}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+#header{
+  height:var(--header-h);min-height:var(--header-h);
+  background:var(--teal);color:var(--white);
+  display:flex;align-items:center;gap:8px;padding:0 12px;
+  position:relative;z-index:10;
+  box-shadow:0 2px 8px rgba(0,0,0,.2);
+}
+#header img{height:40px;object-fit:contain;flex-shrink:0;filter:brightness(0) invert(1)}
+#header-title{flex:1;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:4px}
+.icon-btn{width:40px;height:40px;border:none;background:rgba(255,255,255,.15);border-radius:50%;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
+.icon-btn:hover{background:rgba(255,255,255,.25)}
+.hidden{display:none!important}
+
+/* ── Main Scroll Area ───────────────────────────────────────────────────── */
+#app-body{flex:1;display:flex;overflow:hidden}
+#sidenav{display:none}
+#main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:calc(var(--nav-h) + 8px)}
+
+/* ── Bottom Nav ─────────────────────────────────────────────────────────── */
+#bottomnav{
+  height:var(--nav-h);min-height:var(--nav-h);
+  background:var(--white);border-top:1px solid var(--gray2);
+  display:flex;align-items:stretch;
+  box-shadow:0 -2px 12px rgba(21,91,103,.08);
+  position:relative;z-index:10;
+}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:3px;border:none;background:transparent;color:var(--gray3);cursor:pointer;
+  font-size:10px;font-weight:500;padding:4px 0;transition:color .2s;
+}
+.nav-btn svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.nav-btn.active{color:var(--teal)}
+.nav-btn.nav-cta{
+  color:var(--white);background:var(--teal);border-radius:0;
+  margin:8px 4px;border-radius:12px;flex:1.2;
+}
+.nav-btn.nav-cta svg{stroke-width:2.5}
+
+/* ── Cards ───────────────────────────────────────────────────────────────── */
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+.card-header{padding:14px 16px 10px;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px}
+.card-header h3{font-size:14px;font-weight:700;color:var(--teal)}
+.card-body{padding:14px 16px}
+
+/* ── Home View ───────────────────────────────────────────────────────────── */
+.home-hero{
+  background:linear-gradient(135deg,var(--teal-dk) 0%,var(--teal) 60%,var(--teal-md) 100%);
+  padding:24px 20px 28px;color:var(--white);
+}
+.home-hero h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.home-hero p{font-size:13px;opacity:.8}
+.home-hero .date{font-size:12px;opacity:.65;margin-top:8px}
+.condo-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+.condo-card{
+  background:var(--white);border-radius:var(--r);box-shadow:var(--shadow);
+  overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  border:2px solid transparent;
+}
+.condo-card:active{transform:scale(.97)}
+.condo-card.condo-mc{border-color:var(--teal)}
+.condo-card.condo-mm{border-color:var(--turq)}
+.condo-card-top{height:6px}
+.condo-mc .condo-card-top{background:var(--teal)}
+.condo-mm .condo-card-top{background:var(--turq)}
+.condo-card-body{padding:12px 12px 14px}
+.condo-card-body h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.condo-card-body h3 .emb{width:24px;height:24px;flex-shrink:0;border-radius:5px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.condo-card-body h3 .emb svg{width:100%;height:100%;display:block}
+.condo-card-body .freq{font-size:11px;color:var(--text2);margin-bottom:6px;line-height:1.4}
+.condo-card-body .sindico{font-size:10.5px;color:var(--text2);margin-bottom:3px;display:flex;align-items:center;gap:4px}
+.condo-card-body .endereco{font-size:10px;color:var(--gray4);margin-bottom:8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.condo-card-body .prox-act{font-size:10px;color:var(--text2);background:var(--gray);padding:5px 7px;border-radius:5px;margin-bottom:8px;line-height:1.4}
+.condo-card-body .prox-act b{color:var(--teal);font-size:10.5px}
+.condo-card-body .card-actions{display:flex;gap:5px}
+.condo-card-body .card-actions button{flex:1;padding:7px 0;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px}
+.condo-card-body .btn-pdf-condo{background:var(--white);color:var(--text2);border:1px solid var(--gray2)!important}
+.condo-card-body .btn-pdf-condo:hover{background:var(--gray)}
+.condo-card-body .btn-visit{
+  width:100%;padding:8px 0;border:none;border-radius:8px;
+  font-size:12px;font-weight:600;cursor:pointer;color:var(--white);
+  transition:opacity .2s;
+}
+.condo-mc .btn-visit{background:var(--teal)}
+.condo-mm .btn-visit{background:var(--turq)}
+.section-title{font-size:12px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.6px;padding:16px 16px 8px}
+.visit-item{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--gray2);cursor:pointer;
+  transition:background .15s;
+}
+.visit-item:last-child{border-bottom:none}
+.visit-item:hover{background:var(--gray)}
+.visit-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.visit-dot.mc{background:var(--teal)}
+.visit-dot.mm{background:var(--turq)}
+.visit-info{flex:1}
+.visit-info strong{display:block;font-size:13px;font-weight:600}
+.visit-info span{font-size:12px;color:var(--text2)}
+.visit-date{font-size:12px;color:var(--text2);font-weight:500}
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-red{background:var(--red-lt);color:var(--red)}
+.badge-green{background:var(--green-lt);color:var(--green)}
+.badge-gray{background:var(--gray2);color:var(--gray4)}
+.badge-turq{background:var(--turq-lt);color:var(--turq-dk)}
+
+/* ── Nova Visita ─────────────────────────────────────────────────────────── */
+.form-section{padding:16px}
+.form-group{margin-bottom:16px}
+.form-label{display:block;font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.form-input{
+  width:100%;padding:12px 14px;border:1.5px solid var(--gray2);border-radius:var(--r-sm);
+  font-size:15px;color:var(--text);background:var(--white);outline:none;
+  transition:border-color .2s;
+}
+.form-input:focus{border-color:var(--teal)}
+.condo-select-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.condo-opt{
+  padding:14px 10px;border:2px solid var(--gray2);border-radius:var(--r);
+  text-align:center;cursor:pointer;transition:all .2s;background:var(--white);
+}
+.condo-opt.selected-mc{border-color:var(--teal);background:rgba(21,91,103,.06)}
+.condo-opt.selected-mm{border-color:var(--turq);background:rgba(0,180,172,.06)}
+.condo-opt h4{font-size:13px;font-weight:700;color:var(--text);margin-bottom:3px}
+.condo-opt span{font-size:11px;color:var(--text2)}
+.btn-primary{
+  width:100%;padding:15px;border:none;border-radius:var(--r-sm);
+  background:var(--teal);color:var(--white);font-size:16px;font-weight:700;
+  cursor:pointer;transition:background .2s;margin-top:8px;
+}
+.btn-primary:active{background:var(--teal-dk)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── Checklist ───────────────────────────────────────────────────────────── */
+.checklist-header{
+  background:var(--teal);color:var(--white);
+  padding:14px 16px 16px;
+}
+.checklist-header h2{font-size:16px;font-weight:700;margin-bottom:2px}
+.checklist-header p{font-size:12px;opacity:.75;margin-bottom:12px}
+.progress-bar{height:6px;background:rgba(255,255,255,.25);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--lime);border-radius:3px;transition:width .3s}
+.progress-text{font-size:11px;opacity:.75;margin-top:5px}
+.group-header{
+  background:var(--gray);padding:10px 16px;
+  font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.6px;
+  border-top:1px solid var(--gray2);border-bottom:1px solid var(--gray2);
+  display:flex;align-items:center;gap:8px;
+}
+.group-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.checklist-item{
+  padding:14px 16px;border-bottom:1px solid var(--gray2);
+  transition:background .15s;
+}
+.checklist-item.status-conforme{background:rgba(27,138,74,.04)}
+.checklist-item.status-nao_conforme{background:var(--red-lt)}
+.checklist-item.is-critico{border-left:4px solid var(--red)}
+.item-name{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px}
+.item-detail{font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.4}
+.item-critico-tag{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--red);color:var(--white);
+  font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;
+  margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;
+}
+.status-btns{display:flex;gap:8px}
+.status-btn{
+  flex:1;padding:9px 4px;border:1.5px solid var(--gray2);border-radius:8px;
+  font-size:12px;font-weight:600;cursor:pointer;background:var(--white);
+  transition:all .15s;color:var(--text2);text-align:center;
+}
+.status-btn.active-conforme{background:var(--green-lt);border-color:var(--green);color:var(--green)}
+.status-btn.active-nao_conforme{background:var(--red-lt);border-color:var(--red);color:var(--red)}
+.status-btn.active-na{background:var(--gray2);border-color:var(--gray3);color:var(--gray4)}
+.obs-field{
+  margin-top:10px;width:100%;padding:10px 12px;
+  border:1.5px solid var(--red);border-radius:8px;
+  font-size:13px;color:var(--text);resize:vertical;min-height:60px;
+  outline:none;font-family:inherit;
+}
+.checklist-footer{
+  padding:16px;background:var(--white);
+  border-top:2px solid var(--gray2);
+}
+.btn-finish{
+  width:100%;padding:16px;border:none;border-radius:var(--r-sm);
+  background:var(--lime);color:var(--white);font-size:16px;font-weight:700;
+  cursor:pointer;transition:background .2s;
+}
+.btn-finish:disabled{opacity:.45;cursor:not-allowed}
+.btn-finish:not(:disabled):active{background:#7aa024}
+
+/* ── Relatório ───────────────────────────────────────────────────────────── */
+.relatorio-header{
+  background:linear-gradient(135deg,var(--teal-dk),var(--teal));
+  padding:20px 16px;color:var(--white);
+}
+.relatorio-header h2{font-size:18px;font-weight:700;margin-bottom:3px}
+.relatorio-header p{font-size:13px;opacity:.75}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:16px}
+.stat-card{
+  text-align:center;padding:14px 8px;border-radius:var(--r);
+  border:1.5px solid var(--gray2);
+}
+.stat-card.green{border-color:var(--green);background:var(--green-lt)}
+.stat-card.red{border-color:var(--red);background:var(--red-lt)}
+.stat-card.gray{border-color:var(--gray3);background:var(--gray)}
+.stat-num{font-size:28px;font-weight:800;line-height:1}
+.stat-card.green .stat-num{color:var(--green)}
+.stat-card.red .stat-num{color:var(--red)}
+.stat-card.gray .stat-num{color:var(--gray4)}
+.stat-label{font-size:11px;font-weight:600;margin-top:4px;color:var(--text2)}
+.nc-item{padding:12px 16px;border-left:3px solid var(--red);margin:0 16px 10px;border-radius:0 8px 8px 0;background:var(--red-lt)}
+.nc-item strong{display:block;font-size:13px;font-weight:700;color:var(--red);margin-bottom:3px}
+.nc-item p{font-size:12px;color:var(--text);line-height:1.5}
+.obs-section{padding:0 16px 16px}
+.obs-general{
+  width:100%;padding:12px 14px;border:1.5px solid var(--gray2);
+  border-radius:var(--r-sm);font-size:14px;color:var(--text);
+  resize:vertical;min-height:80px;outline:none;font-family:inherit;
+}
+.obs-general:focus{border-color:var(--teal)}
+.btn-pdf{
+  margin:0 16px;width:calc(100% - 32px);padding:15px;border:none;
+  border-radius:var(--r-sm);background:var(--teal);color:var(--white);
+  font-size:16px;font-weight:700;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.btn-pdf:active{background:var(--teal-dk)}
+
+/* ── Histórico ───────────────────────────────────────────────────────────── */
+.hist-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;border-bottom:1px solid var(--gray2);
+  cursor:pointer;transition:background .15s;
+}
+.hist-item:hover{background:var(--gray)}
+.hist-icon{
+  width:42px;height:42px;border-radius:10px;display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;font-size:18px;
+}
+.hist-icon.mc{background:rgba(21,91,103,.1);color:var(--teal)}
+.hist-icon.mm{background:rgba(0,180,172,.1);color:var(--turq)}
+.hist-info{flex:1;min-width:0}
+.hist-info strong{display:block;font-size:14px;font-weight:600;color:var(--text)}
+.hist-info span{font-size:12px;color:var(--text2)}
+.hist-right{text-align:right;flex-shrink:0}
+.hist-right small{font-size:11px;color:var(--gray3);display:block;margin-bottom:4px}
+.empty-state{padding:60px 24px;text-align:center;color:var(--gray4)}
+.empty-state svg{width:56px;height:56px;stroke:var(--gray3);margin-bottom:16px}
+.empty-state h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.empty-state p{font-size:13px;line-height:1.5}
+
+/* ── Plano ───────────────────────────────────────────────────────────────── */
+.plano-tabs{display:flex;padding:12px 16px;gap:8px}
+.plano-tab{
+  flex:1;padding:10px;border:1.5px solid var(--gray2);border-radius:8px;
+  text-align:center;font-size:12px;font-weight:600;cursor:pointer;
+  background:var(--white);color:var(--text2);transition:all .2s;
+}
+.plano-tab.active-mc{border-color:var(--teal);background:rgba(21,91,103,.08);color:var(--teal)}
+.plano-tab.active-mm{border-color:var(--turq);background:rgba(0,180,172,.08);color:var(--turq-dk)}
+.plano-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:12px 16px;border-bottom:1px solid var(--gray2);
+}
+.plano-item.is-critico{background:var(--red-lt);border-left:3px solid var(--red)}
+.plano-item-left{flex:1;min-width:0}
+.plano-item-left strong{display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px}
+.plano-item-left small{font-size:11px;color:var(--text2);line-height:1.4;display:block;margin-bottom:4px}
+.plano-item-meta{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.meta-tag{background:var(--gray);color:var(--text2);font-size:10px;padding:2px 7px;border-radius:4px;font-weight:500}
+.meta-tag.teal{background:rgba(21,91,103,.1);color:var(--teal)}
+.plano-pri{flex-shrink:0;font-size:10px;font-weight:700;padding:3px 8px;border-radius:4px;text-align:center}
+.pri-alta{background:var(--red-lt);color:var(--red)}
+.pri-media{background:var(--turq-lt);color:var(--turq-dk)}
+.pri-critico{background:var(--red);color:var(--white)}
+
+/* ── Configurações / Engenheiro ─────────────────────────────────────────── */
+.eng-banner{
+  background:var(--teal-lt,#e8f4f6);
+  border:1.5px solid var(--gray2);border-radius:var(--r-sm);
+  padding:12px 14px;margin:16px;
+  display:flex;align-items:center;gap:10px;cursor:pointer;
+}
+.eng-banner svg{flex-shrink:0;stroke:var(--teal)}
+.eng-banner span{font-size:13px;color:var(--teal);font-weight:600}
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.5);
+  display:flex;align-items:flex-end;justify-content:center;
+  z-index:100;padding:0;
+}
+.modal{
+  background:var(--white);width:100%;max-width:480px;
+  border-radius:var(--r) var(--r) 0 0;padding:24px;
+  animation:slideUp .25s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h3{font-size:17px;font-weight:700;color:var(--text);margin-bottom:16px}
+.modal-close{float:right;background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray4);margin-top:-4px}
+
+/* ── Print / PDF ────────────────────────────────────────────────────────── */
+@media print{
+  body{overflow:visible!important;height:auto!important}
+  #app{max-width:100%!important;overflow:visible!important;height:auto!important}
+  #header,#bottomnav,#main,#btn-back,#header-actions{display:none!important}
+  #print-area{display:block!important}
+  @page{margin:16mm;size:A4}
+}
+#print-area{
+  display:none;
+  font-family:'Segoe UI',system-ui,sans-serif;
+  color:#1A2E31;font-size:12pt;line-height:1.5;
+}
+.print-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:12pt;border-bottom:2pt solid #155B67;margin-bottom:14pt}
+.print-header img{height:36pt}
+.print-header-right{text-align:right;font-size:9pt;color:#5A7A7E}
+.print-title{font-size:15pt;font-weight:700;color:#155B67;margin-bottom:3pt}
+.print-subtitle{font-size:10pt;color:#5A7A7E;margin-bottom:14pt}
+.print-info-grid{display:grid;grid-template-columns:1fr 1fr;gap:8pt;margin-bottom:14pt}
+.print-info-cell{background:#F0F4F5;padding:8pt 10pt;border-radius:5pt}
+.print-info-cell label{display:block;font-size:8pt;color:#5A7A7E;font-weight:700;text-transform:uppercase;margin-bottom:2pt}
+.print-info-cell span{font-size:11pt;font-weight:600;color:#1A2E31}
+.print-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8pt;margin-bottom:16pt}
+.print-stat{text-align:center;padding:10pt;border:1.5pt solid #E0EAEC;border-radius:5pt}
+.print-stat.ps-green{border-color:#1B8A4A;background:#E8F5EE}
+.print-stat.ps-red{border-color:#C00000;background:#FFEAEA}
+.print-stat.ps-gray{border-color:#A8BFC2;background:#F0F4F5}
+.print-stat big{display:block;font-size:20pt;font-weight:800;line-height:1}
+.print-stat.ps-green big{color:#1B8A4A}
+.print-stat.ps-red big{color:#C00000}
+.print-stat.ps-gray big{color:#5A7A7E}
+.print-stat small{font-size:8pt;font-weight:600;color:#5A7A7E}
+.print-section-title{font-size:11pt;font-weight:700;color:#155B67;border-bottom:1pt solid #D6EBED;padding-bottom:4pt;margin-bottom:8pt;margin-top:14pt}
+.print-nc-item{margin-bottom:8pt;padding:8pt 10pt;border-left:3pt solid #C00000;background:#FFEAEA;border-radius:0 5pt 5pt 0}
+.print-nc-item strong{display:block;font-size:10pt;color:#C00000;font-weight:700}
+.print-nc-item p{font-size:10pt;color:#1A2E31;margin-top:2pt}
+.print-all-table{width:100%;border-collapse:collapse;font-size:9pt}
+.print-all-table th{background:#155B67;color:#fff;padding:5pt 7pt;text-align:left;font-size:8pt;text-transform:uppercase}
+.print-all-table td{padding:5pt 7pt;border-bottom:0.5pt solid #E0EAEC;vertical-align:top}
+.print-all-table tr:nth-child(even) td{background:#F0F4F5}
+.print-all-table .s-c{color:#1B8A4A;font-weight:700}
+.print-all-table .s-n{color:#C00000;font-weight:700}
+.print-all-table .s-a{color:#A8BFC2}
+.print-obs-box{background:#F0F4F5;padding:10pt;border-radius:5pt;font-size:10pt;min-height:40pt;margin-bottom:16pt;white-space:pre-wrap}
+.print-sigs{display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:20pt}
+.print-sig-line{border-top:1pt solid #1A2E31;padding-top:5pt;font-size:9pt;color:#5A7A7E}
+.print-footer{margin-top:20pt;padding-top:8pt;border-top:1pt solid #E0EAEC;font-size:8pt;color:#A8BFC2;text-align:center}
+.print-critico-row td{background:#FFEAEA!important}
+.print-tag-critico{background:#C00000;color:#fff;font-size:7pt;font-weight:700;padding:1pt 4pt;border-radius:3pt;text-transform:uppercase}
+
+/* ── Calendar Print ──────────────────────────────────────────────────────── */
+.cal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9pt;margin:10pt 0 5pt}
+.cal-m{border:1pt solid #D6EBED;border-radius:4pt;overflow:hidden}
+.cal-mh{background:#155B67;color:#fff;text-align:center;padding:3pt 0;font-size:8pt;font-weight:700;letter-spacing:.3pt}
+.cal-dh{display:grid;grid-template-columns:repeat(7,1fr);background:#D6EBED;text-align:center}
+.cal-dh b{padding:2pt 0;font-size:6.5pt;font-weight:700;color:#0D3C44;display:block;text-align:center}
+.cal-dg{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}
+.cd-d,.cd-e{font-size:7pt;padding:2pt 0;text-align:center;color:#1A2E31;line-height:1.6}
+.cd-v{color:#fff!important;font-weight:700;background:var(--vc);border-radius:50%;margin:1pt auto;display:block;width:14pt;height:14pt;line-height:14pt}
+.cal-legend{font-size:8pt;color:#5A7A7E;margin-bottom:12pt;display:flex;align-items:center;gap:6pt}
+.cal-leg-dot{width:9pt;height:9pt;border-radius:50%;display:inline-block;flex-shrink:0;vertical-align:middle}
+.cal-section-title{font-size:11pt;font-weight:700;color:#155B67;border-bottom:1.5pt solid #D6EBED;padding-bottom:4pt;margin:0 0 8pt}
+.cal-table{width:100%;border-collapse:collapse;font-size:7.5pt;margin-top:6pt}
+.cal-table th{background:#155B67;color:#fff;padding:4pt 4pt;text-align:center;font-size:6.5pt;white-space:nowrap}
+.cal-th-at{text-align:left!important;width:30%}
+.cal-th-per{text-align:left!important;width:10%}
+.cal-th-m{width:4.5%}
+.cal-th-pri{width:7%}
+.cal-table td{padding:3pt 4pt;border-bottom:.5pt solid #E0EAEC;vertical-align:middle}
+.cal-at{font-weight:600;color:#1A2E31}
+.cal-per{color:#5A7A7E;font-size:7pt}
+.cal-dot{text-align:center;color:#155B67;font-size:9pt;font-weight:900;line-height:1}
+.cal-dot-c{color:#C00000!important}
+.cal-grp-row td{background:#D6EBED;font-weight:700;font-size:8pt;color:#155B67;padding:4pt 5pt}
+.cal-grp-crit td{background:#FFEAEA!important;color:#C00000!important}
+.cal-crit-row td{background:#FFF5F5}
+.cal-pri{text-align:center;font-size:6.5pt;font-weight:700;white-space:nowrap}
+.cal-pri-critico,.cal-pri-crtico{color:#C00000}
+.cal-pri-alta{color:#E65100}
+.cal-pri-mdia,.cal-pri-media{color:#1565C0}
+
+/* ── Agenda Unificada Print ──────────────────────────────────────────────── */
+.cd-pips{display:flex;justify-content:center;gap:2pt;margin-top:1pt}
+.cd-pip{display:inline-block;width:5pt;height:5pt;border-radius:50%;flex-shrink:0}
+.cd-pip-mc{background:#155B67}
+.cd-pip-mm{background:#00B4AC}
+.agenda-table{width:100%;border-collapse:collapse;font-size:9pt;margin-top:8pt}
+.agenda-table th{background:#155B67;color:#fff;padding:5pt 8pt;text-align:left;font-size:8pt}
+.agenda-table td{padding:5pt 8pt;border-bottom:.5pt solid #E0EAEC;vertical-align:middle}
+.agenda-month-hdr td{background:#D6EBED;font-weight:700;font-size:9pt;color:#0D3C44;padding:5pt 8pt;letter-spacing:.3pt;text-transform:uppercase}
+.agenda-row-both td{background:#F0FAFA}
+.agenda-row-mc td{background:#fff}
+.agenda-condo-pill{display:inline-block;padding:2pt 6pt;border-radius:10pt;font-size:8pt;font-weight:700;margin-right:4pt}
+.pill-mc{background:#155B67;color:#fff}
+.pill-mm{background:#00B4AC;color:#fff}
+.agenda-summary{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10pt;margin:12pt 0 16pt}
+.agenda-sum-card{border-radius:5pt;padding:10pt;text-align:center}
+.agenda-sum-card big{display:block;font-size:18pt;font-weight:800;line-height:1.1}
+.agenda-sum-card small{font-size:8pt;font-weight:600;color:#5A7A7E}
+.ag-tipo{display:inline-block;font-size:6pt;font-weight:700;padding:1pt 5pt;border-radius:8pt;text-transform:uppercase;letter-spacing:.3pt}
+.ag-padrao{background:#E0EAEC;color:#5A7A7E}
+.ag-mensal{background:#D6EBED;color:#0D3C44}
+.ag-trimestral{background:#00B4AC;color:#fff}
+.ag-semestral{background:#8DB72A;color:#fff}
+.ag-anual{background:#7B1FA2;color:#fff}
+.ag-critico{background:#C00000;color:#fff;font-size:6pt;font-weight:700;padding:1pt 5pt;border-radius:8pt;text-transform:uppercase;display:inline-block;margin-right:3pt}
+.ag-items{font-size:7pt;color:#4A6568;line-height:1.5;margin-top:2pt}
+.ag-nc{color:#A8BFC2;text-align:center;font-size:9pt}
+.agenda-table2{width:100%;border-collapse:collapse;font-size:8pt}
+.agenda-table2 th{background:#155B67;color:#fff;padding:4pt 6pt;font-size:7pt;text-align:left}
+.agenda-table2 th.th-mm{background:#00B4AC}
+.agenda-table2 td{padding:5pt 6pt;border-bottom:.5pt solid #E0EAEC;vertical-align:top}
+.agenda-table2 .am-hdr td{background:#D6EBED;font-weight:700;font-size:8pt;color:#0D3C44;letter-spacing:.4pt;text-transform:uppercase;padding:4pt 6pt}
+.agenda-table2 .ar-both{background:#F4FCFC}
+.agenda-table2 .ar-mc{background:#fff}
+
+/* ── Agenda Screen View ─────────────────────────────────────────────────── */
+.av-tabs{display:flex;border-bottom:2px solid var(--gray2);background:var(--white);padding:0 16px;gap:4px}
+.av-tab{flex:1;padding:11px 0;border:none;background:none;font-size:13px;font-weight:600;color:var(--text2);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-2px;transition:all .2s}
+.av-tab.at-mc{border-bottom-color:var(--teal);color:var(--teal)}
+.av-tab.at-mm{border-bottom-color:var(--turq);color:var(--turq-dk)}
+.cal-screen{padding:12px 8px 4px}
+.cal-screen .cal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cal-screen .cal-m{border-radius:8px;overflow:hidden;box-shadow:0 1px 6px rgba(21,91,103,.1)}
+.cal-screen .cal-mh{font-size:12px;padding:7px 8px}
+.cal-screen .cal-dh{font-size:8px;padding:3px 0}
+.cal-screen .cal-dg{font-size:10px}
+.cal-screen .cd-d{width:calc(100%/7);min-height:22px;display:inline-flex;flex-direction:column;align-items:center;justify-content:center;font-size:9px;padding:1px 0}
+.cal-screen .cd-e{width:calc(100%/7);min-height:22px;display:inline-block}
+.cal-screen-legend{display:flex;flex-wrap:wrap;gap:10px;padding:8px 16px 4px;font-size:11px;color:var(--text2);align-items:center}
+.prog-mes{font-size:11px;font-weight:700;color:var(--teal-dk);text-transform:uppercase;padding:10px 16px 5px;letter-spacing:.5px;background:var(--gray)}
+.prog-visita{padding:12px 16px;border-bottom:1px solid var(--gray2);display:flex;gap:12px}
+.prog-visita.prog-ambos{background:rgba(0,180,172,.06)}
+.prog-data{flex-shrink:0;text-align:center;width:46px}
+.prog-dia{font-size:15px;font-weight:800;color:var(--text);line-height:1.2}
+.prog-dow{font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase}
+.prog-tag{font-size:8px;font-weight:700;padding:2px 5px;border-radius:4px;margin-top:3px;display:inline-block}
+.prog-tag.pt-ambos{background:var(--teal);color:#fff}
+.prog-tag.pt-mc{background:var(--gray2);color:var(--text2)}
+.prog-conteudo{flex:1;display:flex;flex-direction:column;gap:6px;min-width:0}
+.prog-condo-bloco{padding:6px 8px;border-radius:6px;background:var(--gray)}
+.prog-condo-bloco.mc-bloco{border-left:3px solid var(--teal)}
+.prog-condo-bloco.mm-bloco{border-left:3px solid var(--turq);background:rgba(0,180,172,.05)}
+.prog-condo-nome{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-bottom:4px}
+.prog-condo-nome.mc{color:var(--teal)}
+.prog-condo-nome.mm{color:var(--turq-dk)}
+.prog-grupo{margin-bottom:3px;display:flex;flex-wrap:wrap;gap:3px;align-items:flex-start}
+.prog-itens{flex:1;font-size:10px;color:var(--text2);line-height:1.6}
+.prog-export{margin:12px 16px 0}
+
+/* ── Novos Condomínios ───────────────────────────────────────────────────── */
+:root{--purple:#7D3C98;--purple-lt:#F4ECF7;--lime-dk:#6a8a1e;--amber:#D4A24C;--amber-dk:#A87826;--amber-lt:#FAF1DD}
+.condo-card.condo-pp{border-color:var(--lime)}
+.condo-card.condo-sc{border-color:var(--purple)}
+.condo-card.condo-jm{border-color:var(--amber)}
+.condo-pp .condo-card-top{background:var(--lime)}
+.condo-sc .condo-card-top{background:var(--purple)}
+.condo-jm .condo-card-top{background:var(--amber)}
+.condo-pp .btn-visit{background:var(--lime)}
+.condo-sc .btn-visit{background:var(--purple)}
+.condo-jm .btn-visit{background:var(--amber-dk);color:#fff}
+.visit-dot.pp{background:var(--lime)}
+.visit-dot.sc{background:var(--purple)}
+.visit-dot.jm{background:var(--amber)}
+.hist-icon.pp{background:rgba(141,183,42,.12);color:var(--lime-dk)}
+.hist-icon.sc{background:rgba(125,60,152,.12);color:var(--purple)}
+.hist-icon.jm{background:rgba(212,162,76,.18);color:var(--amber-dk)}
+.condo-opt.selected-pp{border-color:var(--lime);background:rgba(141,183,42,.07)}
+.condo-opt.selected-sc{border-color:var(--purple);background:rgba(125,60,152,.07)}
+.condo-opt.selected-jm{border-color:var(--amber);background:rgba(212,162,76,.1)}
+.plano-tab.active-pp{border-color:var(--lime);background:rgba(141,183,42,.08);color:var(--lime-dk)}
+.plano-tab.active-sc{border-color:var(--purple);background:rgba(125,60,152,.08);color:var(--purple)}
+.plano-tab.active-jm{border-color:var(--amber);background:rgba(212,162,76,.12);color:var(--amber-dk)}
+.plano-tabs{display:grid;grid-template-columns:1fr 1fr;padding:12px 16px;gap:8px}
+.plano-tab{font-size:11.5px}
+.cd-pip-sc{background:var(--purple)}
+.cd-pip-jm{background:var(--amber)}
+.cd-pip-pp{background:var(--lime)}
+.prog-condo-bloco.pp-bloco{border-left:3px solid var(--lime);background:rgba(141,183,42,.05)}
+.prog-condo-bloco.sc-bloco{border-left:3px solid var(--purple);background:rgba(125,60,152,.05)}
+.prog-condo-bloco.jm-bloco{border-left:3px solid var(--amber);background:rgba(212,162,76,.07)}
+.prog-condo-nome.pp{color:var(--lime-dk)}
+.prog-condo-nome.sc{color:var(--purple)}
+.prog-condo-nome.jm{color:var(--amber-dk)}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────────── */
+.sn-logo-area{padding:16px 14px 14px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center}
+.sn-logo-img{height:32px;object-fit:contain;filter:brightness(0) invert(1)}
+.sn-nav-items{flex:1;padding:10px 0;display:flex;flex-direction:column;gap:1px}
+.sn-btn{display:flex;align-items:center;gap:10px;padding:11px 18px;border:none;background:transparent;color:rgba(255,255,255,.68);cursor:pointer;font-size:13px;font-weight:500;text-align:left;width:100%;border-left:3px solid transparent;transition:all .18s}
+.sn-btn svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sn-btn:hover{background:rgba(255,255,255,.1);color:var(--white)}
+.sn-btn.active{background:rgba(255,255,255,.14);color:var(--white);border-left-color:var(--turq);font-weight:700}
+.sn-cta{background:var(--turq)!important;color:var(--white)!important;border-radius:8px;margin:6px 10px;padding:10px 14px!important;width:calc(100% - 20px)!important;border-left-color:transparent!important}
+.sn-cta:hover{background:var(--turq-dk)!important}
+.sn-footer{padding:10px 18px;border-top:1px solid rgba(255,255,255,.1)}
+.sn-version{font-size:10px;color:rgba(255,255,255,.35)}
+
+/* ── Responsivo Desktop ─────────────────────────────────────────────────── */
+@media (min-width:768px){
+  #app{max-width:100%}
+  #app-body{flex-direction:row}
+  #sidenav{display:flex;flex-direction:column;width:220px;min-width:220px;flex-shrink:0;background:var(--teal-dk);overflow-y:auto}
+  #main{padding-bottom:16px}
+  #bottomnav{display:none}
+  .modal-overlay{align-items:center}
+  .modal{border-radius:var(--r);max-width:480px;width:90%}
+  .condo-grid{grid-template-columns:repeat(5,1fr)}
+  .plano-tabs{grid-template-columns:repeat(5,1fr)}
+  #header img{display:none}
+  .home-hero h1{font-size:24px}
+  .stats-grid{max-width:600px}
+}
+@media (min-width:1100px){
+  #sidenav{width:240px;min-width:240px}
+  #main > .form-section,.checklist-header,.relatorio-header{max-width:720px;margin-left:auto;margin-right:auto}
+}
+
+/* ── Fotos + Editor de Anotações ─────────────────────────────────────────── */
+.fotos-section{margin-top:10px;padding-top:10px;border-top:1px dashed var(--gray2)}
+.fotos-section-label{font-size:11px;font-weight:700;color:var(--gray4);text-transform:uppercase;letter-spacing:.4px;margin-bottom:7px;display:flex;align-items:center;gap:6px}
+.fotos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-bottom:8px}
+.foto-thumb{position:relative;aspect-ratio:1;border-radius:6px;overflow:hidden;background:var(--gray);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.foto-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.foto-thumb-del{position:absolute;top:2px;right:2px;width:20px;height:20px;border-radius:50%;background:rgba(192,0,0,.92);color:#fff;border:none;cursor:pointer;font-size:13px;font-weight:700;line-height:1;display:flex;align-items:center;justify-content:center;padding:0}
+.foto-thumb-edit{position:absolute;bottom:2px;left:2px;width:20px;height:20px;border-radius:50%;background:rgba(21,91,103,.9);color:#fff;border:none;cursor:pointer;font-size:10px;display:flex;align-items:center;justify-content:center;padding:0}
+.btn-add-foto{width:100%;padding:9px;border:1.5px dashed var(--teal);border-radius:8px;background:rgba(21,91,103,.05);color:var(--teal);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-add-foto:hover{background:rgba(21,91,103,.1)}
+
+.foto-editor-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:0}
+.foto-editor{width:100%;height:100%;display:flex;flex-direction:column;background:#1a1a1a}
+.fe-toolbar{background:#222;padding:8px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #333}
+.fe-tools,.fe-colors{display:flex;gap:5px;align-items:center}
+.fe-tool,.fe-color{width:38px;height:38px;border-radius:8px;border:2px solid transparent;background:#333;color:#fff;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0}
+.fe-tool.active{border-color:#00B4AC;background:#155B67}
+.fe-color{padding:0}
+.fe-color.active{border-color:#fff;box-shadow:0 0 0 2px #155B67}
+.fe-undo,.fe-clear{padding:8px 12px;border:none;border-radius:6px;background:#444;color:#fff;cursor:pointer;font-size:12px;font-weight:600}
+.fe-clear{background:#5C2020}
+.fe-divider{width:1px;height:28px;background:#444}
+.fe-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:10px;background:#0a0a0a;touch-action:none}
+#fe-canvas{max-width:100%;max-height:100%;cursor:crosshair;box-shadow:0 4px 20px rgba(0,0,0,.5);background:#fff;touch-action:none}
+.fe-footer{background:#222;padding:10px;display:flex;gap:10px;border-top:1px solid #333}
+.fe-btn-cancel,.fe-btn-save{flex:1;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+.fe-btn-cancel{background:#444;color:#fff}
+.fe-btn-save{background:#1B8A4A;color:#fff}
+.fe-hint{font-size:11px;color:#999;text-align:center;padding:4px}
+
+/* Camera capture */
+.cam-view{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:1000}
+#cam-video{flex:1;width:100%;object-fit:contain;background:#000;min-height:0}
+.cam-topbar{position:absolute;top:0;left:0;right:0;padding:12px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);display:flex;justify-content:space-between;align-items:center;color:#fff;z-index:2}
+.cam-topbar button{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}
+.cam-controls{padding:20px;background:#000;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.cam-btn-cancel,.cam-btn-switch,.cam-btn-file{width:54px;height:54px;border-radius:50%;border:none;background:rgba(255,255,255,.18);color:#fff;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cam-btn-shoot{width:78px;height:78px;border-radius:50%;border:5px solid #fff;background:#fff;cursor:pointer;font-size:26px;flex-shrink:0;box-shadow:0 0 0 4px rgba(255,255,255,.25);transition:transform .1s}
+.cam-btn-shoot:active{transform:scale(.92)}
+.cam-btn-shoot::after{content:'';display:block;width:60px;height:60px;border-radius:50%;background:#fff;border:2px solid #000;margin:auto}
+.cam-error{padding:40px 20px;color:#fff;text-align:center}
+.cam-error p{margin-bottom:14px;font-size:14px;line-height:1.5}
+.cam-error button{padding:12px 20px;background:#155B67;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:0 6px}
+
+/* PDF: fotos */
+.print-fotos-grid{display:grid;grid-template-columns:1fr 1fr;gap:6pt;margin:6pt 0 8pt}
+.print-foto{border:1pt solid #E0EAEC;border-radius:3pt;overflow:hidden}
+.print-foto img{width:100%;height:auto;display:block}
+.print-foto-cap{padding:3pt 5pt;font-size:7pt;color:#5A7A7E;background:#F0F4F5}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Header -->
+  <header id="header">
+    <button class="icon-btn hidden" id="btn-back" onclick="goBack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <img src="assets/logo-dark.png" alt="Diagnóstika" id="header-logo">
+    <div id="header-title">Manutenção Preventiva</div>
+    <div id="header-actions"></div>
+  </header>
+
+  <!-- App body: sidebar + main -->
+  <div id="app-body">
+    <!-- Sidebar (desktop only) -->
+    <nav id="sidenav">
+      <div class="sn-logo-area">
+        <img src="assets/logo-dark.png" alt="Diagnóstika" class="sn-logo-img">
+      </div>
+      <div class="sn-nav-items">
+        <button class="sn-btn" id="sn-home" onclick="navigate('home')">
+          <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg><span>Início</span>
+        </button>
+        <button class="sn-btn sn-cta" id="sn-nova" onclick="navigate('nova-visita')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg><span>Nova Visita</span>
+        </button>
+        <button class="sn-btn" id="sn-agenda" onclick="navigate('agenda')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg><span>Agenda</span>
+        </button>
+        <button class="sn-btn" id="sn-historico" onclick="navigate('historico')">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Histórico</span>
+        </button>
+        <button class="sn-btn" id="sn-plano" onclick="navigate('plano')">
+          <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Plano</span>
+        </button>
+      </div>
+      <div class="sn-footer"><div class="sn-version">Diagnóstika · 2026</div></div>
+    </nav>
+    <!-- Main content -->
+    <main id="main"></main>
+  </div>
+
+  <!-- Bottom navigation (mobile) -->
+  <nav id="bottomnav">
+    <button class="nav-btn active" id="nav-home" onclick="navigate('home')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Início</span>
+    </button>
+    <button class="nav-btn nav-cta" id="nav-nova" onclick="navigate('nova-visita')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <span>Nova Visita</span>
+    </button>
+    <button class="nav-btn" id="nav-agenda" onclick="navigate('agenda')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
+      <span>Agenda</span>
+    </button>
+    <button class="nav-btn" id="nav-historico" onclick="navigate('historico')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>Histórico</span>
+    </button>
+    <button class="nav-btn" id="nav-plano" onclick="navigate('plano')">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span>Plano</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Print area (hidden on screen, visible on print) -->
+<div id="print-area"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════════════════
+const CONDOMINIOS = {
+  'monte-carlo': {
+    id:'monte-carlo', nome:'Condomínio Monte Carlo', short:'Monte Carlo',
+    cidade:'Paulínia/SP', frequencia:'Toda quarta-feira', classe:'mc',
+    cor:'#155B67',
+    sindico:'Ana Paula', endereco:'Paulínia/SP',
+    emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#155B67"/><circle cx="32" cy="20" r="5" fill="none" stroke="#D4A24C" stroke-width="2"/><rect x="22" y="22" width="20" height="3" fill="#D4A24C"/><rect x="24" y="26" width="2" height="22" fill="#D4A24C"/><rect x="30" y="26" width="2" height="22" fill="#D4A24C"/><rect x="36" y="26" width="2" height="22" fill="#D4A24C"/><rect x="20" y="48" width="24" height="3" fill="#D4A24C"/><rect x="18" y="51" width="28" height="3" fill="#D4A24C"/></svg>',
+    checklist:[
+      {id:'mc1',  critico:false, grupo:'Estrutura e Fundações',    nome:'Fachadas',                   detalhe:'Fissuras, eflorescências, desplacamentos', norma:'NBR 6118:2023'},
+      {id:'mc2',  critico:false, grupo:'Estrutura e Fundações',    nome:'Pilares e vigas (garagens)',  detalhe:'Corrosão de armaduras, fissuras estruturais', norma:'NBR 6118:2023'},
+      {id:'mc3',  critico:false, grupo:'Impermeabilização',        nome:'Coberturas / lajes',          detalhe:'Drenos livres, telhas intactas, calhas sem entulho', norma:'NBR 9575:2010'},
+      {id:'mc4',  critico:false, grupo:'Impermeabilização',        nome:'Calhas e rufos',              detalhe:'Vedação, obstrução, infiltrações visíveis', norma:'NBR 9575:2010'},
+      {id:'mc5',  critico:false, grupo:'Hidráulica',               nome:'Calhas pluviais',             detalhe:'Obstrução, vazamento, condutores', norma:'NBR 10844:1989'},
+      {id:'mc6',  critico:false, grupo:'Hidráulica',               nome:'Esgoto / caixas inspeção',    detalhe:'Obstrução, mau cheiro, refluxo', norma:'NBR 8160:1999'},
+      {id:'mc7',  critico:false, grupo:'Hidráulica',               nome:'Bomba de recalque',           detalhe:'Funcionamento, ruídos anormais, vazamentos', norma:'NBR 5626:2020'},
+      {id:'mc8',  critico:false, grupo:'Hidráulica',               nome:'Caixa d\'água',               detalhe:'Nível, tampa, estado geral, limpeza', norma:'Portaria 888/2021'},
+      {id:'mc9',  critico:false, grupo:'Elétrica',                 nome:'Quadros elétricos',           detalhe:'Disjuntores, DRs, temperatura, cabos', norma:'NBR 5410:2004'},
+      {id:'mc10', critico:false, grupo:'Elétrica',                 nome:'Iluminação de emergência',    detalhe:'Luminárias funcionando, autonomia mínima 1h', norma:'NBR 10898:2013'},
+      {id:'mc11', critico:false, grupo:'Incêndio',                 nome:'Extintores',                  detalhe:'Pressão, lacre, vencimento, fixação', norma:'NBR 12962:2016'},
+      {id:'mc12', critico:false, grupo:'Incêndio',                 nome:'Hidrantes',                   detalhe:'Mangueira, esguicho, registro, sinalização', norma:'NBR 13714:2019'},
+      {id:'mc13', critico:false, grupo:'Áreas Comuns',             nome:'Guarda-corpos e corrimãos',   detalhe:'Fixação, altura regulamentar, integridade', norma:'NBR 14718:2019'},
+      {id:'mc14', critico:false, grupo:'Áreas Comuns',             nome:'Piso das áreas comuns',       detalhe:'Solto, trincado, risco de queda', norma:'NBR 13753:1996'},
+      {id:'mc15', critico:false, grupo:'Áreas Comuns',             nome:'Playground',                  detalhe:'Equipamentos, fixação, piso de impacto', norma:'NBR 16071:2012'},
+    ],
+    plano:[
+      {grupo:'Estrutura e Fundações', nome:'Inspeção visual de fachadas', periodicidade:'Quinzenal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Estrutura e Fundações', nome:'Pilares e vigas aparentes', periodicidade:'Mensal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Estrutura e Fundações', nome:'Juntas de dilatação', periodicidade:'Trimestral', norma:'NBR 6118:2023', prioridade:'Média'},
+      {grupo:'Estrutura e Fundações', nome:'Monitoramento de trincas', periodicidade:'Mensal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Coberturas — drenos e calhas', periodicidade:'Mensal', norma:'NBR 9575:2010', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Subsolos e garagens', periodicidade:'Trimestral', norma:'NBR 9575:2010', prioridade:'Média'},
+      {grupo:'Impermeabilização', nome:'Jardineiras e floreiras', periodicidade:'Trimestral', norma:'NBR 9575:2010', prioridade:'Média'},
+      {grupo:'Impermeabilização', nome:'Reservatórios (caixas d\'água)', periodicidade:'Semestral', norma:'Portaria MS 888/2021', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Rede de água fria', periodicidade:'Semestral', norma:'NBR 5626:2020', prioridade:'Média'},
+      {grupo:'Hidráulica', nome:'Esgoto e drenagem', periodicidade:'Mensal', norma:'NBR 8160:1999', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Calhas pluviais', periodicidade:'Mensal', norma:'NBR 10844:1989', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Bomba de recalque', periodicidade:'Mensal', norma:'NBR 5626:2020', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Quadros de distribuição', periodicidade:'Mensal', norma:'NBR 5410:2004', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Iluminação de emergência', periodicidade:'Mensal', norma:'NBR 10898:2013', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'SPDA (para-raios)', periodicidade:'Anual', norma:'NBR 5419:2015', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Extintores', periodicidade:'Mensal', norma:'NBR 12962:2016', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Hidrantes e mangotinhos', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Sinalização de emergência', periodicidade:'Mensal', norma:'NBR 13434:2004', prioridade:'Média'},
+      {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Pisos — áreas comuns', periodicidade:'Mensal', norma:'NBR 13753:1996', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'Relatório de visita', periodicidade:'Semanal', norma:'NBR 5674:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta'},
+    ]
+  },
+  'morada-morumbi':{
+    id:'morada-morumbi', nome:'Condomínio Morada Morumbi', short:'Morada Morumbi',
+    cidade:'Paulínia/SP', frequencia:'Quinzenal (início 27/05/2026)', classe:'mm',
+    cor:'#00B4AC',
+    sindico:'Ana Paula', endereco:'Paulínia/SP',
+    emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#00B4AC"/><path d="M16 32 L32 18 L48 32 L48 48 L16 48 Z" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><rect x="22" y="36" width="6" height="8" fill="#fff"/><rect x="34" y="32" width="6" height="6" fill="#fff" opacity="0.85"/><rect x="42" y="32" width="3" height="6" fill="#fff" opacity="0.85"/><path d="M14 32 L32 16 L50 32" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>',
+    checklist:[
+      {id:'mm1',  critico:true,  grupo:'⚠ CRÍTICO — LT-2025-09',  nome:'Coberturas — risco de queda', detalhe:'Lajes estufadas, pontas quebradas, grades soltas', norma:'NBR 6118:2023 / LT-2025-09'},
+      {id:'mm2',  critico:true,  grupo:'⚠ CRÍTICO — LT-2025-09',  nome:'Piscinas — INTERDITADO',      detalhe:'Fissuras estruturais, impermeabilização colapsada, cerâmica', norma:'NBR 10339:2018 / LT-2025-09'},
+      {id:'mm3',  critico:true,  grupo:'⚠ CRÍTICO — LT-2025-09',  nome:'Calhas Bloco 3',              detalhe:'Falha crítica de vedação, infiltrações nas unidades', norma:'NBR 10844:1989 / LT-2025-09'},
+      {id:'mm4',  critico:true,  grupo:'⚠ CRÍTICO — LT-2025-09',  nome:'Garagens — fissuras estruturais', detalhe:'Fissuras em pilares e lajes, monitorar aberturas', norma:'NBR 6118:2023 / LT-2025-09'},
+      {id:'mm5',  critico:false, grupo:'Estrutura e Impermeabilização', nome:'Muros garden',           detalhe:'Infiltrações, erosão, impermeabilização ausente', norma:'NBR 9575:2010'},
+      {id:'mm6',  critico:false, grupo:'Estrutura e Impermeabilização', nome:'Fachadas — fissuras',    detalhe:'Eflorescências, desplacamentos, progressão de fissuras', norma:'NBR 6118:2023'},
+      {id:'mm7',  critico:false, grupo:'Estrutura e Impermeabilização', nome:'Coberturas — drenos gerais', detalhe:'Drenos livres, calhas e rufos sem entulho', norma:'NBR 9575:2010'},
+      {id:'mm8',  critico:false, grupo:'Hidráulica',                nome:'Calhas pluviais (outros blocos)', detalhe:'Obstrução, vazamentos, vedação', norma:'NBR 10844:1989'},
+      {id:'mm9',  critico:false, grupo:'Hidráulica',                nome:'Esgoto / caixas inspeção',   detalhe:'Obstrução, mau cheiro, refluxo', norma:'NBR 8160:1999'},
+      {id:'mm10', critico:false, grupo:'Hidráulica',                nome:'Bomba de recalque',           detalhe:'Funcionamento, ruídos, pressostato', norma:'NBR 5626:2020'},
+      {id:'mm11', critico:false, grupo:'Hidráulica',                nome:'Caixa d\'água',               detalhe:'Nível, tampa, estado geral', norma:'Portaria 888/2021'},
+      {id:'mm12', critico:false, grupo:'Elétrica',                  nome:'Quadros elétricos',           detalhe:'Disjuntores, DRs, temperatura', norma:'NBR 5410:2004'},
+      {id:'mm13', critico:false, grupo:'Elétrica',                  nome:'Iluminação de emergência',    detalhe:'Autonomia mínima 1h', norma:'NBR 10898:2013'},
+      {id:'mm14', critico:false, grupo:'Incêndio',                  nome:'Extintores',                  detalhe:'Pressão, lacre, vencimento, fixação', norma:'NBR 12962:2016'},
+      {id:'mm15', critico:false, grupo:'Incêndio',                  nome:'Hidrantes',                   detalhe:'Mangueira, esguicho, registro', norma:'NBR 13714:2019'},
+      {id:'mm16', critico:false, grupo:'Áreas Comuns',              nome:'Guarda-corpos e corrimãos',   detalhe:'Fixação, altura, integridade', norma:'NBR 14718:2019'},
+      {id:'mm17', critico:false, grupo:'Áreas Comuns',              nome:'Piso das áreas comuns',       detalhe:'Solto, trincado, risco de queda', norma:'NBR 13753:1996'},
+      {id:'mm18', critico:false, grupo:'Áreas Comuns',              nome:'Playground',                  detalhe:'Equipamentos, piso de impacto', norma:'NBR 16071:2012'},
+      {id:'mm19', critico:false, grupo:'Áreas Comuns',              nome:'CFTV',                        detalhe:'Câmeras funcionando, gravação ativa', norma:'Fabricante'},
+    ],
+    plano:[
+      {grupo:'CRÍTICO — LT-2025-09', nome:'Coberturas — lajes estufadas e pontas quebradas', periodicidade:'Quinzenal', norma:'LT-2025-09', prioridade:'Crítico', critico:true},
+      {grupo:'CRÍTICO — LT-2025-09', nome:'Piscinas — fissuração estrutural', periodicidade:'Quinzenal', norma:'NBR 10339:2018', prioridade:'Crítico', critico:true},
+      {grupo:'CRÍTICO — LT-2025-09', nome:'Calhas Bloco 3 — falha de vedação', periodicidade:'Quinzenal', norma:'NBR 10844:1989', prioridade:'Crítico', critico:true},
+      {grupo:'CRÍTICO — LT-2025-09', nome:'Muros garden — ausência de impermeabilização', periodicidade:'Quinzenal', norma:'NBR 9575:2010', prioridade:'Crítico', critico:true},
+      {grupo:'CRÍTICO — LT-2025-09', nome:'Garagens — fissuras estruturais', periodicidade:'Quinzenal', norma:'NBR 6118:2023', prioridade:'Crítico', critico:true},
+      {grupo:'Piscinas', nome:'Inspeção visual das piscinas', periodicidade:'Quinzenal', norma:'NBR 10339:2018', prioridade:'Alta'},
+      {grupo:'Piscinas', nome:'Teste de estanqueidade — piscina adulta', periodicidade:'Após impermeabilização', norma:'NBR 10339:2018', prioridade:'Alta'},
+      {grupo:'Piscinas', nome:'Teste de estanqueidade — piscina infantil', periodicidade:'Após impermeabilização', norma:'NBR 10339:2018', prioridade:'Alta'},
+      {grupo:'Piscinas', nome:'Motobombas e filtros', periodicidade:'Quinzenal', norma:'NBR 10339:2018', prioridade:'Média'},
+      {grupo:'Estrutura', nome:'Fachadas — fissuras e desplacamentos', periodicidade:'Quinzenal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Estrutura', nome:'Pilares e vigas (garagens)', periodicidade:'Mensal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Coberturas — drenos gerais', periodicidade:'Mensal', norma:'NBR 9575:2010', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Muros e jardineiras', periodicidade:'Mensal', norma:'NBR 9575:2010', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Calhas pluviais', periodicidade:'Mensal', norma:'NBR 10844:1989', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Bomba de recalque', periodicidade:'Mensal', norma:'NBR 5626:2020', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Quadros de distribuição', periodicidade:'Mensal', norma:'NBR 5410:2004', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Extintores', periodicidade:'Mensal', norma:'NBR 12962:2016', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Hidrantes', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'Relatório quinzenal', periodicidade:'Quinzenal', norma:'NBR 5674:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'Acompanhamento LT-2025-09', periodicidade:'Quinzenal', norma:'LT-2025-09', prioridade:'Crítico', critico:true},
+    ]
+  },
+
+  'portal-primavera':{
+    id:'portal-primavera', nome:'Condomínio Portal Primavera', short:'Portal Primavera',
+    cidade:'Hortolândia/SP', frequencia:'Quinzenal (2 visitas/mês)', classe:'pp',
+    sindico:'Camila Bonfim', endereco:'Av. Thereza Ana Cecon Breda, 1951 — Jardim das Colinas, Hortolândia/SP',
+    cnpj:'26.481.953/0001-02', incorporadora:'BRZ Empreendimentos',
+    emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#8DB72A"/><circle cx="32" cy="32" r="5" fill="#fff"/><path d="M32 14 C28 22 28 26 32 30 C36 26 36 22 32 14 Z" fill="#fff"/><path d="M32 50 C28 42 28 38 32 34 C36 38 36 42 32 50 Z" fill="#fff"/><path d="M14 32 C22 28 26 28 30 32 C26 36 22 36 14 32 Z" fill="#fff"/><path d="M50 32 C42 28 38 28 34 32 C38 36 42 36 50 32 Z" fill="#fff"/><circle cx="32" cy="32" r="3" fill="#8DB72A"/></svg>',
+    cor:'#8DB72A',
+    checklist:[
+      {id:'pp1',  critico:true,  grupo:'⚠ CRÍTICO — Laudo 12/2025',   nome:'Caixas d\'água metálicas',          detalhe:'Reservatório 1 (AZUL): inoperante — delamination interna, pintura incompleta. Reservatório 2 (AMARELO): inoperante — corrosão severa. RISCO SANITÁRIO GRAVE. Apenas 1 das 3 operacional.', norma:'NBR 5626:2020 / Portaria 888/2021 / Laudo 12/2025'},
+      {id:'pp2',  critico:false, grupo:'Alvenaria Estrutural',          nome:'Alvenaria estrutural — fissuras',   detalhe:'Inspecionar fissuras nas paredes estruturais, juntas de amarração, pontos de concentração de tensão', norma:'NBR 15575:2013 / NBR 6118:2023'},
+      {id:'pp3',  critico:false, grupo:'Alvenaria Estrutural',          nome:'Lajes — integridade e sobrecarga',  detalhe:'Verificar integridade, ausência de sobrecargas indevidas. Lajes calculadas para 250 kg/m².', norma:'NBR 6118:2023'},
+      {id:'pp4',  critico:false, grupo:'Elevadores',                    nome:'Elevadores — inspeção geral',       detalhe:'Cabine, botoeiras, iluminação, nivelamento, portas automáticas, alarme sonoro', norma:'NBR 16858:2020'},
+      {id:'pp5',  critico:false, grupo:'Impermeabilização',             nome:'Coberturas — drenos, calhas e rufos', detalhe:'Drenos livres e desobstruídos, calhas sem entulho, rufos vedados, telhas intactas', norma:'NBR 9575:2010'},
+      {id:'pp6',  critico:false, grupo:'Impermeabilização',             nome:'Esquadrias de alumínio — trilhos e vedação', detalhe:'Trilhos inferiores limpos e desobstruídos, borrachas de vedação íntegras, drenos nos trilhos', norma:'NBR 10821:2017'},
+      {id:'pp7',  critico:false, grupo:'Hidráulica',                    nome:'Bomba de recalque',                  detalhe:'Funcionamento, ruídos anormais, vazamentos, pressostato', norma:'NBR 5626:2020'},
+      {id:'pp8',  critico:false, grupo:'Hidráulica',                    nome:'Calhas pluviais e condutores',       detalhe:'Obstrução, vazamentos, emendas e ligações, condutores verticais', norma:'NBR 10844:1989'},
+      {id:'pp9',  critico:false, grupo:'Hidráulica',                    nome:'Esgoto / caixas de inspeção',        detalhe:'Obstrução, mau cheiro, refluxo, grelhas e tampas', norma:'NBR 8160:1999'},
+      {id:'pp10', critico:false, grupo:'Elétrica',                      nome:'Quadros elétricos',                  detalhe:'Disjuntores, DRs, temperatura, cabos, identificação dos circuitos', norma:'NBR 5410:2004'},
+      {id:'pp11', critico:false, grupo:'Elétrica',                      nome:'Iluminação de emergência',           detalhe:'Luminárias funcionando, autonomia mínima 1h, baterias íntegras', norma:'NBR 10898:2013'},
+      {id:'pp12', critico:false, grupo:'Incêndio',                      nome:'Extintores',                         detalhe:'Pressão, lacre, vencimento, fixação, sinalização NBR 12962', norma:'NBR 12962:2016'},
+      {id:'pp13', critico:false, grupo:'Incêndio',                      nome:'Hidrantes e mangotinhos',            detalhe:'Mangueira, esguicho, registro, abrigo, sinalização visível', norma:'NBR 13714:2019'},
+      {id:'pp14', critico:false, grupo:'Áreas Comuns',                  nome:'Guarda-corpos e corrimãos',          detalhe:'Fixação, altura regulamentar, sem amassamentos ou folgas', norma:'NBR 14718:2019'},
+      {id:'pp15', critico:false, grupo:'Áreas Comuns',                  nome:'Pisos de áreas comuns',              detalhe:'Solto, trincado, risco de queda, aderência das peças', norma:'NBR 13753:1996'},
+      {id:'pp16', critico:false, grupo:'Áreas Comuns',                  nome:'Playground',                         detalhe:'Equipamentos, fixação, corrosão, piso de impacto, ausência de pontas', norma:'NBR 16071:2012'},
+    ],
+    plano:[
+      {grupo:'CRÍTICO — Laudo 12/2025', nome:'Caixas d\'água — monitoramento pós-laudo (BR CAMP)', periodicidade:'Quinzenal', norma:'NBR 5626:2020 / Portaria 888/2021', prioridade:'Crítico', critico:true},
+      {grupo:'Elevadores', nome:'Inspeção de elevadores', periodicidade:'Quinzenal', norma:'NBR 16858:2020', prioridade:'Alta'},
+      {grupo:'Estrutura', nome:'Alvenaria estrutural — fissuras e trincas', periodicidade:'Quinzenal', norma:'NBR 15575:2013', prioridade:'Alta'},
+      {grupo:'Estrutura', nome:'Lajes — sobrecarga e integridade', periodicidade:'Trimestral', norma:'NBR 6118:2023', prioridade:'Média'},
+      {grupo:'Impermeabilização', nome:'Coberturas — drenos, calhas e rufos', periodicidade:'Mensal', norma:'NBR 9575:2010', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Fachadas — esquadrias e vedação (alumínio)', periodicidade:'Trimestral', norma:'NBR 10821:2017', prioridade:'Média'},
+      {grupo:'Hidráulica', nome:'Bomba de recalque', periodicidade:'Mensal', norma:'NBR 5626:2020', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Calhas pluviais e esgoto', periodicidade:'Mensal', norma:'NBR 10844:1989', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Reservatórios — limpeza e desinfecção', periodicidade:'Semestral', norma:'Portaria 888/2021', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Quadros de distribuição', periodicidade:'Mensal', norma:'NBR 5410:2004', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Iluminação de emergência', periodicidade:'Mensal', norma:'NBR 10898:2013', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'SPDA (para-raios)', periodicidade:'Anual', norma:'NBR 5419:2015', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Extintores', periodicidade:'Mensal', norma:'NBR 12962:2016', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Hidrantes e mangotinhos', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Pisos e revestimentos externos', periodicidade:'Mensal', norma:'NBR 13753:1996', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'Relatório quinzenal de visita', periodicidade:'Quinzenal', norma:'NBR 5674:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta'},
+    ]
+  },
+
+  'residencial-santa-clara':{
+    id:'residencial-santa-clara', nome:'Residencial Santa Clara', short:'Santa Clara',
+    cidade:'Paulínia/SP', frequencia:'Quinzenal (2 visitas/mês)', classe:'sc',
+    sindico:'Renato', endereco:'Av. João Vieira, 1877 — Jão Aranha, Paulínia/SP · CEP 13.145-756',
+    cnpj:'39.836.306/0001-18',
+    emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#7D3C98"/><polygon points="32,12 36,24 49,24 38,32 42,45 32,37 22,45 26,32 15,24 28,24" fill="#fff"/><circle cx="32" cy="30" r="3" fill="#7D3C98"/></svg>',
+    cor:'#7D3C98',
+    checklist:[
+      {id:'sc1',  critico:false, grupo:'Estrutura e Fachadas',          nome:'Fachadas — fissuras e desplacamentos', detalhe:'Eflorescências, descolamentos de revestimento, fissuras ativas progressivas', norma:'NBR 6118:2023'},
+      {id:'sc2',  critico:false, grupo:'Estrutura e Fachadas',          nome:'Pilares e vigas aparentes',            detalhe:'Corrosão de armaduras, fissuras estruturais, cobrimento do concreto', norma:'NBR 6118:2023'},
+      {id:'sc3',  critico:false, grupo:'Impermeabilização',             nome:'Coberturas e lajes — drenos',          detalhe:'Drenos livres, telhas intactas, calhas sem entulho, rufos vedados', norma:'NBR 9575:2010'},
+      {id:'sc4',  critico:false, grupo:'Impermeabilização',             nome:'Calhas e condutores pluviais',         detalhe:'Obstrução, vazamentos, emendas e ligações com os condutores verticais', norma:'NBR 10844:1989'},
+      {id:'sc5',  critico:false, grupo:'Hidráulica',                    nome:'Caixa d\'água / reservatórios',        detalhe:'Nível adequado, tampa vedada, estado geral, limpeza conforme Portaria 888', norma:'Portaria 888/2021'},
+      {id:'sc6',  critico:false, grupo:'Hidráulica',                    nome:'Bomba de recalque',                    detalhe:'Funcionamento, ruídos anormais, pressostato, vazamentos em conexões', norma:'NBR 5626:2020'},
+      {id:'sc7',  critico:false, grupo:'Hidráulica',                    nome:'Esgoto e caixas de inspeção',          detalhe:'Obstrução, mau cheiro, refluxo, grelhas e tampas íntegras', norma:'NBR 8160:1999'},
+      {id:'sc8',  critico:false, grupo:'Elétrica',                      nome:'Quadros elétricos',                    detalhe:'Disjuntores, DRs, temperatura, cabos, identificação dos circuitos', norma:'NBR 5410:2004'},
+      {id:'sc9',  critico:false, grupo:'Elétrica',                      nome:'Iluminação de emergência',             detalhe:'Luminárias funcionando, autonomia mínima 1h, baterias em bom estado', norma:'NBR 10898:2013'},
+      {id:'sc10', critico:false, grupo:'Incêndio',                      nome:'Extintores',                           detalhe:'Pressão no setor verde, lacre íntegro, vencimento, fixação, sinalização', norma:'NBR 12962:2016'},
+      {id:'sc11', critico:false, grupo:'Incêndio',                      nome:'Hidrantes',                            detalhe:'Mangueira, esguicho, registro, abrigo desobstruído, sinalização visível', norma:'NBR 13714:2019'},
+      {id:'sc12', critico:false, grupo:'Áreas Comuns',                  nome:'Guarda-corpos e corrimãos',            detalhe:'Fixação, altura regulamentar ≥ 1,10m, sem amassamentos ou folgas', norma:'NBR 14718:2019'},
+      {id:'sc13', critico:false, grupo:'Áreas Comuns',                  nome:'Pisos de áreas comuns',                detalhe:'Solto, trincado, risco de queda, aderência das peças cerâmicas', norma:'NBR 13753:1996'},
+      {id:'sc14', critico:false, grupo:'Áreas Comuns',                  nome:'Playground e equipamentos',            detalhe:'Fixação, corrosão, piso de impacto, ausência de pontas cortantes', norma:'NBR 16071:2012'},
+      {id:'sc15', critico:false, grupo:'Áreas Comuns',                  nome:'Portões e acessos',                    detalhe:'Funcionamento de motores, sensores de presença, travas eletrônicas, fotocélulas', norma:'Fabricante'},
+    ],
+    plano:[
+      {grupo:'Estrutura', nome:'Fachadas — inspeção visual de fissuras', periodicidade:'Quinzenal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Estrutura', nome:'Pilares e vigas aparentes — corrosão', periodicidade:'Mensal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Coberturas — drenos e calhas', periodicidade:'Mensal', norma:'NBR 9575:2010', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Reservatórios — limpeza semestral', periodicidade:'Semestral', norma:'Portaria 888/2021', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Bomba de recalque', periodicidade:'Mensal', norma:'NBR 5626:2020', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Calhas pluviais e esgoto', periodicidade:'Mensal', norma:'NBR 10844:1989', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Quadros de distribuição', periodicidade:'Mensal', norma:'NBR 5410:2004', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Iluminação de emergência', periodicidade:'Mensal', norma:'NBR 10898:2013', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'SPDA (para-raios)', periodicidade:'Anual', norma:'NBR 5419:2015', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Extintores', periodicidade:'Mensal', norma:'NBR 12962:2016', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Hidrantes', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Pisos, playground e portões', periodicidade:'Mensal', norma:'NBR 13753:1996', prioridade:'Média'},
+      {grupo:'Gestão', nome:'Relatório quinzenal de visita', periodicidade:'Quinzenal', norma:'NBR 5674:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta'},
+    ]
+  },
+
+  'jardins-do-malta':{
+    id:'jardins-do-malta', nome:'Condomínio Residencial Jardins do Malta', short:'Jardins do Malta',
+    cidade:'Hortolândia/SP', frequencia:'Quinzenal (2 visitas/mês)', classe:'jm',
+    sindico:'Aline Rafaela Raimundo', endereco:'Rua das Quaresmeiras, 160 — Jardim do Malta, Hortolândia/SP · CEP 13.185-096',
+    cnpj:'39.520.821/0001-94',
+    observacao:'Processo judicial nº 1005468-51.2022.8.26.0229 vs. Anhanguera Incorporações — Vara Cível Hortolândia/SP',
+    emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#D4A24C"/><path d="M32 52 L32 36" stroke="#5C3A0A" stroke-width="3" stroke-linecap="round"/><path d="M32 38 C24 34 18 30 16 22 C24 22 30 26 32 34 Z" fill="#fff"/><path d="M32 38 C40 34 46 30 48 22 C40 22 34 26 32 34 Z" fill="#fff"/><path d="M32 30 C26 28 22 24 22 16 C28 18 31 22 32 28 Z" fill="#fff"/><path d="M32 30 C38 28 42 24 42 16 C36 18 33 22 32 28 Z" fill="#fff"/><rect x="22" y="50" width="20" height="4" rx="1" fill="#5C3A0A"/></svg>',
+    cor:'#D4A24C',
+    checklist:[
+      {id:'jm1',  critico:true,  grupo:'⚠ CRÍTICO — Processo Judicial', nome:'Vícios construtivos (objeto da perícia)', detalhe:'Documentar fotograficamente evolução de patologias para reforço da ação judicial vs. Anhanguera', norma:'NBR 15575 / Proc. 1005468-51'},
+      {id:'jm2',  critico:false, grupo:'Estrutura e Fachadas',          nome:'Fachadas — fissuras e patologias',     detalhe:'Eflorescências, manchas, desplacamentos — registro fotográfico', norma:'NBR 6118:2023'},
+      {id:'jm3',  critico:false, grupo:'Estrutura e Fachadas',          nome:'Pilares e vigas aparentes',            detalhe:'Corrosão, fissuras estruturais, cobrimento do concreto', norma:'NBR 6118:2023'},
+      {id:'jm4',  critico:false, grupo:'Esquadrias',                    nome:'Esquadrias de alumínio — vedação',     detalhe:'Pingadeiras, calafetação, drenos dos trilhos', norma:'NBR 10821:2017'},
+      {id:'jm5',  critico:false, grupo:'Impermeabilização',             nome:'Coberturas — drenos, calhas, rufos',   detalhe:'Drenos livres, telhas intactas, rufos vedados', norma:'NBR 9575:2010'},
+      {id:'jm6',  critico:false, grupo:'Impermeabilização',             nome:'Subsolos e garagens',                  detalhe:'Infiltrações, eflorescências, juntas de dilatação', norma:'NBR 9575:2010'},
+      {id:'jm7',  critico:false, grupo:'Hidráulica',                    nome:'Reservatórios (caixas d\'água)',       detalhe:'Tampa, nível, estado geral, limpeza semestral', norma:'Portaria 888/2021'},
+      {id:'jm8',  critico:false, grupo:'Hidráulica',                    nome:'Bomba de recalque',                    detalhe:'Funcionamento, ruídos, pressostato', norma:'NBR 5626:2020'},
+      {id:'jm9',  critico:false, grupo:'Hidráulica',                    nome:'Esgoto e caixas de inspeção',          detalhe:'Obstrução, refluxo, grelhas, tampas', norma:'NBR 8160:1999'},
+      {id:'jm10', critico:false, grupo:'Elétrica',                      nome:'Quadros de distribuição',              detalhe:'Disjuntores, DRs, temperatura, identificação', norma:'NBR 5410:2004'},
+      {id:'jm11', critico:false, grupo:'Elétrica',                      nome:'Iluminação de emergência',             detalhe:'Funcionamento, autonomia mínima 1h', norma:'NBR 10898:2013'},
+      {id:'jm12', critico:false, grupo:'Incêndio',                      nome:'Extintores',                           detalhe:'Pressão, lacre, vencimento, fixação', norma:'NBR 12962:2016'},
+      {id:'jm13', critico:false, grupo:'Incêndio',                      nome:'Hidrantes',                            detalhe:'Mangueira, esguicho, registro, sinalização', norma:'NBR 13714:2019'},
+      {id:'jm14', critico:false, grupo:'Áreas Comuns',                  nome:'Guarda-corpos e corrimãos',            detalhe:'Fixação, altura regulamentar, integridade', norma:'NBR 14718:2019'},
+      {id:'jm15', critico:false, grupo:'Áreas Comuns',                  nome:'Pisos e playground',                   detalhe:'Pisos soltos/trincados, equipamentos do playground', norma:'NBR 16071:2012'},
+    ],
+    plano:[
+      {grupo:'CRÍTICO — Processo Judicial', nome:'Vícios construtivos — documentação fotográfica para perícia', periodicidade:'Quinzenal', norma:'Proc. 1005468-51.2022', prioridade:'Crítico', critico:true},
+      {grupo:'Estrutura e Fachadas', nome:'Inspeção visual de fachadas', periodicidade:'Quinzenal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Estrutura e Fachadas', nome:'Pilares e vigas (garagens)', periodicidade:'Mensal', norma:'NBR 6118:2023', prioridade:'Alta'},
+      {grupo:'Esquadrias', nome:'Esquadrias de alumínio — vedação e drenos', periodicidade:'Trimestral', norma:'NBR 10821:2017', prioridade:'Média'},
+      {grupo:'Impermeabilização', nome:'Coberturas — drenos, calhas e rufos', periodicidade:'Mensal', norma:'NBR 9575:2010', prioridade:'Alta'},
+      {grupo:'Impermeabilização', nome:'Subsolos e garagens', periodicidade:'Trimestral', norma:'NBR 9575:2010', prioridade:'Média'},
+      {grupo:'Hidráulica', nome:'Reservatórios — limpeza semestral', periodicidade:'Semestral', norma:'Portaria 888/2021', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Bomba de recalque', periodicidade:'Mensal', norma:'NBR 5626:2020', prioridade:'Alta'},
+      {grupo:'Hidráulica', nome:'Calhas pluviais e esgoto', periodicidade:'Mensal', norma:'NBR 10844:1989', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Quadros de distribuição', periodicidade:'Mensal', norma:'NBR 5410:2004', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'Iluminação de emergência', periodicidade:'Mensal', norma:'NBR 10898:2013', prioridade:'Alta'},
+      {grupo:'Elétrica', nome:'SPDA (para-raios)', periodicidade:'Anual', norma:'NBR 5419:2015', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Extintores', periodicidade:'Mensal', norma:'NBR 12962:2016', prioridade:'Alta'},
+      {grupo:'Incêndio', nome:'Hidrantes', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta'},
+      {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'Relatório técnico mensal (cláusula contratual)', periodicidade:'Mensal', norma:'NBR 5674:2012', prioridade:'Alta'},
+      {grupo:'Gestão', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta'},
+    ]
+  }
+};
+
+// Next wednesday calc
+function proximaQuarta(from=new Date()){
+  const d=new Date(from);
+  const dia=d.getDay();
+  const diff=(3-dia+7)%7||7;
+  d.setDate(d.getDate()+diff);
+  return d;
+}
+function fmtDate(d){
+  return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+}
+function fmtDateShort(d){
+  if(typeof d==='string') return d;
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function todayStr(){
+  const d=new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════════════
+let currentView = 'home';
+let visitaAtual = null;   // {condoId, data, hora, engenheiro, representante, itens:{id:{status,obs}}}
+let navStack = [];
+let planoTab = 'monte-carlo';
+
+function getEngenheiro(){ return localStorage.getItem('eng_nome')||'' }
+function setEngenheiro(v){ localStorage.setItem('eng_nome',v) }
+
+function getHistorico(){
+  try{ return JSON.parse(localStorage.getItem('historico')||'[]') }
+  catch(e){ return [] }
+}
+function saveVisita(v){
+  const h=getHistorico();
+  h.unshift(v);
+  localStorage.setItem('historico', JSON.stringify(h.slice(0,100)));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════════════════════════════════
+function navigate(view, push=true){
+  if(push && currentView!==view) navStack.push(currentView);
+  currentView = view;
+  render();
+  document.getElementById('main').scrollTop=0;
+}
+function goBack(){
+  const v = navStack.pop();
+  if(v) navigate(v, false);
+  else   navigate('home', false);
+}
+
+function setHeader(title, showBack=false, actions=''){
+  document.getElementById('header-title').textContent = title;
+  const bb = document.getElementById('btn-back');
+  showBack ? bb.classList.remove('hidden') : bb.classList.add('hidden');
+  document.getElementById('header-actions').innerHTML = actions;
+}
+function setNavActive(id){
+  document.querySelectorAll('.nav-btn,.sn-btn').forEach(b=>b.classList.remove('active'));
+  const el=document.getElementById(id);
+  if(el) el.classList.add('active');
+  const snId=id.replace(/^nav-/,'sn-');
+  const sn=document.getElementById(snId);
+  if(sn) sn.classList.add('active');
+}
+
+function render(){
+  const main = document.getElementById('main');
+  switch(currentView){
+    case 'home':          setNavActive('nav-home');     setHeader('Manutenção Preventiva'); renderHome(main); break;
+    case 'nova-visita':   setNavActive('nav-nova');     setHeader('Nova Visita',true);      renderNovaVisita(main); break;
+    case 'checklist':     setNavActive('nav-nova');     setHeader('Checklist de Campo',true,
+      `<button class="icon-btn" onclick="salvarRascunho()" title="Salvar rascunho">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      </button>`);
+      renderChecklist(main); break;
+    case 'relatorio':     setNavActive('nav-nova');     setHeader('Relatório da Visita',true); renderRelatorio(main); break;
+    case 'historico':     setNavActive('nav-historico');setHeader('Histórico de Visitas');    renderHistorico(main); break;
+    case 'historico-det': setNavActive('nav-historico');setHeader('Detalhe da Visita',true);  renderHistoricoDet(main); break;
+    case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026');              renderAgendaView(main); break;
+    case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção');     renderPlano(main); break;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — HOME
+// ═══════════════════════════════════════════════════════════════════════════
+function renderHome(main){
+  const hoje = new Date();
+  const eng = getEngenheiro();
+  const hist = getHistorico();
+  const hojeStr = todayStr();
+
+  // Próxima visita para cada condo
+  function proxVisita(condoId){
+    const dates=[...getVisitDates2026(condoId)].sort();
+    return dates.find(d=>d>=hojeStr)||dates[dates.length-1];
+  }
+  function fmtProx(str){
+    if(!str)return'—';
+    const [y,m,d]=str.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+  }
+  function fmtMD(str){ if(!str)return''; return str.slice(5).split('-').reverse().join('/'); }
+
+  const condosList=[
+    {id:'monte-carlo',label:'Monte Carlo',cls:'mc',freq:'📅 Semanal'},
+    {id:'morada-morumbi',label:'Morada Morumbi',cls:'mm',freq:'📅 Quinzenal'},
+    {id:'portal-primavera',label:'Portal Primavera',cls:'pp',freq:'📅 Quinzenal'},
+    {id:'residencial-santa-clara',label:'Santa Clara',cls:'sc',freq:'📅 Quinzenal'},
+    {id:'jardins-do-malta',label:'Jardins do Malta',cls:'jm',freq:'📅 Quinzenal'}
+  ];
+  const ultimas={};
+  condosList.forEach(c=>{ultimas[c.id]=hist.filter(v=>v.condoId===c.id)[0];});
+  const proximas=condosList.map(c=>({...c,prox:proxVisita(c.id)})).sort((a,b)=>a.prox<b.prox?-1:1);
+
+  main.innerHTML=`
+  <div class="home-hero">
+    <h1>Olá${eng?', '+eng.split(' ')[0]:''}! 👋</h1>
+    <p>Gestão de manutenção preventiva predial</p>
+    <div class="date">${hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
+  </div>
+
+  <div style="padding:0 16px;margin-top:16px">
+    <button class="eng-banner" onclick="showEngModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>${eng ? '👷 '+eng : 'Definir nome do engenheiro'}</span>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;opacity:.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <div class="section-title">Condomínios</div>
+  <div class="condo-grid">
+    ${condosList.map(c=>{
+      const cd=CONDOMINIOS[c.id];
+      const allDates=[...getVisitDates2026(c.id)].sort();
+      const prox=allDates.find(d=>d>=hojeStr)||allDates[allDates.length-1];
+      const at=prox?atividadesDia(c.id,prox,allDates):null;
+      const labels={padrao:'Padrão',mensal:'Mensal',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
+      return `
+    <div class="condo-card condo-${c.cls}">
+      <div class="condo-card-top"></div>
+      <div class="condo-card-body">
+        <h3><span class="emb">${cd.emblema}</span>${c.label}</h3>
+        <div class="freq">${c.freq}</div>
+        <div class="sindico">👤 Síndico(a): <b style="color:var(--text)">${cd.sindico}</b></div>
+        <div class="endereco">📍 ${cd.endereco}</div>
+        ${prox?`<div class="prox-act"><b>Próxima: ${fmtMD(prox)}</b> · ${labels[at.tipo]||'Padrão'}${at.criticos.length?' · <span style="color:#C00000;font-weight:700">⚠ '+at.criticos.length+' críticos</span>':''}</div>`:''}
+        <div class="card-actions">
+          <button class="btn-visit" onclick="iniciarVisita('${c.id}')">+ Visita</button>
+          <button class="btn-pdf-condo" onclick="gerarCalendarioPDF('${c.id}')" title="Compartilhar plano com síndico">📄 PDF Síndico</button>
+        </div>
+      </div>
+    </div>`}).join('')}
+  </div>
+
+  <div class="section-title">Próximas visitas — o que fazer</div>
+  <div class="card" style="margin:0 16px 16px;overflow:hidden">
+    ${proximas.map(c=>{
+      const cd=CONDOMINIOS[c.id];
+      const allDates=[...getVisitDates2026(c.id)].sort();
+      const at=atividadesDia(c.id,c.prox,allDates);
+      const labels={padrao:'Inspeção padrão',mensal:'1ª visita do mês',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
+      return `
+    <div class="visit-item" style="align-items:flex-start;padding:14px 16px;cursor:pointer" onclick="iniciarVisita('${c.id}','${c.prox}')" title="Iniciar visita programada">
+      <div class="visit-dot ${c.cls}" style="margin-top:6px"></div>
+      <div class="visit-info" style="flex:1">
+        <strong>${c.label}</strong>
+        <span style="display:block;margin-bottom:4px">${fmtProx(c.prox)} · ${labels[at.tipo]||'Inspeção'}</span>
+        ${at.criticos.length?`<div style="font-size:10.5px;color:#C00000;font-weight:700;margin-top:3px">⚠ Críticos: ${at.criticos.slice(0,2).join(' · ')}${at.criticos.length>2?' (+'+(at.criticos.length-2)+')':''}</div>`:''}
+        ${at.extras.length?`<div style="font-size:10.5px;color:var(--text2);margin-top:3px;line-height:1.5">+ ${at.extras.slice(0,3).join(' · ')}${at.extras.length>3?' (+'+(at.extras.length-3)+')':''}</div>`:''}
+      </div>
+      <div style="text-align:right;margin-top:4px;flex-shrink:0">
+        <div class="visit-date">${fmtMD(c.prox)}</div>
+        <div style="font-size:10px;color:var(--teal);font-weight:600;margin-top:6px;display:flex;align-items:center;gap:2px;justify-content:flex-end">Iniciar <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>
+      </div>
+    </div>`}).join('')}
+  </div>
+
+  <div style="padding:0 16px 4px;display:flex;gap:8px">
+    <button onclick="navigate('agenda')" style="flex:1;padding:12px 0;border:2px solid var(--teal);border-radius:10px;background:var(--white);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Ver Agenda
+    </button>
+    <button onclick="gerarAgendaEngenheiro()" style="flex:1;padding:12px 0;border:none;border-radius:10px;background:var(--teal);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      PDF Engenheiro
+    </button>
+  </div>
+
+  ${hist.length>0 ? `
+  <div class="section-title">Últimas visitas</div>
+  <div class="card" style="margin:0 16px 24px;overflow:hidden">
+    ${hist.slice(0,3).map(v=>{
+      const c=CONDOMINIOS[v.condoId];
+      const nc=Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length;
+      return `<div class="visit-item" onclick="verVisita('${v.id}')">
+        <div class="visit-dot ${c?.classe||'mc'}"></div>
+        <div class="visit-info">
+          <strong>${c?.short||v.condoId}</strong>
+          <span>${v.data} ${v.hora||''}</span>
+        </div>
+        ${nc>0 ? `<span class="badge badge-red">${nc} NC</span>` : `<span class="badge badge-green">OK</span>`}
+      </div>`;
+    }).join('')}
+  </div>` : ''}
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — NOVA VISITA
+// ═══════════════════════════════════════════════════════════════════════════
+let novaCondoSel = null;
+let novaDataSel = null;
+const CONDO_CLASS_MAP={'monte-carlo':'selected-mc','morada-morumbi':'selected-mm','portal-primavera':'selected-pp','residencial-santa-clara':'selected-sc','jardins-do-malta':'selected-jm'};
+const CONDO_ID_MAP={'monte-carlo':'mc','morada-morumbi':'mm','portal-primavera':'pp','residencial-santa-clara':'sc','jardins-do-malta':'jm'};
+
+function renderNovaVisita(main){
+  const hoje = novaDataSel || todayStr();
+  novaDataSel = null;
+  const agora = new Date().toTimeString().slice(0,5);
+  main.innerHTML=`
+  <div class="form-section">
+    <div class="form-group">
+      <label class="form-label">Condomínio</label>
+      <div class="condo-select-grid">
+        <div class="condo-opt ${novaCondoSel==='monte-carlo'?'selected-mc':''}" id="opt-mc" onclick="selectCondo('monte-carlo')">
+          <h4>Monte Carlo</h4><span>Toda quarta</span>
+        </div>
+        <div class="condo-opt ${novaCondoSel==='morada-morumbi'?'selected-mm':''}" id="opt-mm" onclick="selectCondo('morada-morumbi')">
+          <h4>Morada Morumbi</h4><span>Quinzenal</span>
+        </div>
+        <div class="condo-opt ${novaCondoSel==='portal-primavera'?'selected-pp':''}" id="opt-pp" onclick="selectCondo('portal-primavera')">
+          <h4>Portal Primavera</h4><span>Quinzenal</span>
+        </div>
+        <div class="condo-opt ${novaCondoSel==='residencial-santa-clara'?'selected-sc':''}" id="opt-sc" onclick="selectCondo('residencial-santa-clara')">
+          <h4>Santa Clara</h4><span>Quinzenal</span>
+        </div>
+        <div class="condo-opt ${novaCondoSel==='jardins-do-malta'?'selected-jm':''}" id="opt-jm" onclick="selectCondo('jardins-do-malta')">
+          <h4>Jardins do Malta</h4><span>Quinzenal</span>
+        </div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Data da visita</label>
+      <input class="form-input" type="date" id="inp-data" value="${hoje}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Hora de início</label>
+      <input class="form-input" type="time" id="inp-hora" value="${agora}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Engenheiro responsável</label>
+      <input class="form-input" type="text" id="inp-eng" placeholder="Nome completo" value="${getEngenheiro()}" oninput="setEngenheiro(this.value)">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Representante do condomínio</label>
+      <input class="form-input" type="text" id="inp-rep" placeholder="Síndico / Zelador">
+    </div>
+    <button class="btn-primary" id="btn-iniciar" onclick="iniciarChecklist()" ${novaCondoSel?'':'disabled'}>
+      Iniciar Checklist →
+    </button>
+  </div>`;
+}
+
+function selectCondo(id){
+  novaCondoSel=id;
+  document.querySelectorAll('.condo-opt').forEach(el=>el.className='condo-opt');
+  const el=document.getElementById('opt-'+CONDO_ID_MAP[id]);
+  if(el) el.className='condo-opt '+CONDO_CLASS_MAP[id];
+  document.getElementById('btn-iniciar').disabled=false;
+}
+
+function iniciarVisita(condoId, dataStr){
+  novaCondoSel=condoId;
+  if(dataStr) novaDataSel=dataStr;
+  navigate('nova-visita');
+  setTimeout(()=>{
+    document.querySelectorAll('.condo-opt').forEach(el=>el.className='condo-opt');
+    const el=document.getElementById('opt-'+CONDO_ID_MAP[condoId]);
+    if(el) el.className='condo-opt '+CONDO_CLASS_MAP[condoId];
+    document.getElementById('btn-iniciar').disabled=false;
+  },50);
+}
+
+function iniciarChecklist(){
+  const condoId = novaCondoSel;
+  if(!condoId) return;
+  const data = document.getElementById('inp-data').value;
+  const hora = document.getElementById('inp-hora').value;
+  const eng  = document.getElementById('inp-eng').value;
+  const rep  = document.getElementById('inp-rep').value;
+  if(eng) setEngenheiro(eng);
+  visitaAtual = {
+    id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    condoId, data, hora,
+    engenheiro: eng,
+    representante: rep,
+    itens: {},
+    obsGeral: ''
+  };
+  navigate('checklist');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — CHECKLIST
+// ═══════════════════════════════════════════════════════════════════════════
+function renderChecklist(main){
+  if(!visitaAtual){ navigate('nova-visita'); return; }
+  const condo = CONDOMINIOS[visitaAtual.condoId];
+  const itens = condo.checklist;
+  const total = itens.length;
+  const filled = itens.filter(i=>visitaAtual.itens[i.id]?.status).length;
+  const pct = total>0 ? Math.round(filled/total*100) : 0;
+
+  // Group items
+  const grupos = {};
+  itens.forEach(it=>{
+    if(!grupos[it.grupo]) grupos[it.grupo]=[];
+    grupos[it.grupo].push(it);
+  });
+
+  // Pauta da visita — o que o engenheiro deve fazer hoje
+  const allDates=[...getVisitDates2026(visitaAtual.condoId)].sort();
+  const at=atividadesDia(visitaAtual.condoId,visitaAtual.data,allDates);
+  const tipoLabels={padrao:'INSPEÇÃO PADRÃO',mensal:'1ª VISITA DO MÊS',trimestral:'VISITA TRIMESTRAL',semestral:'VISITA SEMESTRAL',anual:'VISITA ANUAL'};
+  const tipoCorBg={padrao:'rgba(255,255,255,.15)',mensal:'rgba(0,180,172,.35)',trimestral:'rgba(0,180,172,.5)',semestral:'rgba(141,183,42,.5)',anual:'rgba(125,60,152,.5)'};
+
+  let html=`
+  <div class="checklist-header" style="background:linear-gradient(135deg,${condo.cor} 0%,${condo.cor}DD 100%)">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
+      <div style="width:36px;height:36px;border-radius:6px;overflow:hidden;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2)">${condo.emblema}</div>
+      <div style="flex:1;min-width:0">
+        <h2 style="margin-bottom:1px">${condo.short}</h2>
+        <div style="font-size:10.5px;opacity:.75">👤 ${condo.sindico} · 📍 ${condo.endereco.split(' · ')[0]}</div>
+      </div>
+    </div>
+    <p style="margin-bottom:10px">📅 ${visitaAtual.data} • ${visitaAtual.hora}</p>
+
+    <div style="background:${tipoCorBg[at.tipo]};border-radius:8px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.6px;margin-bottom:4px;opacity:.85">PAUTA DESTA VISITA</div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px">📋 ${tipoLabels[at.tipo]||'INSPEÇÃO PADRÃO'}</div>
+      ${at.criticos.length?`<div style="font-size:11px;background:rgba(192,0,0,.85);padding:6px 8px;border-radius:5px;margin-bottom:5px;font-weight:700">⚠ ${at.criticos.length} item(ns) CRÍTICO(S) a inspecionar — verificar com prioridade máxima</div>`:''}
+      ${at.extras.length?`<div style="font-size:11px;line-height:1.5;opacity:.92"><b>Itens extras desta visita (${at.tipo}):</b><br>${at.extras.map(e=>'· '+e).join('<br>')}</div>`:'<div style="font-size:11px;opacity:.85">Itens da rotina padrão de inspeção quinzenal/semanal.</div>'}
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+    <div class="progress-text">${filled}/${total} itens preenchidos</div>
+  </div>`;
+
+  Object.entries(grupos).forEach(([grp,items])=>{
+    const isCritGrp = grp.includes('CRÍTICO');
+    html+=`<div class="group-header">
+      <div class="group-dot" style="background:${isCritGrp?'#C00000':condo.cor}"></div>
+      ${grp}
+    </div>`;
+    items.forEach(item=>{
+      const st = visitaAtual.itens[item.id]?.status||'';
+      const obs= visitaAtual.itens[item.id]?.obs||'';
+      const fotos = visitaAtual.itens[item.id]?.fotos||[];
+      const fotosHtml = `
+        <div class="fotos-section">
+          <div class="fotos-section-label">📷 Fotos da inspeção ${fotos.length?`<span style="color:var(--teal);background:var(--gray);padding:1px 7px;border-radius:10px;font-size:10px">${fotos.length}</span>`:''}</div>
+          ${fotos.length?`<div class="fotos-grid">${fotos.map((f,i)=>`
+            <div class="foto-thumb">
+              <img src="${f}" alt="Foto ${i+1}" onclick="editarFoto('${item.id}',${i})">
+              <button class="foto-thumb-edit" onclick="editarFoto('${item.id}',${i})" title="Editar anotações">✎</button>
+              <button class="foto-thumb-del" onclick="removerFoto('${item.id}',${i})" title="Remover">×</button>
+            </div>`).join('')}</div>`:''}
+          <button class="btn-add-foto" onclick="abrirCapturaFoto('${item.id}')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            ${fotos.length?'+ Adicionar outra foto':'Tirar / Adicionar foto com anotações'}
+          </button>
+        </div>`;
+      html+=`
+      <div class="checklist-item ${st?'status-'+st:''} ${item.critico?'is-critico':''}" id="ci-${item.id}">
+        ${item.critico?'<div class="item-critico-tag">⚠ Crítico</div>':''}
+        <div class="item-name">${item.nome}</div>
+        <div class="item-detail">${item.detalhe}</div>
+        <div class="status-btns">
+          <button class="status-btn ${st==='conforme'?'active-conforme':''}" onclick="setStatus('${item.id}','conforme')">✓ Conforme</button>
+          <button class="status-btn ${st==='nao_conforme'?'active-nao_conforme':''}" onclick="setStatus('${item.id}','nao_conforme')">✗ Não Conf.</button>
+          <button class="status-btn ${st==='na'?'active-na':''}" onclick="setStatus('${item.id}','na')">— N/A</button>
+        </div>
+        ${st==='nao_conforme'?`
+        <textarea class="obs-field" placeholder="Descreva a não conformidade..." onchange="setObs('${item.id}',this.value)">${obs}</textarea>`:''}
+        ${fotosHtml}
+      </div>`;
+    });
+  });
+
+  html+=`<div class="checklist-footer">
+    <button class="btn-finish" ${filled===total?'':'disabled'} onclick="finalizarChecklist()">
+      ${filled===total?'Finalizar e Gerar Relatório ✓':'Preencha todos os itens ('+filled+'/'+total+')'}
+    </button>
+  </div>`;
+
+  main.innerHTML=html;
+}
+
+function setStatus(itemId, status){
+  if(!visitaAtual.itens[itemId]) visitaAtual.itens[itemId]={status:'',obs:''};
+  visitaAtual.itens[itemId].status = status;
+  if(status!=='nao_conforme') visitaAtual.itens[itemId].obs='';
+  // Re-render only this item's area
+  renderChecklist(document.getElementById('main'));
+  // Scroll to item
+  setTimeout(()=>{
+    const el=document.getElementById('ci-'+itemId);
+    if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
+  },50);
+}
+
+function setObs(itemId, obs){
+  if(!visitaAtual.itens[itemId]) visitaAtual.itens[itemId]={status:'nao_conforme',obs:''};
+  visitaAtual.itens[itemId].obs=obs;
+}
+
+function finalizarChecklist(){
+  navigate('relatorio');
+}
+
+function salvarRascunho(){
+  if(visitaAtual){
+    try{
+      localStorage.setItem('rascunho', JSON.stringify(visitaAtual));
+      showToast('Rascunho salvo!');
+    }catch(e){
+      showToast('⚠ Espaço cheio — remova fotos antigas');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// FOTOS COM ANOTAÇÕES (círculo / seta / texto · vermelho / amarelo / verde)
+// ═══════════════════════════════════════════════════════════════════════════
+let editorState={itemId:null,bgImage:null,annotations:[],tool:'circle',color:'#C00000',drawing:false,fotoIndex:-1};
+
+let _camStream=null, _camFacing='environment', _camItemId=null;
+
+async function abrirCapturaFoto(itemId){
+  _camItemId=itemId;
+  // Tenta câmera direta — se falhar, fallback p/ seletor de arquivo
+  if(!navigator.mediaDevices?.getUserMedia){ abrirSeletorArquivo(itemId); return; }
+  const overlay=document.createElement('div');
+  overlay.className='cam-view'; overlay.id='cam-overlay';
+  overlay.innerHTML=`
+    <video id="cam-video" autoplay playsinline muted></video>
+    <div class="cam-topbar">
+      <button onclick="fecharCamera()">✕ Fechar</button>
+      <span style="font-size:13px;opacity:.85">📷 Capturar foto</span>
+      <button onclick="trocarCamera()" title="Alternar câmera">⇄ Câmera</button>
+    </div>
+    <div class="cam-controls">
+      <button class="cam-btn-file" onclick="abrirSeletorArquivo('${itemId}')" title="Escolher do aparelho">📁</button>
+      <button class="cam-btn-shoot" onclick="capturarFoto()" title="Tirar foto"></button>
+      <button class="cam-btn-switch" onclick="trocarCamera()" title="Alternar">⇄</button>
+    </div>`;
+  document.body.appendChild(overlay);
+  await iniciarStream();
+}
+
+async function iniciarStream(){
+  try{
+    if(_camStream) _camStream.getTracks().forEach(t=>t.stop());
+    _camStream=await navigator.mediaDevices.getUserMedia({
+      video:{ facingMode:{ideal:_camFacing}, width:{ideal:1920}, height:{ideal:1080} },
+      audio:false
+    });
+    const v=document.getElementById('cam-video');
+    if(v){ v.srcObject=_camStream; }
+  }catch(e){
+    const ov=document.getElementById('cam-overlay');
+    if(ov){
+      const denied=(e.name==='NotAllowedError'||e.name==='SecurityError');
+      ov.innerHTML=`<div class="cam-error">
+        <p style="font-size:16px;font-weight:700">⚠ Câmera bloqueada pelo navegador</p>
+        ${denied?`
+        <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:14px;margin:14px auto;max-width:480px;text-align:left;font-size:13px;line-height:1.7">
+          <b style="color:#FBC02D">Como liberar (Edge/Chrome no PC):</b>
+          <ol style="margin:8px 0 0 18px;padding:0">
+            <li>Clique no ícone 🔒 (cadeado) ou 🎥 (câmera) ao lado da URL</li>
+            <li>Localize "Câmera" e mude para <b>"Permitir"</b></li>
+            <li>Recarregue a página (F5)</li>
+          </ol>
+          <div style="margin-top:10px;font-size:12px;opacity:.75">No celular: vá em Configurações do navegador → Permissões do site → Câmera → permitir para este site.</div>
+        </div>`:`<p style="opacity:.7;font-size:12px">${e.name||'erro'}: ${e.message||'-'}</p>`}
+        <p style="margin-top:14px">Enquanto isso, você pode escolher uma foto do aparelho:</p>
+        <button onclick="abrirSeletorArquivo('${_camItemId}')">📁 Escolher arquivo</button>
+        <button onclick="fecharCamera()" style="background:#444">Cancelar</button>
+      </div>`;
+    }
+  }
+}
+
+async function trocarCamera(){
+  _camFacing=_camFacing==='environment'?'user':'environment';
+  await iniciarStream();
+}
+
+function capturarFoto(){
+  const v=document.getElementById('cam-video');
+  if(!v||!v.videoWidth){ alert('Aguardando câmera carregar…'); return; }
+  const c=document.createElement('canvas');
+  // Limita 1600px e mantém proporção
+  const maxW=1600, r=Math.min(1,maxW/v.videoWidth);
+  c.width=Math.round(v.videoWidth*r); c.height=Math.round(v.videoHeight*r);
+  c.getContext('2d').drawImage(v,0,0,c.width,c.height);
+  const dataURL=c.toDataURL('image/jpeg',0.82);
+  const it=_camItemId;
+  fecharCamera();
+  abrirEditorFoto(it,dataURL);
+}
+
+function fecharCamera(){
+  if(_camStream){ _camStream.getTracks().forEach(t=>t.stop()); _camStream=null; }
+  document.getElementById('cam-overlay')?.remove();
+}
+
+function abrirSeletorArquivo(itemId){
+  fecharCamera();
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='image/*';
+  inp.style.display='none';
+  inp.onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    try{
+      const dataURL=await compressarImagem(f);
+      abrirEditorFoto(itemId,dataURL);
+    }catch(err){ alert('Erro ao carregar imagem: '+err.message); }
+    inp.remove();
+  };
+  document.body.appendChild(inp);
+  inp.click();
+}
+
+function compressarImagem(file,maxW=1280,quality=0.78){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onload=()=>{
+      const img=new Image();
+      img.onload=()=>{
+        const r=Math.min(1,maxW/img.width);
+        const c=document.createElement('canvas');
+        c.width=Math.round(img.width*r); c.height=Math.round(img.height*r);
+        c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+        resolve(c.toDataURL('image/jpeg',quality));
+      };
+      img.onerror=()=>reject(new Error('imagem inválida'));
+      img.src=fr.result;
+    };
+    fr.onerror=()=>reject(new Error('leitura falhou'));
+    fr.readAsDataURL(file);
+  });
+}
+
+function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
+  editorState={itemId,bgImage:null,annotations:[],tool:'circle',color:'#C00000',drawing:false,fotoIndex};
+  const overlay=document.createElement('div');
+  overlay.className='foto-editor-overlay'; overlay.id='foto-editor';
+  overlay.innerHTML=`
+    <div class="foto-editor">
+      <div class="fe-toolbar">
+        <div class="fe-tools">
+          <button class="fe-tool active" data-tool="circle" title="Círculo">⭕</button>
+          <button class="fe-tool" data-tool="arrow" title="Seta">➜</button>
+          <button class="fe-tool" data-tool="text" title="Texto">T</button>
+        </div>
+        <div class="fe-divider"></div>
+        <div class="fe-colors">
+          <button class="fe-color active" data-color="#E53935" style="background:#E53935" title="Vermelho (crítico)"></button>
+          <button class="fe-color" data-color="#FBC02D" style="background:#FBC02D" title="Amarelo (atenção)"></button>
+          <button class="fe-color" data-color="#43A047" style="background:#43A047" title="Verde (OK)"></button>
+        </div>
+        <div class="fe-divider"></div>
+        <button class="fe-undo" onclick="editorUndo()">↶ Desfazer</button>
+        <button class="fe-clear" onclick="editorClear()">🗑 Limpar</button>
+      </div>
+      <div class="fe-canvas-wrap"><canvas id="fe-canvas"></canvas></div>
+      <div class="fe-hint">Toque e arraste para desenhar · Texto: toque no local desejado</div>
+      <div class="fe-footer">
+        <button class="fe-btn-cancel" onclick="fecharEditorFoto()">Cancelar</button>
+        <button class="fe-btn-save" onclick="salvarFotoEditor()">✓ Salvar Foto</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  const canvas=document.getElementById('fe-canvas');
+  const img=new Image();
+  img.onload=()=>{ canvas.width=img.width; canvas.height=img.height; editorState.bgImage=img; redrawEditor(); };
+  img.src=dataURL;
+
+  overlay.querySelectorAll('.fe-tool').forEach(b=>{
+    b.onclick=()=>{
+      overlay.querySelectorAll('.fe-tool').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); editorState.tool=b.dataset.tool;
+    };
+  });
+  overlay.querySelectorAll('.fe-color').forEach(b=>{
+    b.onclick=()=>{
+      overlay.querySelectorAll('.fe-color').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active'); editorState.color=b.dataset.color;
+    };
+  });
+
+  // Canvas mouse + touch
+  const getPos=ev=>{
+    const r=canvas.getBoundingClientRect();
+    const sx=canvas.width/r.width, sy=canvas.height/r.height;
+    const tx=ev.touches?ev.touches[0].clientX:ev.clientX;
+    const ty=ev.touches?ev.touches[0].clientY:ev.clientY;
+    return {x:(tx-r.left)*sx, y:(ty-r.top)*sy};
+  };
+  const down=ev=>{
+    ev.preventDefault();
+    const p=getPos(ev);
+    if(editorState.tool==='text'){
+      const t=prompt('Texto da anotação:','');
+      if(t){editorState.annotations.push({type:'text',color:editorState.color,x:p.x,y:p.y,text:t});redrawEditor();}
+      return;
+    }
+    editorState.drawing=true;
+    editorState.annotations.push({type:editorState.tool,color:editorState.color,x:p.x,y:p.y,x2:p.x,y2:p.y});
+  };
+  const move=ev=>{
+    if(!editorState.drawing) return;
+    ev.preventDefault();
+    const p=getPos(ev);
+    const last=editorState.annotations[editorState.annotations.length-1];
+    last.x2=p.x; last.y2=p.y; redrawEditor();
+  };
+  const up=ev=>{
+    if(!editorState.drawing) return;
+    editorState.drawing=false;
+    const last=editorState.annotations[editorState.annotations.length-1];
+    if(Math.hypot(last.x2-last.x,last.y2-last.y)<5){editorState.annotations.pop();redrawEditor();}
+  };
+  canvas.addEventListener('mousedown',down);
+  canvas.addEventListener('mousemove',move);
+  canvas.addEventListener('mouseup',up);
+  canvas.addEventListener('mouseleave',up);
+  canvas.addEventListener('touchstart',down,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',up);
+}
+
+function redrawEditor(){
+  const canvas=document.getElementById('fe-canvas');
+  if(!canvas||!editorState.bgImage) return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.drawImage(editorState.bgImage,0,0);
+  const lineW=Math.max(5,canvas.width/180);
+  editorState.annotations.forEach(a=>{
+    ctx.strokeStyle=a.color; ctx.fillStyle=a.color; ctx.lineWidth=lineW; ctx.lineCap='round';
+    if(a.type==='circle'){
+      const cx=(a.x+a.x2)/2, cy=(a.y+a.y2)/2;
+      const rx=Math.abs(a.x2-a.x)/2, ry=Math.abs(a.y2-a.y)/2;
+      ctx.beginPath();
+      ctx.ellipse(cx,cy,Math.max(rx,12),Math.max(ry,12),0,0,Math.PI*2);
+      ctx.stroke();
+    } else if(a.type==='arrow'){
+      const dx=a.x2-a.x, dy=a.y2-a.y;
+      const len=Math.hypot(dx,dy);
+      const ang=Math.atan2(dy,dx);
+      const head=Math.min(canvas.width*0.04,len*0.35);
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(a.x2,a.y2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(a.x2,a.y2);
+      ctx.lineTo(a.x2-head*Math.cos(ang-Math.PI/6),a.y2-head*Math.sin(ang-Math.PI/6));
+      ctx.lineTo(a.x2-head*Math.cos(ang+Math.PI/6),a.y2-head*Math.sin(ang+Math.PI/6));
+      ctx.closePath(); ctx.fill();
+    } else if(a.type==='text'){
+      const fs=Math.max(26,canvas.width/38);
+      ctx.font=`bold ${fs}px Arial,sans-serif`;
+      const m=ctx.measureText(a.text);
+      const pX=10, pY=8;
+      ctx.fillStyle='rgba(255,255,255,.92)';
+      ctx.fillRect(a.x-pX, a.y-fs-pY, m.width+pX*2, fs+pY*2);
+      ctx.strokeStyle=a.color; ctx.lineWidth=2;
+      ctx.strokeRect(a.x-pX, a.y-fs-pY, m.width+pX*2, fs+pY*2);
+      ctx.fillStyle=a.color;
+      ctx.fillText(a.text,a.x,a.y);
+    }
+  });
+}
+
+function editorUndo(){ editorState.annotations.pop(); redrawEditor(); }
+function editorClear(){ if(confirm('Apagar todas as anotações?')){editorState.annotations=[];redrawEditor();} }
+
+function salvarFotoEditor(){
+  const canvas=document.getElementById('fe-canvas');
+  const dataURL=canvas.toDataURL('image/jpeg',0.82);
+  if(!visitaAtual.itens[editorState.itemId]) visitaAtual.itens[editorState.itemId]={status:'',obs:'',fotos:[]};
+  const item=visitaAtual.itens[editorState.itemId];
+  if(!item.fotos) item.fotos=[];
+  if(editorState.fotoIndex>=0) item.fotos[editorState.fotoIndex]=dataURL;
+  else item.fotos.push(dataURL);
+  const sid=editorState.itemId;
+  fecharEditorFoto();
+  renderChecklist(document.getElementById('main'));
+  setTimeout(()=>document.getElementById('ci-'+sid)?.scrollIntoView({behavior:'smooth',block:'center'}),60);
+}
+
+function fecharEditorFoto(){ document.getElementById('foto-editor')?.remove(); }
+
+function removerFoto(itemId,idx){
+  if(!confirm('Remover esta foto?')) return;
+  const item=visitaAtual.itens[itemId];
+  if(item?.fotos){ item.fotos.splice(idx,1); renderChecklist(document.getElementById('main')); }
+}
+
+function editarFoto(itemId,idx){
+  const dataURL=visitaAtual.itens[itemId]?.fotos?.[idx];
+  if(dataURL) abrirEditorFoto(itemId,dataURL,idx);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — RELATÓRIO
+// ═══════════════════════════════════════════════════════════════════════════
+function renderRelatorio(main){
+  if(!visitaAtual){ navigate('home'); return; }
+  const condo = CONDOMINIOS[visitaAtual.condoId];
+  const itens = condo.checklist;
+  const conf  = itens.filter(i=>visitaAtual.itens[i.id]?.status==='conforme').length;
+  const nc    = itens.filter(i=>visitaAtual.itens[i.id]?.status==='nao_conforme').length;
+  const na    = itens.filter(i=>visitaAtual.itens[i.id]?.status==='na').length;
+  const ncItens = itens.filter(i=>visitaAtual.itens[i.id]?.status==='nao_conforme');
+
+  main.innerHTML=`
+  <div class="relatorio-header">
+    <h2>Relatório de Visita</h2>
+    <p>${condo.short} — ${visitaAtual.data}</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card green"><div class="stat-num">${conf}</div><div class="stat-label">Conformes</div></div>
+    <div class="stat-card red"><div class="stat-num">${nc}</div><div class="stat-label">Não Conf.</div></div>
+    <div class="stat-card gray"><div class="stat-num">${na}</div><div class="stat-label">N/A</div></div>
+  </div>
+
+  ${nc>0?`
+  <div style="padding:0 16px">
+    <div class="section-title" style="padding:8px 0 8px">Não Conformidades</div>
+    ${ncItens.map(i=>`
+    <div class="nc-item">
+      <strong>${i.nome}</strong>
+      <p>${visitaAtual.itens[i.id]?.obs||'(sem observação registrada)'}</p>
+    </div>`).join('')}
+  </div>`:''}
+
+  <div class="obs-section">
+    <div class="section-title" style="padding:12px 0 8px">Observações Gerais</div>
+    <textarea class="obs-general" placeholder="Condições gerais, pendências, recomendações..." onchange="visitaAtual.obsGeral=this.value">${visitaAtual.obsGeral||''}</textarea>
+  </div>
+
+  <div style="padding:0 16px 8px">
+    <div class="section-title" style="padding:0 0 8px">Engenheiro</div>
+    <input class="form-input" type="text" placeholder="Nome do engenheiro" value="${visitaAtual.engenheiro||''}" onchange="visitaAtual.engenheiro=this.value" style="margin-bottom:10px">
+    <div class="section-title" style="padding:0 0 8px">Representante do condomínio</div>
+    <input class="form-input" type="text" placeholder="Síndico / Zelador" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value">
+  </div>
+
+  <div style="height:16px"></div>
+  <button class="btn-pdf" onclick="gerarPDF()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Gerar PDF / Imprimir
+  </button>
+  <div style="height:8px"></div>
+  <button onclick="concluirVisita()" style="margin:0 16px;width:calc(100% - 32px);padding:14px;border:1.5px solid var(--teal);border-radius:var(--r-sm);background:transparent;color:var(--teal);font-size:14px;font-weight:700;cursor:pointer;">
+    Salvar e Concluir Visita
+  </button>
+  <div style="height:24px"></div>`;
+}
+
+function concluirVisita(){
+  if(!visitaAtual) return;
+  // update obs from textarea
+  const ta = document.querySelector('.obs-general');
+  if(ta) visitaAtual.obsGeral = ta.value;
+  saveVisita({...visitaAtual});
+  localStorage.removeItem('rascunho');
+  visitaAtual=null;
+  novaCondoSel=null;
+  showToast('Visita salva com sucesso!');
+  navStack=[];
+  navigate('historico');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PDF — window.print()
+// ═══════════════════════════════════════════════════════════════════════════
+function gerarPDF(){
+  const v = visitaAtual;
+  if(!v) return;
+  const condo = CONDOMINIOS[v.condoId];
+  const itens = condo.checklist;
+  const conf  = itens.filter(i=>v.itens[i.id]?.status==='conforme').length;
+  const nc    = itens.filter(i=>v.itens[i.id]?.status==='nao_conforme').length;
+  const na    = itens.filter(i=>v.itens[i.id]?.status==='na').length;
+  const ncItens = itens.filter(i=>v.itens[i.id]?.status==='nao_conforme');
+
+  // Build print HTML
+  const pa = document.getElementById('print-area');
+  pa.innerHTML=`
+  <div class="print-header">
+    <img src="assets/logo-vertical.png" alt="Diagnóstika Engenharia">
+    <div class="print-header-right">
+      <div>Relatório de Manutenção Preventiva</div>
+      <div>Diagnóstika Engenharia — CREA-SP</div>
+      <div>Gerado em: ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</div>
+    </div>
+  </div>
+
+  <div class="print-title">${condo.nome}</div>
+  <div class="print-subtitle">${condo.cidade} — Relatório de Visita de Manutenção Preventiva</div>
+
+  <div class="print-info-grid">
+    <div class="print-info-cell"><label>Data da visita</label><span>${v.data}</span></div>
+    <div class="print-info-cell"><label>Hora de início</label><span>${v.hora||'—'}</span></div>
+    <div class="print-info-cell"><label>Engenheiro responsável</label><span>${v.engenheiro||'—'}</span></div>
+    <div class="print-info-cell"><label>Representante</label><span>${v.representante||'—'}</span></div>
+  </div>
+
+  <div class="print-stats">
+    <div class="print-stat ps-green"><big>${conf}</big><small>Conformes</small></div>
+    <div class="print-stat ps-red"><big>${nc}</big><small>Não Conformidades</small></div>
+    <div class="print-stat ps-gray"><big>${na}</big><small>Não Aplicável</small></div>
+  </div>
+
+  ${nc>0?`
+  <div class="print-section-title">Não Conformidades Identificadas</div>
+  ${ncItens.map(i=>{
+    const fotos=v.itens[i.id]?.fotos||[];
+    return `
+  <div class="print-nc-item">
+    <strong>${i.nome}${i.critico?' [CRÍTICO]':''}</strong>
+    <p>${v.itens[i.id]?.obs||'Não conformidade identificada — sem observação detalhada.'}</p>
+    ${fotos.length?`<div class="print-fotos-grid">${fotos.map((f,k)=>`
+      <div class="print-foto">
+        <img src="${f}" alt="Foto ${k+1}">
+        <div class="print-foto-cap">Foto ${k+1} — ${i.nome}</div>
+      </div>`).join('')}</div>`:''}
+  </div>`;}).join('')}`:''}
+
+  ${(()=>{const fotosOutras=itens.filter(i=>v.itens[i.id]?.status!=='nao_conforme'&&(v.itens[i.id]?.fotos||[]).length);
+    if(!fotosOutras.length)return'';
+    return `<div class="print-section-title">Registro Fotográfico Adicional</div>
+    ${fotosOutras.map(i=>{
+      const fotos=v.itens[i.id].fotos;
+      return `<div style="margin-bottom:10pt">
+        <div style="font-size:10pt;font-weight:700;color:#155B67;margin-bottom:4pt">${i.nome}</div>
+        <div class="print-fotos-grid">${fotos.map((f,k)=>`
+          <div class="print-foto"><img src="${f}" alt=""><div class="print-foto-cap">Foto ${k+1}</div></div>`).join('')}</div>
+      </div>`;
+    }).join('')}`;})()}
+
+  <div class="print-section-title">Resultado Completo do Checklist</div>
+  <table class="print-all-table">
+    <thead><tr><th>Item</th><th>Grupo</th><th>Resultado</th><th>Observação</th></tr></thead>
+    <tbody>
+    ${itens.map(i=>{
+      const st=v.itens[i.id]?.status||'pendente';
+      const obs=v.itens[i.id]?.obs||'';
+      const stLabel = st==='conforme'?'Conforme' : st==='nao_conforme'?'Não Conforme' : st==='na'?'N/A':'—';
+      const stClass = st==='conforme'?'s-c' : st==='nao_conforme'?'s-n' : 's-a';
+      return `<tr class="${i.critico?'print-critico-row':''}">
+        <td>${i.nome}${i.critico?' <span class="print-tag-critico">CRÍTICO</span>':''}</td>
+        <td>${i.grupo.replace('⚠ ','')}</td>
+        <td class="${stClass}">${stLabel}</td>
+        <td>${obs}</td>
+      </tr>`;
+    }).join('')}
+    </tbody>
+  </table>
+
+  <div class="print-section-title">Observações Gerais</div>
+  <div class="print-obs-box">${v.obsGeral||'(nenhuma observação adicional registrada)'}</div>
+
+  <div class="print-sigs">
+    <div>
+      <div class="print-sig-line">Engenheiro Responsável</div>
+      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.engenheiro||'________________________________'}</div>
+      <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">Diagnóstika Engenharia</div>
+    </div>
+    <div>
+      <div class="print-sig-line">Representante do Condomínio</div>
+      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.representante||'________________________________'}</div>
+      <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">${condo.nome}</div>
+    </div>
+  </div>
+
+  <div class="print-footer">
+    Diagnóstika Engenharia — Manutenção Preventiva Predial — ${condo.cidade}<br>
+    Referências: NBR 5674:2012, NBR 6118:2023, NBR 9575:2010, NBR 5410:2004, NBR 12962:2016, NBR 10339:2018
+  </div>`;
+
+  window.print();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — HISTÓRICO
+// ═══════════════════════════════════════════════════════════════════════════
+let visitaDetDetalhe = null;
+
+function renderHistorico(main){
+  const hist = getHistorico();
+  if(hist.length===0){
+    main.innerHTML=`<div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <h3>Nenhuma visita registrada</h3>
+      <p>As visitas concluídas aparecerão aqui.<br>Toque em Nova Visita para começar.</p>
+    </div>`;
+    return;
+  }
+  main.innerHTML=hist.map(v=>{
+    const c=CONDOMINIOS[v.condoId];
+    const nc=Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length;
+    const total=c?c.checklist.length:0;
+    const conf=Object.values(v.itens||{}).filter(i=>i.status==='conforme').length;
+    return `<div class="hist-item" onclick="verVisita('${v.id}')">
+      <div class="hist-icon ${c?.classe||'mc'}">🏢</div>
+      <div class="hist-info">
+        <strong>${c?.short||v.condoId}</strong>
+        <span>${v.data} ${v.hora?'• '+v.hora:''} ${v.engenheiro?'• '+v.engenheiro:''}</span>
+      </div>
+      <div class="hist-right">
+        <small>${conf}/${total} conf.</small>
+        ${nc>0?`<span class="badge badge-red">${nc} NC</span>`:`<span class="badge badge-green">✓ OK</span>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function verVisita(id){
+  const hist=getHistorico();
+  const v=hist.find(x=>x.id===id);
+  if(!v) return;
+  visitaDetDetalhe=v;
+  navigate('historico-det');
+}
+
+function renderHistoricoDet(main){
+  const v=visitaDetDetalhe;
+  if(!v){ navigate('historico'); return; }
+  const condo=CONDOMINIOS[v.condoId];
+  const itens=condo.checklist;
+  const nc=itens.filter(i=>v.itens[i.id]?.status==='nao_conforme').length;
+  const conf=itens.filter(i=>v.itens[i.id]?.status==='conforme').length;
+  const na=itens.filter(i=>v.itens[i.id]?.status==='na').length;
+
+  main.innerHTML=`
+  <div class="relatorio-header">
+    <h2>${condo.short}</h2>
+    <p>${v.data}${v.hora?' • '+v.hora:''}</p>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card green"><div class="stat-num">${conf}</div><div class="stat-label">Conformes</div></div>
+    <div class="stat-card red"><div class="stat-num">${nc}</div><div class="stat-label">Não Conf.</div></div>
+    <div class="stat-card gray"><div class="stat-num">${na}</div><div class="stat-label">N/A</div></div>
+  </div>
+  <div style="padding:0 16px 8px">
+    <div class="section-title" style="padding:8px 0">Detalhes</div>
+    ${v.engenheiro?`<p style="font-size:13px;color:var(--text2);margin-bottom:4px">👷 ${v.engenheiro}</p>`:''}
+    ${v.representante?`<p style="font-size:13px;color:var(--text2);margin-bottom:4px">🏢 ${v.representante}</p>`:''}
+    ${v.obsGeral?`<div style="background:var(--gray);border-radius:8px;padding:10px 12px;margin-top:8px;font-size:13px;color:var(--text)">${v.obsGeral}</div>`:''}
+  </div>
+  <div class="section-title" style="padding:8px 16px">Checklist</div>
+  ${itens.map(i=>{
+    const st=v.itens[i.id]?.status||'—';
+    const obs=v.itens[i.id]?.obs||'';
+    const col=st==='conforme'?'var(--green)':st==='nao_conforme'?'var(--red)':'var(--gray3)';
+    const lbl=st==='conforme'?'✓ Conforme':st==='nao_conforme'?'✗ Não Conf.':st==='na'?'— N/A':'—';
+    return `<div class="checklist-item ${st==='nao_conforme'?'status-nao_conforme':''} ${i.critico?'is-critico':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1"><div class="item-name">${i.nome}</div>${obs?`<div class="item-detail">${obs}</div>`:''}</div>
+        <span style="font-size:11px;font-weight:700;color:${col};flex-shrink:0">${lbl}</span>
+      </div>
+    </div>`;
+  }).join('')}
+  <div style="padding:16px">
+    <button class="btn-pdf" onclick="gerarPDFHistorico('${v.id}')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Reimprimir PDF
+    </button>
+  </div>`;
+}
+
+function gerarPDFHistorico(id){
+  const hist=getHistorico();
+  const v=hist.find(x=>x.id===id);
+  if(!v) return;
+  const tmp=visitaAtual;
+  visitaAtual=v;
+  gerarPDF();
+  visitaAtual=tmp;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — PLANO
+// ═══════════════════════════════════════════════════════════════════════════
+function renderPlano(main){
+  const condo=CONDOMINIOS[planoTab];
+  // Group plano items
+  const grupos={};
+  condo.plano.forEach(it=>{
+    if(!grupos[it.grupo]) grupos[it.grupo]=[];
+    grupos[it.grupo].push(it);
+  });
+
+  main.innerHTML=`
+  <div class="plano-tabs">
+    <div class="plano-tab ${planoTab==='monte-carlo'?'active-mc':''}" onclick="switchPlano('monte-carlo')">Monte Carlo</div>
+    <div class="plano-tab ${planoTab==='morada-morumbi'?'active-mm':''}" onclick="switchPlano('morada-morumbi')">Morada Morumbi</div>
+    <div class="plano-tab ${planoTab==='portal-primavera'?'active-pp':''}" onclick="switchPlano('portal-primavera')">Portal Primavera</div>
+    <div class="plano-tab ${planoTab==='residencial-santa-clara'?'active-sc':''}" onclick="switchPlano('residencial-santa-clara')">Santa Clara</div>
+    <div class="plano-tab ${planoTab==='jardins-do-malta'?'active-jm':''}" onclick="switchPlano('jardins-do-malta')">Jardins do Malta</div>
+  </div>
+  <div class="condo-info-bar" style="margin:12px 16px 8px;padding:14px;background:linear-gradient(135deg,${condo.cor}22,${condo.cor}05);border-left:4px solid ${condo.cor};border-radius:10px;display:flex;align-items:center;gap:12px">
+    <div style="width:48px;height:48px;border-radius:8px;overflow:hidden;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.15)">${condo.emblema}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:2px">${condo.nome}</div>
+      <div style="font-size:11px;color:var(--text2);margin-bottom:2px">👤 Síndico(a): <b style="color:var(--text)">${condo.sindico}</b> · 📅 ${condo.frequencia}</div>
+      <div style="font-size:10.5px;color:var(--gray4);line-height:1.4">📍 ${condo.endereco}</div>
+    </div>
+  </div>
+  <div style="padding:4px 16px 4px;display:flex;gap:8px">
+    <button class="btn-pdf" onclick="gerarCalendarioPDF('${planoTab}')" style="background:${condo.cor};flex:1;margin:0;width:auto">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      PDF Plano · ${condo.short}
+    </button>
+    <button class="btn-pdf" onclick="compartilharSindico('${planoTab}')" style="background:var(--white);color:${condo.cor};border:2px solid ${condo.cor};flex:0 0 auto;margin:0;width:auto;padding:0 16px">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+      Compartilhar
+    </button>
+  </div>
+  ${Object.entries(grupos).map(([grp,items])=>{
+    const isCrit=grp.includes('CRÍTICO');
+    return `<div class="group-header" ${isCrit?'style="background:#FFF0F0;color:#C00000"':''}>
+      <div class="group-dot" style="background:${isCrit?'#C00000':condo.cor}"></div>
+      ${grp}
+    </div>
+    ${items.map(it=>`
+    <div class="plano-item ${it.critico?'is-critico':''}">
+      <div class="plano-item-left">
+        <strong>${it.nome}</strong>
+        <div class="plano-item-meta">
+          <span class="meta-tag teal">📅 ${it.periodicidade}</span>
+          <span class="meta-tag">${it.norma}</span>
+        </div>
+      </div>
+      <div class="plano-pri ${it.prioridade==='Crítico'?'pri-critico':it.prioridade==='Alta'?'pri-alta':'pri-media'}">${it.prioridade}</div>
+    </div>`).join('')}`;
+  }).join('')}
+  <div style="height:24px"></div>`;
+}
+
+function switchPlano(id){
+  planoTab=id;
+  renderPlano(document.getElementById('main'));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// COMPARTILHAR PARA SÍNDICO (Web Share API + fallback WhatsApp)
+// ═══════════════════════════════════════════════════════════════════════════
+function compartilharSindico(condoId){
+  const condo=CONDOMINIOS[condoId];
+  const visitas=getVisitDates2026(condoId).size;
+  const texto=`*Plano de Manutenção Preventiva 2026*
+${condo.nome}
+👤 Síndico(a): ${condo.sindico}
+📍 ${condo.endereco}
+📅 ${condo.frequencia} · ${visitas} visitas/ano
+
+Diagnóstika Engenharia — Engenharia Diagnóstica Especializada
+Para acessar o calendário completo e o plano detalhado por NBR, abra o PDF anexo.`;
+  if(navigator.share){
+    navigator.share({title:`Plano de Manutenção — ${condo.short}`,text:texto}).catch(()=>{});
+  } else {
+    // Fallback: abre WhatsApp Web com o texto
+    const url='https://wa.me/?text='+encodeURIComponent(texto);
+    window.open(url,'_blank');
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODAL — ENGENHEIRO
+// ═══════════════════════════════════════════════════════════════════════════
+function showEngModal(){
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.onclick=e=>{if(e.target===overlay) overlay.remove()};
+  overlay.innerHTML=`
+  <div class="modal">
+    <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+    <h3>Nome do engenheiro</h3>
+    <input class="form-input" type="text" id="modal-eng" placeholder="Nome completo" value="${getEngenheiro()}" style="margin-bottom:16px">
+    <button class="btn-primary" onclick="saveEng()">Salvar</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(()=>document.getElementById('modal-eng')?.focus(),100);
+}
+function saveEng(){
+  const v=document.getElementById('modal-eng')?.value||'';
+  setEngenheiro(v);
+  document.querySelector('.modal-overlay')?.remove();
+  render();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════════════
+function showToast(msg){
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1A2E31;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.25);animation:fadeIn .2s ease';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2500);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CALENDÁRIO ANUAL PDF
+// ═══════════════════════════════════════════════════════════════════════════
+function dateKey(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+
+function getVisitDates2026(condoId){
+  const set=new Set();
+  if(condoId==='monte-carlo'){
+    // All 52 Wednesdays — Jan 7 step 7
+    let d=new Date(2026,0,7);
+    while(d.getFullYear()===2026){set.add(dateKey(d));d.setDate(d.getDate()+7);}
+  } else if(condoId==='morada-morumbi'){
+    // Biweekly from Jan 7 (semanas ímpares: 1ª, 3ª, …)
+    let d=new Date(2026,0,7);
+    while(d.getFullYear()===2026){set.add(dateKey(d));d.setDate(d.getDate()+14);}
+  } else if(condoId==='residencial-santa-clara'){
+    // Biweekly from Jan 14 (semanas pares: 2ª, 4ª, …) — 2 visitas/mês conforme contrato
+    let d=new Date(2026,0,14);
+    while(d.getFullYear()===2026){set.add(dateKey(d));d.setDate(d.getDate()+14);}
+  } else if(condoId==='portal-primavera'){
+    // Quinzenal (2 visitas/mês) — Hortolândia/SP. Base Jan 14 (alterna com Morada Morumbi)
+    let d=new Date(2026,0,14);
+    while(d.getFullYear()===2026){set.add(dateKey(d));d.setDate(d.getDate()+14);}
+  } else if(condoId==='jardins-do-malta'){
+    // Quinzenal (2 visitas/mês) — Hortolândia/SP. Base Jan 7 (pareado com Morada Morumbi)
+    let d=new Date(2026,0,7);
+    while(d.getFullYear()===2026){set.add(dateKey(d));d.setDate(d.getDate()+14);}
+  }
+  return set;
+}
+
+function buildMonthGrid(year, month, visitSet, cor){
+  const DIAS=['D','S','T','Q','Q','S','S'];
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const firstDay=new Date(year,month,1).getDay();
+  const total=new Date(year,month+1,0).getDate();
+  let cells='';
+  for(let i=0;i<firstDay;i++) cells+=`<span class="cd-e"></span>`;
+  for(let d=1;d<=total;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const v=visitSet.has(key);
+    cells+=v
+      ?`<span class="cd-d"><b class="cd-v" style="background:${cor}">${d}</b></span>`
+      :`<span class="cd-d">${d}</span>`;
+  }
+  return `<div class="cal-m">
+    <div class="cal-mh">${MESES[month]}</div>
+    <div class="cal-dh">${DIAS.map(x=>`<b>${x}</b>`).join('')}</div>
+    <div class="cal-dg">${cells}</div>
+  </div>`;
+}
+
+function mesesAtivos(p){
+  const pl=(p||'').toLowerCase();
+  if(pl.includes('seman')||pl.includes('quinzen')||pl.includes('mensal')) return[1,2,3,4,5,6,7,8,9,10,11,12];
+  if(pl.includes('bimest')) return[1,3,5,7,9,11];
+  if(pl.includes('trimest')) return[1,4,7,10];
+  if(pl.includes('semest')) return[1,7];
+  if(pl.includes('anual')) return[1];
+  return[];
+}
+
+function buildMonthGridUnified(year, month, visitsMC, visitsMM){
+  const DIAS=['D','S','T','Q','Q','S','S'];
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const firstDay=new Date(year,month,1).getDay();
+  const total=new Date(year,month+1,0).getDate();
+  let cells='';
+  for(let i=0;i<firstDay;i++) cells+=`<span class="cd-e"></span>`;
+  for(let d=1;d<=total;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isMC=visitsMC.has(key), isMM=visitsMM.has(key);
+    if(isMC){
+      cells+=`<span class="cd-d"><b style="font-weight:700">${d}</b><div class="cd-pips">${isMM?`<span class="cd-pip cd-pip-mc"></span><span class="cd-pip cd-pip-mm"></span>`:`<span class="cd-pip cd-pip-mc"></span>`}</div></span>`;
+    } else {
+      cells+=`<span class="cd-d" style="color:#A8BFC2">${d}</span>`;
+    }
+  }
+  return `<div class="cal-m">
+    <div class="cal-mh">${MESES[month]}</div>
+    <div class="cal-dh">${DIAS.map(x=>`<b>${x}</b>`).join('')}</div>
+    <div class="cal-dg">${cells}</div>
+  </div>`;
+}
+
+function atividadesDia(condoId, dateStr, allDates){
+  const condo=CONDOMINIOS[condoId];
+  const dt=new Date(dateStr+'T12:00:00');
+  const month=dt.getMonth()+1;
+  const yearMonth=dateStr.substring(0,7);
+  const firstOfMonth=allDates.filter(d=>d.startsWith(yearMonth))[0]===dateStr;
+
+  const byPer=(p)=>condo.plano.filter(i=>(i.periodicidade||'').toLowerCase().includes(p));
+
+  // Determine cycle type and extras
+  let tipo='padrao'; const extras=[];
+  if(firstOfMonth){
+    tipo='mensal';
+    if([1,4,7,10].includes(month)){
+      tipo='trimestral';
+      byPer('trimest').forEach(i=>extras.push(i.nome));
+    }
+    if([1,7].includes(month)){
+      if(tipo!=='trimestral') tipo='semestral';
+      byPer('semest').forEach(i=>extras.push(i.nome));
+    }
+    if(month===1){
+      tipo='anual';
+      byPer('anual').forEach(i=>extras.push(i.nome));
+    }
+  }
+  const criticos=condo.plano.filter(i=>i.critico||i.prioridade==='Crítico').map(i=>i.nome);
+  return {tipo, extras, criticos};
+}
+
+function renderCelula(condoId, dateStr, allDates){
+  const {tipo,extras,criticos}=atividadesDia(condoId,dateStr,allDates);
+  const cor=CONDOMINIOS[condoId].cor;
+  const labels={padrao:'Padrão',mensal:'Mensal',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
+  let html=``;
+  if(criticos.length) html+=`<span class="ag-critico">⚠ ${criticos.length} Críticos</span>`;
+  html+=`<span class="ag-tipo ag-${tipo}">${labels[tipo]}</span>`;
+  if(extras.length) html+=`<div class="ag-items">${extras.map(e=>`· ${e}`).join('<br>')}</div>`;
+  return html;
+}
+
+function gerarAgendaEngenheiro(){
+  const visitsMC=getVisitDates2026('monte-carlo');
+  const visitsMM=getVisitDates2026('morada-morumbi');
+  const visitsSC=getVisitDates2026('residencial-santa-clara');
+  const visitsPP=getVisitDates2026('portal-primavera');
+  const visitsJM=getVisitDates2026('jardins-do-malta');
+  const allMC=[...visitsMC].sort();
+  const allMM=[...visitsMM].sort();
+  const allSC=[...visitsSC].sort();
+  const allPP=[...visitsPP].sort();
+  const allJM=[...visitsJM].sort();
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const visits4={mc:visitsMC,mm:visitsMM,sc:visitsSC,pp:visitsPP,jm:visitsJM};
+
+  // Calendário unificado com os 5 condomínios
+  let calHtml='';
+  for(let m=0;m<12;m++) calHtml+=buildMonthGrid4(2026,m,visits4);
+
+  // Todas as datas (união de todos)
+  const allDates=[...new Set([...allMC,...allMM,...allSC,...allPP,...allJM])].sort();
+  let agendaRows='', mesAtual=-1;
+  const totals={mc:visitsMC.size,mm:visitsMM.size,sc:visitsSC.size,pp:visitsPP.size,jm:visitsJM.size};
+
+  allDates.forEach(key=>{
+    const [,m,d]=key.split('-').map(Number);
+    const hasMC=visitsMC.has(key),hasMM=visitsMM.has(key);
+    const hasSC=visitsSC.has(key),hasPP=visitsPP.has(key);
+    const hasJM=visitsJM.has(key);
+    const count=[hasMC,hasMM,hasSC,hasPP,hasJM].filter(Boolean).length;
+
+    if(m-1!==mesAtual){
+      mesAtual=m-1;
+      agendaRows+=`<tr class="am-hdr"><td colspan="6">${MESES[m-1]}</td></tr>`;
+    }
+
+    const cel=(has,id,all)=>has?renderCelula(id,key,all):`<span class="ag-nc">—</span>`;
+    const rowCls=count>1?'ar-both':'ar-mc';
+
+    agendaRows+=`<tr class="${rowCls}">
+      <td style="white-space:nowrap;font-weight:700;font-size:7.5pt">${String(d).padStart(2,'0')}/${String(m).padStart(2,'0')}<br><span style="font-weight:400;color:#888;font-size:6.5pt">qua</span></td>
+      <td>${cel(hasMC,'monte-carlo',allMC)}</td>
+      <td>${cel(hasMM,'morada-morumbi',allMM)}</td>
+      <td>${cel(hasSC,'residencial-santa-clara',allSC)}</td>
+      <td>${cel(hasPP,'portal-primavera',allPP)}</td>
+      <td>${cel(hasJM,'jardins-do-malta',allJM)}</td>
+    </tr>`;
+  });
+
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  document.getElementById('print-area').innerHTML=`
+<div class="print-header">
+  <img src="assets/logo-vertical.png" alt="Diagnóstika">
+  <div class="print-header-right">
+    <div class="print-title">Agenda Unificada de Visitas — 2026</div>
+    <div>Diagnóstika Engenharia · Paulínia/SP &amp; Hortolândia/SP</div>
+    <div style="margin-top:2pt">Emitido em: ${hoje}</div>
+  </div>
+</div>
+
+<div class="agenda-summary" style="grid-template-columns:repeat(5,1fr)">
+  <div class="agenda-sum-card" style="background:#D6EBED;border:1pt solid #155B67">
+    <big style="color:#155B67">${totals.mc}</big><small>Monte Carlo</small>
+  </div>
+  <div class="agenda-sum-card" style="background:#CCF0EE;border:1pt solid #00B4AC">
+    <big style="color:#008A83">${totals.mm}</big><small>Morada Morumbi</small>
+  </div>
+  <div class="agenda-sum-card" style="background:#EDF5D8;border:1pt solid #8DB72A">
+    <big style="color:#6a8a1e">${totals.pp}</big><small>Portal Primavera</small>
+  </div>
+  <div class="agenda-sum-card" style="background:#F4ECF7;border:1pt solid #7D3C98">
+    <big style="color:#7D3C98">${totals.sc}</big><small>Santa Clara</small>
+  </div>
+  <div class="agenda-sum-card" style="background:#FAF1DD;border:1pt solid #D4A24C">
+    <big style="color:#A87826">${totals.jm}</big><small>Jardins do Malta</small>
+  </div>
+</div>
+
+<div class="cal-grid">${calHtml}</div>
+<div class="cal-legend" style="margin-top:6pt;margin-bottom:4pt;flex-wrap:wrap;gap:10pt">
+  <span><span class="cd-pip cd-pip-mc" style="width:8pt;height:8pt;flex-shrink:0;display:inline-block;border-radius:50%;vertical-align:middle"></span> Monte Carlo (semanal)</span>
+  <span><span class="cd-pip cd-pip-mm" style="width:8pt;height:8pt;flex-shrink:0;display:inline-block;border-radius:50%;vertical-align:middle"></span> Morada Morumbi (quinzenal)</span>
+  <span><span style="width:8pt;height:8pt;background:#8DB72A;display:inline-block;border-radius:50%;vertical-align:middle"></span> Portal Primavera (quinzenal)</span>
+  <span><span style="width:8pt;height:8pt;background:#7D3C98;display:inline-block;border-radius:50%;vertical-align:middle"></span> Santa Clara (quinzenal)</span>
+  <span><span style="width:8pt;height:8pt;background:#D4A24C;display:inline-block;border-radius:50%;vertical-align:middle"></span> Jardins do Malta (quinzenal)</span>
+</div>
+<div style="font-size:7pt;color:#5A7A7E;margin-bottom:12pt">
+  <span class="ag-tipo ag-padrao">Padrão</span> &nbsp;
+  <span class="ag-tipo ag-mensal">Mensal</span> 1ª visita do mês &nbsp;
+  <span class="ag-tipo ag-trimestral">Trimestral</span> Jan·Abr·Jul·Out &nbsp;
+  <span class="ag-tipo ag-semestral">Semestral</span> Jan·Jul &nbsp;
+  <span class="ag-tipo ag-anual">Anual</span> Janeiro
+</div>
+
+<div style="page-break-before:always;padding-top:1pt"></div>
+
+<div class="print-header">
+  <img src="assets/logo-vertical.png" alt="Diagnóstika">
+  <div class="print-header-right">
+    <div class="print-title">Programação Detalhada — 2026 (todos os condomínios)</div>
+    <div>Diagnóstika Engenharia · toda quarta-feira</div>
+  </div>
+</div>
+
+<table class="agenda-table2">
+  <thead>
+    <tr>
+      <th style="width:8%">Data</th>
+      <th style="width:19%">Monte Carlo</th>
+      <th class="th-mm" style="width:19%">Morada Morumbi</th>
+      <th style="width:18%;background:#8DB72A">Portal Primavera</th>
+      <th style="width:18%;background:#7D3C98">Santa Clara</th>
+      <th style="width:18%;background:#D4A24C;color:#3B2A0A">Jardins do Malta</th>
+    </tr>
+  </thead>
+  <tbody>${agendaRows}</tbody>
+</table>
+
+<div class="print-footer">
+  Diagnóstika Engenharia — Gestão de Manutenção Preventiva Predial · Paulínia/SP &amp; Hortolândia/SP<br>
+  Mensal = 1ª visita do mês · Trimestral = Jan, Abr, Jul, Out · Semestral = Jan, Jul · Anual = Janeiro
+</div>`;
+
+  window.print();
+}
+
+function gerarCalendarioPDF(condoId){
+  const condo=CONDOMINIOS[condoId];
+  const visitDates=getVisitDates2026(condoId);
+  const MES_ABBR=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+
+  // Build 12-month calendar grid
+  let calHtml='';
+  for(let m=0;m<12;m++) calHtml+=buildMonthGrid(2026,m,visitDates,condo.cor);
+
+  // Build activity schedule table
+  const grupos={};
+  condo.plano.forEach(it=>{ if(!grupos[it.grupo]) grupos[it.grupo]=[]; grupos[it.grupo].push(it); });
+
+  let tableRows='';
+  Object.entries(grupos).forEach(([grp,items])=>{
+    const isCrit=grp.toUpperCase().includes('CRÍTICO')||grp.toUpperCase().includes('CRITICO');
+    tableRows+=`<tr class="${isCrit?'cal-grp-crit':'cal-grp-row'}"><td colspan="15">${isCrit?'⚠ ':''} ${grp}</td></tr>`;
+    items.forEach(it=>{
+      const meses=mesesAtivos(it.periodicidade);
+      const isCritRow=it.critico||it.prioridade==='Crítico';
+      const dots=Array.from({length:12},(_,i)=>
+        meses.includes(i+1)
+          ?`<td class="cal-dot${isCritRow?' cal-dot-c':''}">●</td>`
+          :`<td></td>`
+      ).join('');
+      const priClass='cal-pri-'+(it.prioridade||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,'');
+      tableRows+=`<tr${isCritRow?' class="cal-crit-row"':''}>
+        <td class="cal-at">${it.nome}</td>
+        <td class="cal-per">${it.periodicidade}</td>
+        ${dots}
+        <td class="cal-pri ${priClass}">${it.prioridade}</td>
+      </tr>`;
+    });
+  });
+
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  document.getElementById('print-area').innerHTML=`
+<div class="print-header">
+  <img src="assets/logo-vertical.png" alt="Diagnóstika">
+  <div class="print-header-right">
+    <div class="print-title">Plano de Manutenção Preventiva — 2026</div>
+    <div>${condo.nome} · ${condo.cidade}</div>
+    <div style="margin-top:2pt">Visitas previstas: ${visitDates.size} · ${condo.frequencia}</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:14pt;align-items:center;padding:10pt 12pt;margin-bottom:10pt;background:${condo.cor}11;border-left:4pt solid ${condo.cor};border-radius:5pt">
+  <div style="width:54pt;height:54pt;flex-shrink:0;border-radius:6pt;overflow:hidden">${condo.emblema}</div>
+  <div style="flex:1;font-size:9pt;line-height:1.6;color:#1A2E31">
+    <div style="font-size:11pt;font-weight:700;color:${condo.cor};margin-bottom:2pt">${condo.nome}</div>
+    <div><b>Síndico(a):</b> ${condo.sindico} &nbsp;·&nbsp; <b>Frequência:</b> ${condo.frequencia}</div>
+    <div><b>Endereço:</b> ${condo.endereco}</div>
+    ${condo.cnpj?`<div><b>CNPJ:</b> ${condo.cnpj}${condo.incorporadora?' &nbsp;·&nbsp; <b>Incorporadora:</b> '+condo.incorporadora:''}</div>`:''}
+  </div>
+</div>
+
+<div class="cal-grid">${calHtml}</div>
+<div class="cal-legend">
+  <span class="cal-leg-dot" style="background:${condo.cor}"></span>
+  Dia de visita — Diagnóstika Engenharia
+  &nbsp;·&nbsp; Total 2026: <strong>${visitDates.size} visitas</strong>
+</div>
+
+<div style="page-break-before:always;padding-top:1pt"></div>
+
+<div class="print-header">
+  <img src="assets/logo-vertical.png" alt="Diagnóstika">
+  <div class="print-header-right">
+    <div class="print-title">Programação Anual de Manutenção — 2026</div>
+    <div>${condo.nome}</div>
+  </div>
+</div>
+
+<div class="cal-section-title">Atividades por Mês</div>
+<table class="cal-table">
+  <thead>
+    <tr>
+      <th class="cal-th-at">Atividade</th>
+      <th class="cal-th-per">Frequência</th>
+      ${MES_ABBR.map(m=>`<th class="cal-th-m">${m}</th>`).join('')}
+      <th class="cal-th-pri">Prior.</th>
+    </tr>
+  </thead>
+  <tbody>${tableRows}</tbody>
+</table>
+
+<div class="print-footer">
+  Diagnóstika Engenharia — Gestão de Manutenção Preventiva Predial · ${condo.cidade}<br>
+  Emitido em: ${hoje} · Ref.: NBR 5674:2012, NBR 6118:2023, NBR 9575:2010, NBR 5410:2004
+</div>`;
+
+  window.print();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CALENDÁRIO 4 CONDOS
+// ═══════════════════════════════════════════════════════════════════════════
+function buildMonthGrid4(year, month, visits4){
+  const DIAS=['D','S','T','Q','Q','S','S'];
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const firstDay=new Date(year,month,1).getDay();
+  const total=new Date(year,month+1,0).getDate();
+  let cells='';
+  for(let i=0;i<firstDay;i++) cells+=`<span class="cd-e"></span>`;
+  for(let d=1;d<=total;d++){
+    const key=`${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isMC=visits4.mc?.has(key),isMM=visits4.mm?.has(key);
+    const isSC=visits4.sc?.has(key),isPP=visits4.pp?.has(key);
+    const isJM=visits4.jm?.has(key);
+    if(isMC||isMM||isSC||isPP||isJM){
+      let pips='';
+      if(isMC)pips+=`<span class="cd-pip cd-pip-mc"></span>`;
+      if(isMM)pips+=`<span class="cd-pip cd-pip-mm"></span>`;
+      if(isSC)pips+=`<span class="cd-pip cd-pip-sc"></span>`;
+      if(isPP)pips+=`<span class="cd-pip cd-pip-pp"></span>`;
+      if(isJM)pips+=`<span class="cd-pip cd-pip-jm"></span>`;
+      cells+=`<span class="cd-d"><b style="font-weight:700">${d}</b><div class="cd-pips">${pips}</div></span>`;
+    } else {
+      cells+=`<span class="cd-d" style="color:#A8BFC2">${d}</span>`;
+    }
+  }
+  return `<div class="cal-m">
+    <div class="cal-mh">${MESES[month]}</div>
+    <div class="cal-dh">${DIAS.map(x=>`<b>${x}</b>`).join('')}</div>
+    <div class="cal-dg">${cells}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — AGENDA SCREEN
+// ═══════════════════════════════════════════════════════════════════════════
+function renderAgendaView(main){
+  const visits={
+    mc:getVisitDates2026('monte-carlo'),
+    mm:getVisitDates2026('morada-morumbi'),
+    sc:getVisitDates2026('residencial-santa-clara'),
+    pp:getVisitDates2026('portal-primavera'),
+    jm:getVisitDates2026('jardins-do-malta')
+  };
+  const allMC=[...visits.mc].sort();
+  const allMM=[...visits.mm].sort();
+  const allSC=[...visits.sc].sort();
+  const allPP=[...visits.pp].sort();
+  const allJM=[...visits.jm].sort();
+  const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const DOW=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const labels={padrao:'Padrão',mensal:'Mensal',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
+
+  // — Calendário visual —
+  let calHtml='<div class="cal-screen"><div class="cal-grid">';
+  for(let m=0;m<12;m++) calHtml+=buildMonthGrid4(2026,m,visits);
+  calHtml+=`</div></div>
+  <div class="cal-screen-legend">
+    <span style="display:inline-flex;gap:3px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:#155B67;display:inline-block"></span>Monte Carlo</span>
+    <span style="display:inline-flex;gap:3px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:#00B4AC;display:inline-block"></span>Morada Morumbi</span>
+    <span style="display:inline-flex;gap:3px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:#8DB72A;display:inline-block"></span>Portal Primavera</span>
+    <span style="display:inline-flex;gap:3px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:#7D3C98;display:inline-block"></span>Santa Clara</span>
+    <span style="display:inline-flex;gap:3px;align-items:center"><span style="width:7px;height:7px;border-radius:50%;background:#D4A24C;display:inline-block"></span>Jardins do Malta</span>
+  </div>`;
+
+  // — Programação —
+  const allDates=[...new Set([...allMC,...allMM,...allSC,...allPP,...allJM])].sort();
+  let progHtml='';
+  let mesAtual=-1;
+
+  allDates.forEach(dateStr=>{
+    const [y,mo,d]=dateStr.split('-').map(Number);
+    const dt=new Date(y,mo-1,d);
+    const dow=DOW[dt.getDay()];
+    const hasMC=visits.mc.has(dateStr),hasMM=visits.mm.has(dateStr);
+    const hasSC=visits.sc.has(dateStr),hasPP=visits.pp.has(dateStr);
+    const hasJM=visits.jm.has(dateStr);
+    const count=[hasMC,hasMM,hasSC,hasPP,hasJM].filter(Boolean).length;
+
+    if(mo-1!==mesAtual){mesAtual=mo-1;progHtml+=`<div class="prog-mes">${MESES[mo-1]}</div>`;}
+
+    function blocoAt(condoId,allD,cls,nome,nomeClass){
+      const at=atividadesDia(condoId,dateStr,allD);
+      return `<div class="prog-condo-bloco ${cls}-bloco">
+        <div class="prog-condo-nome ${nomeClass}">${nome}</div>
+        <div class="prog-grupo">
+          <span class="ag-tipo ag-${at.tipo}">${labels[at.tipo]}</span>
+          ${at.criticos.length?`<span class="ag-critico">⚠${at.criticos.length}</span>`:''}
+        </div>
+        ${at.extras.length?`<div class="prog-itens">${at.extras.slice(0,3).join(' · ')}</div>`:''}
+      </div>`;
+    }
+
+    progHtml+=`<div class="prog-visita${count>1?' prog-ambos':''}">
+      <div class="prog-data">
+        <div class="prog-dia">${String(d).padStart(2,'0')}</div>
+        <div class="prog-dow">${dow}</div>
+        <div class="prog-tag ${count>1?'pt-ambos':'pt-mc'}">${count>1?count+'x':'1x'}</div>
+      </div>
+      <div class="prog-conteudo">
+        ${hasMC?blocoAt('monte-carlo',allMC,'mc','Monte Carlo','mc'):''}
+        ${hasMM?blocoAt('morada-morumbi',allMM,'mm','Morada Morumbi','mm'):''}
+        ${hasPP?blocoAt('portal-primavera',allPP,'pp','Portal Primavera','pp'):''}
+        ${hasSC?blocoAt('residencial-santa-clara',allSC,'sc','Santa Clara','sc'):''}
+        ${hasJM?blocoAt('jardins-do-malta',allJM,'jm','Jardins do Malta','jm'):''}
+      </div>
+    </div>`;
+  });
+
+  main.innerHTML=`
+  <div class="av-tabs">
+    <button class="av-tab" id="avtab-prog" onclick="setAgendaTab('prog')">Programação</button>
+    <button class="av-tab" id="avtab-cal" onclick="setAgendaTab('cal')">Calendário Visual</button>
+  </div>
+  <div id="av-prog">
+    ${progHtml}
+    <div class="prog-export" style="padding-bottom:16px">
+      <button onclick="gerarAgendaEngenheiro()" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exportar PDF Completo
+      </button>
+    </div>
+  </div>
+  <div id="av-cal" class="hidden">${calHtml}</div>`;
+
+  setAgendaTab('prog');
+}
+
+function setAgendaTab(tab){
+  const prog=document.getElementById('av-prog');
+  const cal=document.getElementById('av-cal');
+  if(prog)prog.classList.toggle('hidden',tab!=='prog');
+  if(cal)cal.classList.toggle('hidden',tab!=='cal');
+  const tbP=document.getElementById('avtab-prog');
+  const tbC=document.getElementById('avtab-cal');
+  if(tbP)tbP.className='av-tab'+(tab==='prog'?' at-mc':'');
+  if(tbC)tbC.className='av-tab'+(tab==='cal'?' at-mc':'');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PWA SERVICE WORKER
+// ═══════════════════════════════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════════════════════
+// Restore draft if exists
+const draft=localStorage.getItem('rascunho');
+if(draft){ try{ visitaAtual=JSON.parse(draft); }catch(e){} }
+
+render();
+
+// Keyboard shortcut: ESC = go back
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') goBack(); });
+</script>
+</body>
+</html>

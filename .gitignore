@@ -1,0 +1,8 @@
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+assets/extracted/
+server.js
+Abrir App.bat
+.claude/

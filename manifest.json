@@ -1,0 +1,14 @@
+{
+  "name": "Diagnóstika — Manutenção Preventiva",
+  "short_name": "Diagnóstika",
+  "description": "Checklists e relatórios de manutenção preventiva em campo",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#155B67",
+  "theme_color": "#155B67",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "assets/icon.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
