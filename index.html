@@ -597,6 +597,47 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .cam-error p{margin-bottom:14px;font-size:14px;line-height:1.5}
 .cam-error button{padding:12px 20px;background:#155B67;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:0 6px}
 
+/* IA — botão e painel */
+.fe-tool.fe-ai{background:linear-gradient(135deg,#7B1FA2,#5B0F87);color:#fff;font-size:14px;position:relative;border:2px solid transparent}
+.fe-tool.fe-ai.ai-active{box-shadow:0 0 0 2px #FBC02D;border-color:#FBC02D}
+.fe-tool.fe-ai.ai-loading{animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.ai-panel{background:linear-gradient(135deg,rgba(123,31,162,.18),rgba(91,15,135,.08));border-top:2px solid #7B1FA2;color:#fff;padding:14px 16px;font-size:13px;max-height:50vh;overflow-y:auto}
+.ai-panel-header{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;color:#E1BEE7}
+.ai-panel-row{display:flex;gap:10px;margin-bottom:7px;line-height:1.5}
+.ai-panel-row b{color:#FBC02D;min-width:90px;flex-shrink:0;font-size:11px;text-transform:uppercase;letter-spacing:.3px;padding-top:2px}
+.ai-panel-row span{color:#fff;flex:1}
+.ai-sev{display:inline-block;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:.4px}
+.ai-sev.s-conforme{background:#1B8A4A;color:#fff}
+.ai-sev.s-baixa{background:#43A047;color:#fff}
+.ai-sev.s-media{background:#FBC02D;color:#3B2A0A}
+.ai-sev.s-alta{background:#E67E22;color:#fff}
+.ai-sev.s-critica{background:#C00000;color:#fff}
+.ai-conf{font-size:10px;color:#BBB;margin-left:6px}
+.ai-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.ai-actions button{flex:1;min-width:110px;padding:10px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+.ai-btn-aceitar{background:#1B8A4A;color:#fff}
+.ai-btn-editar{background:#FBC02D;color:#3B2A0A}
+.ai-btn-ignorar{background:#444;color:#fff}
+.ai-error{background:rgba(192,0,0,.25);border-left:3px solid #C00000;padding:8px 10px;margin-top:8px;font-size:12px;border-radius:4px}
+
+/* IA — Sugestão aplicada no item do checklist */
+.ai-applied{margin-top:8px;background:linear-gradient(135deg,rgba(123,31,162,.07),rgba(123,31,162,.02));border-left:3px solid #7B1FA2;border-radius:0 6px 6px 0;padding:8px 10px;font-size:11.5px;line-height:1.5;color:var(--text2)}
+.ai-applied b{color:#7B1FA2;font-size:10px;text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:3px}
+
+/* Configurações IA — modal */
+.cfg-section{margin-bottom:18px}
+.cfg-section h4{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.cfg-toggle{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--gray);border-radius:8px;margin-bottom:10px}
+.cfg-toggle-label{font-size:13px;font-weight:600}
+.cfg-toggle-sub{font-size:11px;color:var(--text2);font-weight:400}
+.cfg-switch{position:relative;width:46px;height:26px;background:var(--gray3);border-radius:13px;cursor:pointer;transition:background .2s;flex-shrink:0}
+.cfg-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s}
+.cfg-switch.on{background:#7B1FA2}
+.cfg-switch.on::after{transform:translateX(20px)}
+.cfg-help{font-size:11px;color:var(--text2);line-height:1.5;background:rgba(123,31,162,.05);border-left:3px solid #7B1FA2;padding:8px 10px;border-radius:0 6px 6px 0;margin-top:6px}
+.cfg-help a{color:#7B1FA2;font-weight:600}
+
 /* PDF: fotos */
 .print-fotos-grid{display:grid;grid-template-columns:1fr 1fr;gap:6pt;margin:6pt 0 8pt}
 .print-foto{border:1pt solid #E0EAEC;border-radius:3pt;overflow:hidden}
@@ -1045,11 +1086,14 @@ function renderHome(main){
     <div class="date">${hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
   </div>
 
-  <div style="padding:0 16px;margin-top:16px">
-    <button class="eng-banner" onclick="showEngModal()">
+  <div style="padding:0 16px;margin-top:16px;display:flex;gap:8px">
+    <button class="eng-banner" onclick="showEngModal()" style="flex:1;margin:0">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
       <span>${eng ? '👷 '+eng : 'Definir nome do engenheiro'}</span>
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto;opacity:.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+    <button onclick="showConfigIA()" title="Configurações da IA" style="flex:0 0 auto;background:${iaAtivada()?'linear-gradient(135deg,#7B1FA2,#5B0F87)':'var(--gray)'};color:${iaAtivada()?'#fff':'var(--text2)'};border:none;border-radius:var(--r-sm);padding:0 14px;cursor:pointer;font-size:18px;font-weight:700;display:flex;align-items:center;gap:4px;${iaAtivada()?'box-shadow:0 2px 8px rgba(123,31,162,.35)':''}">
+      🤖<span style="font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase">${iaAtivada()?'ON':'OFF'}</span>
     </button>
   </div>
 
@@ -1309,6 +1353,7 @@ function renderChecklist(main){
         </div>
         ${st==='nao_conforme'?`
         <textarea class="obs-field" placeholder="Descreva a não conformidade..." onchange="setObs('${item.id}',this.value)">${obs}</textarea>`:''}
+        ${visitaAtual.itens[item.id]?.ia_analise?`<div class="ai-applied"><b>🤖 Sugestão IA aplicada · ${new Date(visitaAtual.itens[item.id].ia_analise_data||Date.now()).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</b>${visitaAtual.itens[item.id].ia_analise.patologia||'—'} · <i>${visitaAtual.itens[item.id].ia_analise.norma||''}</i></div>`:''}
         ${fotosHtml}
       </div>`;
     });
@@ -1602,6 +1647,8 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
         <button class="fe-undo" onclick="editorUndo()">↶ Desfazer</button>
         <button class="fe-undo" onclick="editorRemoverSelecionada()" title="Excluir selecionada">⊘</button>
         <button class="fe-clear" onclick="editorClear()">🗑 Limpar</button>
+        <div class="fe-divider"></div>
+        <button class="fe-tool fe-ai ${iaAtivada()?'ai-active':''}" onclick="editorAnalisarIA()" title="${iaAtivada()?'Analisar com IA':'IA desativada — ative em Configurações'}">🤖 IA</button>
       </div>
       <div class="fe-canvas-wrap" id="fe-wrap"><canvas id="fe-canvas"></canvas></div>
       <div class="fe-hint">Desenhar: toque e arraste · Editar texto: <b>duplo toque</b> sobre ele · Mover ✋: toque na anotação e arraste · Pinça (2 dedos) ou roda do mouse = zoom</div>
@@ -1850,6 +1897,232 @@ function salvarFotoEditor(){
 }
 
 function fecharEditorFoto(){ document.getElementById('foto-editor')?.remove(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// IA — Análise de patologias via Claude Vision (chave do engenheiro local)
+// ═══════════════════════════════════════════════════════════════════════════
+function getIAConfig(){
+  try{ return JSON.parse(localStorage.getItem('ia_config')||'{}'); }catch(e){ return {}; }
+}
+function setIAConfig(cfg){ localStorage.setItem('ia_config',JSON.stringify(cfg)); }
+function iaAtivada(){ const c=getIAConfig(); return c.ativada===true && !!c.apiKey; }
+
+function showConfigIA(){
+  const cfg=getIAConfig();
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay'; overlay.id='cfg-ia-modal';
+  overlay.onclick=e=>{ if(e.target===overlay) overlay.remove(); };
+  overlay.innerHTML=`
+  <div class="modal" style="max-width:520px">
+    <button class="modal-close" onclick="document.getElementById('cfg-ia-modal').remove()">×</button>
+    <h3>🤖 Assistente IA · Análise de Patologias</h3>
+
+    <div class="cfg-section">
+      <div class="cfg-toggle">
+        <div>
+          <div class="cfg-toggle-label">Ativar análise por IA</div>
+          <div class="cfg-toggle-sub">Sugere patologias, severidade, causas e normas</div>
+        </div>
+        <div class="cfg-switch ${cfg.ativada?'on':''}" id="cfg-switch-ia" onclick="this.classList.toggle('on');document.getElementById('cfg-status').textContent=this.classList.contains('on')?'Ativada':'Desativada'"></div>
+      </div>
+      <div style="text-align:center;font-size:11px;color:var(--text2);margin-top:-4px">Estado atual: <b id="cfg-status">${cfg.ativada?'Ativada':'Desativada'}</b></div>
+    </div>
+
+    <div class="cfg-section">
+      <h4>🔑 Chave da API Anthropic</h4>
+      <input type="password" class="form-input" id="cfg-apikey" placeholder="sk-ant-api..." value="${cfg.apiKey||''}" style="font-family:monospace;font-size:12px">
+      <div class="cfg-help">
+        Como obter:<br>
+        1. Acesse <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a> e crie uma conta<br>
+        2. Vá em <b>API Keys</b> → <b>Create Key</b><br>
+        3. Copie a chave (começa com <code>sk-ant-</code>) e cole acima<br>
+        4. <b>Custo:</b> ~US$ 0.003 por análise de foto (Claude Haiku) · adicione crédito de US$ 5 no console (dura ~1600 análises)
+      </div>
+    </div>
+
+    <div class="cfg-section">
+      <h4>⚙ Modelo</h4>
+      <select class="form-input" id="cfg-modelo" style="cursor:pointer">
+        <option value="claude-haiku-4-5" ${(!cfg.modelo||cfg.modelo==='claude-haiku-4-5')?'selected':''}>Claude Haiku 4.5 — rápido e econômico (recomendado)</option>
+        <option value="claude-sonnet-4-5" ${cfg.modelo==='claude-sonnet-4-5'?'selected':''}>Claude Sonnet 4.5 — mais preciso (3x mais caro)</option>
+      </select>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button class="btn-primary" style="flex:1;margin:0" onclick="salvarConfigIA()">Salvar</button>
+      <button class="btn-primary" style="flex:0 0 auto;margin:0;background:#7B1FA2;padding:0 16px" onclick="testarIA()">Testar conexão</button>
+    </div>
+    <div id="cfg-teste-resultado" style="margin-top:10px"></div>
+  </div>`;
+  document.body.appendChild(overlay);
+}
+
+function salvarConfigIA(){
+  const ativada=document.getElementById('cfg-switch-ia').classList.contains('on');
+  const apiKey=document.getElementById('cfg-apikey').value.trim();
+  const modelo=document.getElementById('cfg-modelo').value;
+  setIAConfig({ativada,apiKey,modelo});
+  document.getElementById('cfg-ia-modal')?.remove();
+  showToast(ativada?'🤖 IA ativada':'IA desativada');
+}
+
+async function testarIA(){
+  const apiKey=document.getElementById('cfg-apikey').value.trim();
+  const modelo=document.getElementById('cfg-modelo').value;
+  const div=document.getElementById('cfg-teste-resultado');
+  div.innerHTML='<div style="color:var(--text2);font-size:12px">⏳ Testando conexão…</div>';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model:modelo,max_tokens:50,messages:[{role:'user',content:'Diga apenas "OK" em uma palavra.'}]})
+    });
+    const data=await r.json();
+    if(data.error){ div.innerHTML='<div class="ai-error">❌ Erro: '+data.error.message+'</div>'; return; }
+    div.innerHTML='<div style="background:rgba(27,138,74,.15);border-left:3px solid #1B8A4A;padding:8px 10px;font-size:12px;border-radius:4px;color:var(--text)">✅ Conexão OK · resposta: <i>'+(data.content?.[0]?.text||'?')+'</i></div>';
+  }catch(e){ div.innerHTML='<div class="ai-error">❌ Erro de rede: '+e.message+'</div>'; }
+}
+
+// — Analisar foto com IA dentro do editor —
+async function editorAnalisarIA(){
+  if(!iaAtivada()){
+    if(confirm('IA não está ativada. Deseja abrir as configurações?')) showConfigIA();
+    return;
+  }
+  const canvas=document.getElementById('fe-canvas');
+  if(!canvas) return;
+  // Comprime a imagem com anotações já desenhadas
+  const tmp=document.createElement('canvas');
+  const maxW=1024, r=Math.min(1,maxW/canvas.width);
+  tmp.width=Math.round(canvas.width*r); tmp.height=Math.round(canvas.height*r);
+  tmp.getContext('2d').drawImage(canvas,0,0,tmp.width,tmp.height);
+  const b64=tmp.toDataURL('image/jpeg',0.78).split(',')[1];
+
+  // Contexto da visita
+  const condo=CONDOMINIOS[visitaAtual?.condoId];
+  const item=condo?.checklist?.find(i=>i.id===editorState.itemId);
+  const cfg=getIAConfig();
+  // Histórico do item nas últimas visitas (até 3)
+  const hist=getHistorico().filter(v=>v.condoId===visitaAtual?.condoId).slice(0,3);
+  const historicoItem=hist.map(v=>{
+    const r=v.itens[editorState.itemId];
+    if(!r) return null;
+    return `Em ${v.data}: status=${r.status||'—'}${r.obs?', obs: "'+r.obs+'"':''}`;
+  }).filter(Boolean).join('\n') || 'Sem registros anteriores deste item.';
+
+  const prompt=`Você é um engenheiro civil especialista em manutenção predial e inspeção predial (norma NBR 16747). Analise a imagem desta inspeção e identifique possíveis patologias construtivas.
+
+CONTEXTO DA VISITA:
+- Condomínio: ${condo?.nome||'?'} (${condo?.cidade||'?'})
+- Item inspecionado: ${item?.nome||'?'}
+- Detalhes a observar: ${item?.detalhe||'?'}
+- Norma técnica de referência: ${item?.norma||'?'}
+- Item crítico: ${item?.critico?'SIM':'não'}
+
+HISTÓRICO RECENTE DESTE ITEM NESTE CONDOMÍNIO:
+${historicoItem}
+
+INSTRUÇÕES:
+1. Identifique a patologia visível (ou confirme estado normal)
+2. Classifique severidade: Conforme, Baixa, Média, Alta ou Crítica
+3. Sugira causa provável da patologia
+4. Recomende ação técnica (monitoramento, reparo, intervenção)
+5. Cite norma técnica aplicável (NBR específica)
+6. Indique nível de confiança (0-100%)
+7. Sugira status: conforme, nao_conforme ou na
+
+Responda APENAS em JSON estrito, sem texto adicional:
+{
+  "patologia": "descrição da patologia ou 'Estado conforme — sem anomalias visíveis'",
+  "severidade": "Conforme|Baixa|Média|Alta|Crítica",
+  "causa": "causa provável",
+  "recomendacao": "ação técnica recomendada",
+  "norma": "NBR específica com item",
+  "confianca": 75,
+  "status_sugerido": "conforme|nao_conforme|na",
+  "obs_sugerida": "texto pronto para colar no campo de observação (objetivo, técnico, conciso)"
+}`;
+
+  // Painel "analisando"
+  let panel=document.getElementById('ai-panel');
+  if(!panel){
+    panel=document.createElement('div');
+    panel.id='ai-panel'; panel.className='ai-panel';
+    document.querySelector('.foto-editor')?.insertBefore(panel,document.querySelector('.fe-footer'));
+  }
+  panel.innerHTML=`<div class="ai-panel-header">🤖 Analisando imagem com IA…</div><div style="font-size:11px;color:#BBB">Aguarde 3-8 segundos</div>`;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':cfg.apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:cfg.modelo||'claude-haiku-4-5',
+        max_tokens:1024,
+        messages:[{
+          role:'user',
+          content:[
+            {type:'image',source:{type:'base64',media_type:'image/jpeg',data:b64}},
+            {type:'text',text:prompt}
+          ]
+        }]
+      })
+    });
+    const data=await resp.json();
+    if(data.error){ panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ ${data.error.message}</div>`; return; }
+    const texto=data.content?.[0]?.text||'';
+    const match=texto.match(/\{[\s\S]*\}/);
+    if(!match){ panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ Resposta sem JSON válido.</div><pre style="font-size:10px;color:#999;white-space:pre-wrap;margin-top:6px">${texto.substring(0,400)}</pre>`; return; }
+    const r=JSON.parse(match[0]);
+    renderResultadoIA(panel,r);
+  }catch(e){
+    panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ Erro de rede/CORS: ${e.message}</div>`;
+  }
+}
+
+function renderResultadoIA(panel,r){
+  const sevClass={'Conforme':'s-conforme','Baixa':'s-baixa','Média':'s-media','Media':'s-media','Alta':'s-alta','Crítica':'s-critica','Critica':'s-critica'}[r.severidade]||'s-media';
+  panel.innerHTML=`
+    <div class="ai-panel-header">🤖 Análise IA · Patologia detectada</div>
+    <div class="ai-panel-row"><b>Patologia</b><span>${r.patologia||'—'}</span></div>
+    <div class="ai-panel-row"><b>Severidade</b><span><span class="ai-sev ${sevClass}">${r.severidade||'—'}</span><span class="ai-conf">${r.confianca||0}% confiança</span></span></div>
+    <div class="ai-panel-row"><b>Causa</b><span>${r.causa||'—'}</span></div>
+    <div class="ai-panel-row"><b>Recomendação</b><span>${r.recomendacao||'—'}</span></div>
+    <div class="ai-panel-row"><b>Norma</b><span>${r.norma||'—'}</span></div>
+    <div class="ai-panel-row"><b>Obs sugerida</b><span style="font-style:italic">${r.obs_sugerida||'—'}</span></div>
+    <div class="ai-actions">
+      <button class="ai-btn-aceitar" onclick='aceitarSugestaoIA(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✓ Aceitar e preencher</button>
+      <button class="ai-btn-editar" onclick='editarSugestaoIA(${JSON.stringify(r).replace(/'/g,"&#39;")})'>✎ Editar antes</button>
+      <button class="ai-btn-ignorar" onclick="document.getElementById('ai-panel').remove()">✗ Ignorar</button>
+    </div>`;
+}
+
+function aceitarSugestaoIA(r){
+  if(!visitaAtual.itens[editorState.itemId]) visitaAtual.itens[editorState.itemId]={status:'',obs:'',fotos:[]};
+  const it=visitaAtual.itens[editorState.itemId];
+  it.status=r.status_sugerido||it.status||'nao_conforme';
+  it.obs=r.obs_sugerida||it.obs||'';
+  it.ia_analise=r;
+  it.ia_analise_data=Date.now();
+  showToast('✓ Sugestão IA aplicada ao item');
+  document.getElementById('ai-panel')?.remove();
+}
+
+function editarSugestaoIA(r){
+  const novo=prompt('Editar observação sugerida:',r.obs_sugerida||'');
+  if(novo===null) return;
+  aceitarSugestaoIA({...r,obs_sugerida:novo});
+}
 
 function removerFoto(itemId,idx){
   if(!confirm('Remover esta foto?')) return;
