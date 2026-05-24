@@ -597,6 +597,43 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .cam-error p{margin-bottom:14px;font-size:14px;line-height:1.5}
 .cam-error button{padding:12px 20px;background:#155B67;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:0 6px}
 
+/* Preview do Relatório / PDF */
+.preview-overlay{position:fixed;inset:0;background:#2a2a2a;z-index:200;display:flex;flex-direction:column}
+.preview-topbar{background:#1a1a1a;color:#fff;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #333;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:2}
+.preview-topbar .pt-back{background:transparent;border:none;color:#fff;font-size:22px;cursor:pointer;padding:4px 10px;line-height:1;border-radius:6px}
+.preview-topbar .pt-back:hover{background:rgba(255,255,255,.1)}
+.preview-titulo{flex:1;font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;letter-spacing:.2px}
+.preview-zoom{display:flex;align-items:center;gap:4px;background:#333;padding:3px 4px;border-radius:6px;flex-shrink:0}
+.preview-zoom button{background:#444;border:none;color:#fff;width:30px;height:30px;border-radius:5px;cursor:pointer;font-size:14px;font-weight:700;padding:0;display:flex;align-items:center;justify-content:center}
+.preview-zoom button:hover{background:#555}
+.preview-zoom span{color:#fff;font-size:11px;font-weight:600;min-width:46px;text-align:center;padding:0 4px}
+.preview-actions{display:flex;gap:6px;flex-shrink:0}
+.preview-actions button{padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px;color:#fff}
+.preview-actions .btn-share{background:#1B8A4A}
+.preview-actions .btn-share:hover{background:#147239}
+.preview-actions .btn-print{background:#155B67}
+.preview-actions .btn-print:hover{background:#0D3C44}
+.preview-body{flex:1;overflow:auto;padding:16px;background:#3a3a3a;-webkit-overflow-scrolling:touch;touch-action:auto}
+.preview-page-wrap{transform-origin:top left;transition:transform .15s;display:inline-block;min-width:100%}
+.preview-page{background:#fff;padding:18mm 16mm;width:210mm;max-width:none;box-shadow:0 4px 20px rgba(0,0,0,.5);margin:0 auto;color:#1A2E31;font-family:'Segoe UI',system-ui,sans-serif;font-size:12pt;line-height:1.5;border-radius:2px}
+@media (max-width:480px){
+  .preview-topbar{padding:8px 8px}
+  .preview-titulo{font-size:11px;width:100%;order:-1;text-align:center;margin-bottom:4px}
+  .preview-actions button{padding:7px 9px;font-size:11px}
+  .preview-zoom button{width:28px;height:28px;font-size:13px}
+  .preview-zoom span{font-size:10px;min-width:38px}
+}
+
+@media print{
+  body>*:not(.preview-overlay){display:none!important}
+  .preview-overlay{position:static!important;background:#fff!important;overflow:visible!important;height:auto!important;display:block!important}
+  .preview-topbar{display:none!important}
+  .preview-body{overflow:visible!important;padding:0!important;background:#fff!important;height:auto!important}
+  .preview-page-wrap{transform:none!important;width:100%!important}
+  .preview-page{padding:0!important;box-shadow:none!important;width:auto!important;border-radius:0!important}
+  @page{margin:14mm;size:A4}
+}
+
 /* IA — botão e painel */
 .fe-tool.fe-ai{background:linear-gradient(135deg,#7B1FA2,#5B0F87);color:#fff;font-size:14px;position:relative;border:2px solid transparent}
 .fe-tool.fe-ai.ai-active{box-shadow:0 0 0 2px #FBC02D;border-color:#FBC02D}
@@ -2315,7 +2352,94 @@ function concluirVisita(){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PDF — window.print()
+// Preview de Relatórios (zoom + compartilhar + imprimir)
+// ═══════════════════════════════════════════════════════════════════════════
+let _previewZoom=1;
+function mostrarPreviewRelatorio(htmlContent, titulo, shareData){
+  // Limpa preview anterior se existir
+  document.getElementById('preview-overlay')?.remove();
+  _previewZoom=1;
+  const overlay=document.createElement('div');
+  overlay.id='preview-overlay'; overlay.className='preview-overlay';
+  const shareJSON=JSON.stringify(shareData||{title:titulo,text:titulo}).replace(/'/g,"&#39;");
+  overlay.innerHTML=`
+    <div class="preview-topbar">
+      <button class="pt-back" onclick="fecharPreview()" title="Voltar">←</button>
+      <div class="preview-titulo">${titulo}</div>
+      <div class="preview-zoom">
+        <button onclick="previewZoom(-0.15)" title="Diminuir">−</button>
+        <span id="preview-zoom-val">100%</span>
+        <button onclick="previewZoom(0.15)" title="Aumentar">+</button>
+        <button onclick="previewZoomReset()" title="Resetar">⟲</button>
+      </div>
+      <div class="preview-actions">
+        <button class="btn-share" onclick='compartilharRelatorio(${shareJSON})'>📤 Encaminhar</button>
+        <button class="btn-print" onclick="imprimirPreview()">🖨️ Imprimir</button>
+      </div>
+    </div>
+    <div class="preview-body" id="preview-body">
+      <div class="preview-page-wrap" id="preview-page-wrap">
+        <div class="preview-page" id="preview-page">${htmlContent}</div>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  // Ajusta zoom inicial para caber na tela em celulares
+  setTimeout(()=>{
+    const body=document.getElementById('preview-body');
+    const page=document.getElementById('preview-page');
+    if(body && page){
+      const available=body.clientWidth-32;
+      const fit=Math.min(1,available/page.offsetWidth);
+      if(fit<1){ _previewZoom=fit; aplicarPreviewZoom(); }
+    }
+  },50);
+
+  // Pinça (2 dedos)
+  let pZ_pinching=false, pZ_pinchStart=0, pZ_zoomStart=1;
+  const body=document.getElementById('preview-body');
+  body.addEventListener('touchstart',ev=>{
+    if(ev.touches.length===2){ pZ_pinching=true; pZ_pinchStart=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY); pZ_zoomStart=_previewZoom; }
+  },{passive:true});
+  body.addEventListener('touchmove',ev=>{
+    if(pZ_pinching && ev.touches.length===2){
+      ev.preventDefault();
+      const d=Math.hypot(ev.touches[0].clientX-ev.touches[1].clientX,ev.touches[0].clientY-ev.touches[1].clientY);
+      _previewZoom=Math.max(0.3,Math.min(3,pZ_zoomStart*(d/pZ_pinchStart)));
+      aplicarPreviewZoom();
+    }
+  },{passive:false});
+  body.addEventListener('touchend',ev=>{ if(ev.touches.length<2) pZ_pinching=false; });
+  body.addEventListener('wheel',ev=>{ if(ev.ctrlKey){ ev.preventDefault(); previewZoom(ev.deltaY<0?0.1:-0.1); }},{passive:false});
+}
+
+function previewZoom(delta){ _previewZoom=Math.max(0.3,Math.min(3,_previewZoom+delta)); aplicarPreviewZoom(); }
+function previewZoomReset(){ _previewZoom=1; aplicarPreviewZoom(); }
+function aplicarPreviewZoom(){
+  const wrap=document.getElementById('preview-page-wrap');
+  if(wrap) wrap.style.transform='scale('+_previewZoom+')';
+  const v=document.getElementById('preview-zoom-val');
+  if(v) v.textContent=Math.round(_previewZoom*100)+'%';
+}
+
+function fecharPreview(){ document.getElementById('preview-overlay')?.remove(); }
+function imprimirPreview(){ window.print(); }
+
+async function compartilharRelatorio(dados){
+  // Tenta Web Share API. Se não suportar arquivo, manda texto+URL.
+  const url='https://diagnostika-engenharia.github.io/pmp/';
+  const texto=`${dados.text||dados.title}\n\nGerado em: ${new Date().toLocaleString('pt-BR')}\n\nSistema: ${url}`;
+  if(navigator.share){
+    try{ await navigator.share({title:dados.title,text:texto,url}); return; }
+    catch(e){ if(e.name==='AbortError') return; }
+  }
+  // Fallback: WhatsApp Web
+  const wa='https://wa.me/?text='+encodeURIComponent(texto);
+  window.open(wa,'_blank');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PDF — Preview
 // ═══════════════════════════════════════════════════════════════════════════
 function gerarPDF(){
   const v = visitaAtual;
@@ -2422,7 +2546,11 @@ function gerarPDF(){
     Referências: NBR 5674:2012, NBR 6118:2023, NBR 9575:2010, NBR 5410:2004, NBR 12962:2016, NBR 10339:2018
   </div>`;
 
-  window.print();
+  mostrarPreviewRelatorio(
+    document.getElementById('print-area').innerHTML,
+    `Relatório · ${condo.short} · ${v.data}`,
+    {title:`Relatório de Manutenção — ${condo.short}`, text:`📋 *Relatório de Manutenção Preventiva*\n🏢 ${condo.nome}\n📅 ${v.data}${v.hora?' '+v.hora:''}\n👷 ${v.engenheiro||'—'}\n\n✅ ${conf} Conformes\n❌ ${nc} Não Conformidades\n— ${na} N/A\n\nDiagnóstika Engenharia`}
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2893,7 +3021,11 @@ function gerarAgendaEngenheiro(){
   Mensal = 1ª visita do mês · Trimestral = Jan, Abr, Jul, Out · Semestral = Jan, Jul · Anual = Janeiro
 </div>`;
 
-  window.print();
+  mostrarPreviewRelatorio(
+    document.getElementById('print-area').innerHTML,
+    `Agenda Unificada 2026 — 5 condomínios`,
+    {title:'Agenda Unificada de Visitas — Diagnóstika 2026', text:`📅 *Agenda Unificada 2026*\nDiagnóstika Engenharia\n\nMonte Carlo · Morada Morumbi · Portal Primavera · Santa Clara · Jardins do Malta\n\nTotal: ${totals.mc+totals.mm+totals.pp+totals.sc+totals.jm} visitas no ano`}
+  );
 }
 
 function gerarCalendarioPDF(condoId){
@@ -2987,7 +3119,11 @@ function gerarCalendarioPDF(condoId){
   Emitido em: ${hoje} · Ref.: NBR 5674:2012, NBR 6118:2023, NBR 9575:2010, NBR 5410:2004
 </div>`;
 
-  window.print();
+  mostrarPreviewRelatorio(
+    document.getElementById('print-area').innerHTML,
+    `Plano de Manutenção 2026 — ${condo.short}`,
+    {title:`Plano de Manutenção — ${condo.short}`, text:`📋 *Plano de Manutenção Preventiva 2026*\n🏢 ${condo.nome}\n📍 ${condo.endereco||condo.cidade}\n👤 Síndico(a): ${condo.sindico||'—'}\n📅 ${condo.frequencia}\n\n${visitDates.size} visitas previstas no ano\n\nDiagnóstika Engenharia`}
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
