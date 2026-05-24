@@ -1159,12 +1159,7 @@ function renderHome(main){
     const dates=[...getVisitDates2026(condoId)].sort();
     return dates.find(d=>d>=hojeStr)||dates[dates.length-1];
   }
-  function fmtProx(str){
-    if(!str)return'—';
-    const [y,m,d]=str.split('-').map(Number);
-    return new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
-  }
-  function fmtMD(str){ if(!str)return''; return str.slice(5).split('-').reverse().join('/'); }
+  // fmtProx e fmtMD agora estão globais
 
   const condosList=[
     {id:'monte-carlo',label:'Monte Carlo',cls:'mc',freq:'📅 Semanal'},
@@ -1279,6 +1274,14 @@ function renderHome(main){
 let novaCondoSel = null;
 let condoDetailId = null;
 let novaTipo = 'pmp'; // 'pmp' ou 'reforma'
+
+// Formatadores globais de data (usados em várias telas)
+function fmtMD(str){ if(!str)return''; return str.slice(5).split('-').reverse().join('/'); }
+function fmtProx(str){
+  if(!str)return'—';
+  const [y,m,d]=str.split('-').map(Number);
+  return new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'});
+}
 
 // Checklist genérico de Vistoria de Reforma (NBR 16280)
 const CHECKLIST_REFORMA=[
@@ -1449,7 +1452,8 @@ function renderCondoDetail(main){
     <div class="section-title" style="padding:0 0 8px">Próximas visitas previstas</div>
     <div class="card" style="margin:0 0 14px;overflow:hidden">
       ${proximas.map((d,i)=>{
-        const dt=new Date(...d.split('-').map((n,j)=>j===1?Number(n)-1:Number(n)));
+        const [yy,mm,dd]=d.split('-').map(Number);
+        const dt=new Date(yy,mm-1,dd);
         const a=atividadesDia(condoDetailId,d,allDates);
         return `<div class="visit-item" style="cursor:pointer" onclick="iniciarVisita('${condoDetailId}','${d}','pmp')">
           <div class="visit-dot ${condo.classe}"></div>
