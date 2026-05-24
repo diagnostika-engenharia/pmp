@@ -2091,11 +2091,11 @@ const IA_PROVEDORES={
     keyHelp:'Acesse <a href="https://aistudio.google.com/app/apikey" target="_blank"><b>aistudio.google.com/app/apikey</b></a> · faça login com conta Google · clique em <b>Create API key</b> · copie a chave (começa com <code>AIza</code>)',
     custoNota:'<b>Grátis</b> até 15 análises/minuto e 1500/dia no Gemini Flash · sem precisar cartão de crédito',
     modelos:[
-      {id:'gemini-2.5-flash-lite',nome:'Gemini 2.5 Flash Lite — quota mais alta (recomendado)'},
-      {id:'gemini-2.0-flash-lite',nome:'Gemini 2.0 Flash Lite — 30 req/min grátis'},
-      {id:'gemini-2.0-flash',nome:'Gemini 2.0 Flash — rápido e grátis'},
-      {id:'gemini-2.5-flash',nome:'Gemini 2.5 Flash — mais preciso (grátis)'},
-      {id:'gemini-1.5-flash',nome:'Gemini 1.5 Flash — antigo mas muito estável'},
+      {id:'gemini-2.0-flash',nome:'Gemini 2.0 Flash — recomendado (200/dia, 15/min)'},
+      {id:'gemini-2.0-flash-lite',nome:'Gemini 2.0 Flash Lite — 200/dia, 30/min'},
+      {id:'gemini-2.5-flash',nome:'Gemini 2.5 Flash — mais preciso (250/dia, 10/min)'},
+      {id:'gemini-2.5-flash-lite',nome:'Gemini 2.5 Flash Lite — 1000/dia mas 15/min'},
+      {id:'gemini-1.5-flash',nome:'Gemini 1.5 Flash — fallback estável'},
       {id:'gemini-2.5-pro',nome:'Gemini 2.5 Pro — máxima precisão (pago)'}
     ]
   },
@@ -2211,7 +2211,15 @@ async function testarIA(){
   try{
     const txt=await chamarIA({provedor,apiKey,modelo,prompt:'Diga apenas "OK".',maxTokens:30});
     div.innerHTML='<div style="background:rgba(27,138,74,.15);border-left:3px solid #1B8A4A;padding:8px 10px;font-size:12px;border-radius:4px;color:var(--text)">✅ Conexão OK · resposta: <i>'+txt.substring(0,100)+'</i></div>';
-  }catch(e){ div.innerHTML='<div class="ai-error">❌ '+e.message+'</div>'; }
+  }catch(e){
+    let msg=e.message||'';
+    let dica='';
+    if(/quota|rate|limit/i.test(msg)){
+      const seg=msg.match(/retry in (\d+)/i);
+      dica='<div style="margin-top:8px;font-size:11px;background:rgba(251,192,45,.15);padding:8px;border-left:3px solid #FBC02D;border-radius:4px;color:var(--text)"><b>💡 Limite atingido.</b> '+(seg?'Aguarde '+seg[1]+' segundos':'Aguarde 30-60 segundos')+' OU troque para outro modelo no dropdown acima (o <b>Gemini 2.0 Flash</b> tem mais quota grátis).</div>';
+    }
+    div.innerHTML='<div class="ai-error">❌ '+msg+'</div>'+dica;
+  }
 }
 
 // — Chamada unificada para qualquer provedor —
@@ -2333,7 +2341,7 @@ INSTRUÇÕES:
 
   try{
     const provedor=cfg.provedor||'gemini';
-    const modeloDefault={gemini:'gemini-2.5-flash-lite',claude:'claude-haiku-4-5',openai:'gpt-4o-mini'}[provedor];
+    const modeloDefault={gemini:'gemini-2.0-flash',claude:'claude-haiku-4-5',openai:'gpt-4o-mini'}[provedor];
     const texto=await chamarIA({
       provedor,
       apiKey:cfg.apiKey,
