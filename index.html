@@ -691,6 +691,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
     </button>
     <img src="assets/logo-dark.png" alt="Diagnóstika" id="header-logo">
     <div id="header-title">Manutenção Preventiva</div>
+    <span id="sync-status" onclick="syncTodasVisitas()" title="Status de sincronização" style="cursor:pointer;font-size:18px;padding:0 10px;color:#fff;user-select:none">☁</span>
     <div id="header-actions"></div>
   </header>
 
@@ -752,7 +753,58 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 <!-- Print area (hidden on screen, visible on print) -->
 <div id="print-area"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+// ═══════════════════════════════════════════════════════════════════════════
+// SUPABASE — Sincronização em nuvem
+// ═══════════════════════════════════════════════════════════════════════════
+const SUPABASE_URL='https://fimmjgdwhifsrrbreche.supabase.co';
+const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZpbW1qZ2R3aGlmc3JyYnJlY2hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NzU2NDIsImV4cCI6MjA5NTE1MTY0Mn0.eAmMS95M8BkfX3NCcOtHnhKWXy0jkvXwSGEoqv_Q21Q';
+let sb=null;
+try{ if(window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON); }catch(e){console.warn('Supabase init falhou:',e);}
+
+function getDeviceId(){
+  let id=localStorage.getItem('device_id');
+  if(!id){ id='dev-'+Math.random().toString(36).slice(2,10)+'-'+Date.now().toString(36); localStorage.setItem('device_id',id); }
+  return id;
+}
+
+async function uploadVisita(v){
+  if(!sb) return {ok:false,err:'supabase indisponível'};
+  try{
+    const {error}=await sb.from('visitas').upsert({
+      id:v.id, condo_id:v.condoId, data:v.data, hora:v.hora||null,
+      engenheiro:v.engenheiro||null, representante:v.representante||null,
+      itens:v.itens||{}, obs_geral:v.obsGeral||null,
+      device_id:getDeviceId()
+    },{onConflict:'id'});
+    if(error) return {ok:false,err:error.message};
+    return {ok:true};
+  }catch(e){ return {ok:false,err:e.message}; }
+}
+
+async function syncTodasVisitas(silent=false){
+  if(!sb){ if(!silent) showToast('☁ Sincronização indisponível'); return; }
+  const hist=getHistorico();
+  if(!silent) showToast('☁ Sincronizando '+hist.length+' visitas…');
+  let ok=0, fail=0;
+  for(const v of hist){
+    const r=await uploadVisita(v);
+    if(r.ok) ok++; else fail++;
+  }
+  if(!silent) showToast(`☁ ${ok} sincronizadas${fail?' · '+fail+' falharam':''}`);
+  return {ok,fail};
+}
+
+// Status visual do supabase no header
+function atualizarStatusSync(){
+  const el=document.getElementById('sync-status');
+  if(!el) return;
+  if(!sb){ el.textContent='⚠'; el.title='Supabase offline'; el.style.color='#FBC02D'; return; }
+  el.textContent='☁';
+  el.title='Sincronização ativa · clique para sincronizar tudo';
+  el.style.color='#fff';
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1032,8 +1084,16 @@ function getHistorico(){
 }
 function saveVisita(v){
   const h=getHistorico();
+  // remove duplicata por id (se houver)
+  const idx=h.findIndex(x=>x.id===v.id);
+  if(idx>=0) h.splice(idx,1);
   h.unshift(v);
   localStorage.setItem('historico', JSON.stringify(h.slice(0,100)));
+  // Upload async para Supabase (não bloqueia)
+  uploadVisita(v).then(r=>{
+    if(r.ok){ console.log('☁ Visita sincronizada:',v.id); }
+    else { console.warn('☁ Falha no upload:',r.err); }
+  });
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -3360,6 +3420,14 @@ const draft=localStorage.getItem('rascunho');
 if(draft){ try{ visitaAtual=JSON.parse(draft); }catch(e){} }
 
 render();
+atualizarStatusSync();
+
+// Sync de visitas antigas em background ao abrir (uma vez por sessão)
+setTimeout(()=>{
+  if(sb && !sessionStorage.getItem('sync_done')){
+    syncTodasVisitas(true).then(r=>{ if(r) sessionStorage.setItem('sync_done','1'); });
+  }
+},3000);
 
 // Keyboard shortcut: ESC = go back
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') goBack(); });
