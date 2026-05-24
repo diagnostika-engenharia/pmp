@@ -1441,7 +1441,28 @@ function salvarRascunho(){
 // ═══════════════════════════════════════════════════════════════════════════
 // FOTOS COM ANOTAÇÕES (círculo / seta / texto · vermelho / amarelo / verde)
 // ═══════════════════════════════════════════════════════════════════════════
-let editorState={itemId:null,bgImage:null,annotations:[],tool:'circle',color:'#C00000',drawing:false,fotoIndex:-1,selectedIdx:-1,zoom:1,dragX:0,dragY:0,pinching:false,pinchStart:0,zoomStart:1,defaultFontSize:null};
+let editorState={itemId:null,bgImage:null,annotations:[],tool:'circle',color:'#C00000',drawing:false,fotoIndex:-1,selectedIdx:-1,zoom:1,dragX:0,dragY:0,pinching:false,pinchStart:0,zoomStart:1,defaultFontSize:null,resizing:false,resizeHandle:null};
+
+// Hit-test em uma alça (handle) da anotação selecionada
+function hitTestHandle(p,a){
+  if(!a) return null;
+  const r=Math.max(28,(editorState.bgImage?.width||1000)/40);
+  if(a.type==='arrow'){
+    if(Math.hypot(p.x-a.x,p.y-a.y)<r) return 'start';
+    if(Math.hypot(p.x-a.x2,p.y-a.y2)<r) return 'end';
+  } else if(a.type==='circle'){
+    const pts=[['nw',a.x,a.y],['ne',a.x2,a.y],['sw',a.x,a.y2],['se',a.x2,a.y2]];
+    for(const [n,hx,hy] of pts){ if(Math.hypot(p.x-hx,p.y-hy)<r) return n; }
+  } else if(a.type==='text'){
+    // alça para resize de fonte (canto inferior direito)
+    const fs=a.fontSize||Math.max(26,(editorState.bgImage?.width||1000)/38);
+    const tmp=document.createElement('canvas').getContext('2d');
+    tmp.font=`bold ${fs}px Arial,sans-serif`;
+    const w=tmp.measureText(a.text).width;
+    if(Math.hypot(p.x-(a.x+w),p.y-(a.y+fs*0.2))<r) return 'fontsize';
+  }
+  return null;
+}
 let _lastTapTime=0, _lastTapX=0, _lastTapY=0;
 
 // Normaliza foto (compatibilidade com formato antigo string)
@@ -1688,7 +1709,7 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
         <button class="fe-tool fe-ai ${iaAtivada()?'ai-active':''}" onclick="editorAnalisarIA()" title="${iaAtivada()?'Analisar com IA':'IA desativada — ative em Configurações'}">🤖 IA</button>
       </div>
       <div class="fe-canvas-wrap" id="fe-wrap"><canvas id="fe-canvas"></canvas></div>
-      <div class="fe-hint">Desenhar: toque e arraste · Editar texto: <b>duplo toque</b> sobre ele · Mover ✋: toque na anotação e arraste · Pinça (2 dedos) ou roda do mouse = zoom</div>
+      <div class="fe-hint">Desenhar: toque e arraste · Editar texto: <b>duplo toque</b> · Mover ✋: toque e arraste · <b>Redimensionar:</b> selecione com ✋ e arraste as alças turquesa · Pinça (2 dedos) = zoom</div>
       <div class="fe-footer">
         <button class="fe-btn-cancel" onclick="fecharEditorFoto()">Cancelar</button>
         <button class="fe-btn-save" onclick="salvarFotoEditor()">✓ Salvar Foto</button>
@@ -1770,10 +1791,24 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
     }
 
     if(editorState.tool==='move'){
+      // Primeiro: testa se clicou numa alça da anotação já selecionada (resize)
+      if(editorState.selectedIdx>=0){
+        const a=editorState.annotations[editorState.selectedIdx];
+        const handle=hitTestHandle(p,a);
+        if(handle){
+          editorState.resizing=true;
+          editorState.resizeHandle=handle;
+          editorState.drawing=true;
+          editorState.dragX=p.x; editorState.dragY=p.y;
+          return;
+        }
+      }
+      // Senão: hit-test em qualquer anotação (move)
       const idx=hitTestAnnot(p);
       if(idx>=0){
         editorState.selectedIdx=idx;
         editorState.drawing=true;
+        editorState.resizing=false;
         editorState.dragX=p.x; editorState.dragY=p.y;
       } else {
         editorState.selectedIdx=-1;
@@ -1806,8 +1841,31 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
     ev.preventDefault();
     const p=getPos(ev);
     if(editorState.tool==='move' && editorState.selectedIdx>=0){
-      const dx=p.x-editorState.dragX, dy=p.y-editorState.dragY;
       const a=editorState.annotations[editorState.selectedIdx];
+      // RESIZE — está arrastando uma alça
+      if(editorState.resizing && editorState.resizeHandle){
+        const h=editorState.resizeHandle;
+        if(a.type==='arrow'){
+          if(h==='start'){ a.x=p.x; a.y=p.y; }
+          else if(h==='end'){ a.x2=p.x; a.y2=p.y; }
+        } else if(a.type==='circle'){
+          if(h==='nw'){ a.x=p.x; a.y=p.y; }
+          else if(h==='ne'){ a.x2=p.x; a.y=p.y; }
+          else if(h==='sw'){ a.x=p.x; a.y2=p.y; }
+          else if(h==='se'){ a.x2=p.x; a.y2=p.y; }
+        } else if(a.type==='text' && h==='fontsize'){
+          const novaW=Math.max(20,p.x-a.x);
+          const tmp=document.createElement('canvas').getContext('2d');
+          // ajusta fontSize proporcionalmente para que largura do texto bata com novaW
+          const ratio=novaW/(a.text.length*Math.max(26,editorState.bgImage.width/38)*0.6);
+          a.fontSize=Math.max(10,Math.min(200,(a.fontSize||Math.max(26,editorState.bgImage.width/38))*ratio));
+          _atualizarIndicadorFonte();
+        }
+        redrawEditor();
+        return;
+      }
+      // MOVE — está arrastando o corpo
+      const dx=p.x-editorState.dragX, dy=p.y-editorState.dragY;
       a.x+=dx; a.y+=dy;
       if(a.x2!==undefined){ a.x2+=dx; a.y2+=dy; }
       editorState.dragX=p.x; editorState.dragY=p.y;
@@ -1821,6 +1879,8 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
     if(ev.touches && ev.touches.length<2) editorState.pinching=false;
     if(!editorState.drawing) return;
     editorState.drawing=false;
+    editorState.resizing=false;
+    editorState.resizeHandle=null;
     if(editorState.tool==='move') return;
     const last=editorState.annotations[editorState.annotations.length-1];
     if(last && last.x2!==undefined && Math.hypot(last.x2-last.x,last.y2-last.y)<5){editorState.annotations.pop();redrawEditor();}
@@ -1905,6 +1965,25 @@ function redrawEditor(){
       ctx.strokeRect(bx,by,bw,bh);
       ctx.restore();
       ctx.setLineDash([]);
+      // Alças de redimensionamento
+      const hr=Math.max(11,canvas.width/120);
+      const drawHandle=(hx,hy)=>{
+        ctx.fillStyle='#fff'; ctx.strokeStyle='#00B4AC'; ctx.lineWidth=Math.max(2,canvas.width/400);
+        ctx.beginPath(); ctx.arc(hx,hy,hr,0,Math.PI*2); ctx.fill(); ctx.stroke();
+        // ponto interno turquesa
+        ctx.fillStyle='#00B4AC'; ctx.beginPath(); ctx.arc(hx,hy,hr*0.4,0,Math.PI*2); ctx.fill();
+      };
+      if(a.type==='arrow'){
+        drawHandle(a.x,a.y); drawHandle(a.x2,a.y2);
+      } else if(a.type==='circle'){
+        drawHandle(a.x,a.y); drawHandle(a.x2,a.y);
+        drawHandle(a.x,a.y2); drawHandle(a.x2,a.y2);
+      } else if(a.type==='text'){
+        const fs=a.fontSize||Math.max(26,canvas.width/38);
+        ctx.font=`bold ${fs}px Arial,sans-serif`;
+        const w=ctx.measureText(a.text).width;
+        drawHandle(a.x+w,a.y+fs*0.2);
+      }
     }
   });
 }
