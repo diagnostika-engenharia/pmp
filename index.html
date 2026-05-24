@@ -2310,7 +2310,7 @@ INSTRUÇÕES:
 6. Indique nível de confiança (0-100%)
 7. Sugira status: conforme, nao_conforme ou na
 
-Responda APENAS em JSON estrito, sem texto adicional:
+⚠ IMPORTANTE: Responda APENAS o JSON cru abaixo. NÃO use ```json, NÃO use markdown, NÃO adicione texto antes ou depois. Seja CONCISO em cada campo (máx 250 caracteres por campo) para não exceder limite de tokens. Apenas o JSON:
 {
   "patologia": "descrição da patologia ou 'Estado conforme — sem anomalias visíveis'",
   "severidade": "Conforme|Baixa|Média|Alta|Crítica",
@@ -2340,11 +2340,35 @@ Responda APENAS em JSON estrito, sem texto adicional:
       modelo:cfg.modelo||modeloDefault,
       prompt,
       imageB64:b64,
-      maxTokens:1024
+      maxTokens:2048
     });
-    const match=texto.match(/\{[\s\S]*\}/);
-    if(!match){ panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ Resposta sem JSON válido.</div><pre style="font-size:10px;color:#999;white-space:pre-wrap;margin-top:6px">${texto.substring(0,400)}</pre>`; return; }
-    const r=JSON.parse(match[0]);
+    // Remove envoltórios markdown ``` ... ``` antes de procurar o JSON
+    let limpo=texto.replace(/^[\s\S]*?```(?:json)?\s*/,'').replace(/\s*```[\s\S]*$/,'').trim();
+    if(!limpo.startsWith('{')) limpo=texto;
+    // Tenta encontrar JSON (greedy: vai do primeiro { ao último })
+    let match=limpo.match(/\{[\s\S]*\}/);
+    if(!match) match=texto.match(/\{[\s\S]*\}/);
+    let r=null;
+    if(match){
+      try{ r=JSON.parse(match[0]); }catch(e){
+        // Tenta consertar JSON truncado: completa com chaves faltantes
+        let candidato=match[0];
+        // Remove vírgula final + chave aberta sem conteúdo
+        candidato=candidato.replace(/,\s*$/,'').replace(/:\s*$/,': ""');
+        // Conta { e } para tentar fechar
+        const abre=(candidato.match(/\{/g)||[]).length;
+        const fecha=(candidato.match(/\}/g)||[]).length;
+        if(abre>fecha) candidato+='"}'.repeat(abre-fecha).split('').join('').replace(/^"/,'"');
+        try{ r=JSON.parse(candidato); }catch(e2){}
+      }
+    }
+    if(!r){
+      panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div>
+        <div class="ai-error">❌ Resposta não pôde ser interpretada (provavelmente truncada).<br>Tente novamente ou troque o modelo.</div>
+        <details style="margin-top:8px"><summary style="cursor:pointer;color:#FBC02D;font-size:11px">Ver resposta bruta</summary>
+        <pre style="font-size:10px;color:#999;white-space:pre-wrap;margin-top:6px;max-height:200px;overflow:auto">${texto.replace(/</g,'&lt;').substring(0,1200)}</pre></details>`;
+      return;
+    }
     renderResultadoIA(panel,r);
   }catch(e){
     panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ ${e.message}</div>`;
