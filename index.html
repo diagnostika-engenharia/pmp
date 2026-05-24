@@ -1137,6 +1137,7 @@ function render(){
       </button>`);
       renderChecklist(main); break;
     case 'relatorio':     setNavActive('nav-nova');     setHeader('Relatório da Visita',true); renderRelatorio(main); break;
+    case 'condo-detail':  setNavActive('nav-home');     setHeader(condoDetailId?CONDOMINIOS[condoDetailId]?.short||'Condomínio':'Condomínio',true); renderCondoDetail(main); break;
     case 'historico':     setNavActive('nav-historico');setHeader('Histórico de Visitas');    renderHistorico(main); break;
     case 'historico-det': setNavActive('nav-historico');setHeader('Detalhe da Visita',true);  renderHistoricoDet(main); break;
     case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026');              renderAgendaView(main); break;
@@ -1203,7 +1204,7 @@ function renderHome(main){
       const at=prox?atividadesDia(c.id,prox,allDates):null;
       const labels={padrao:'Padrão',mensal:'Mensal',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
       return `
-    <div class="condo-card condo-${c.cls}">
+    <div class="condo-card condo-${c.cls}" style="cursor:pointer" onclick="abrirCondoDetail('${c.id}')">
       <div class="condo-card-top"></div>
       <div class="condo-card-body">
         <h3><span class="emb">${cd.emblema}</span>${c.label}</h3>
@@ -1211,9 +1212,9 @@ function renderHome(main){
         <div class="sindico">👤 Síndico(a): <b style="color:var(--text)">${cd.sindico}</b></div>
         <div class="endereco">📍 ${cd.endereco}</div>
         ${prox?`<div class="prox-act"><b>Próxima: ${fmtMD(prox)}</b> · ${labels[at.tipo]||'Padrão'}${at.criticos.length?' · <span style="color:#C00000;font-weight:700">⚠ '+at.criticos.length+' críticos</span>':''}</div>`:''}
-        <div class="card-actions">
-          <button class="btn-visit" onclick="iniciarVisita('${c.id}')">+ Visita</button>
-          <button class="btn-pdf-condo" onclick="gerarCalendarioPDF('${c.id}')" title="Compartilhar plano com síndico">📄 PDF Síndico</button>
+        <div class="card-actions" onclick="event.stopPropagation()">
+          <button class="btn-visit" onclick="abrirCondoDetail('${c.id}')">📂 Abrir</button>
+          <button class="btn-pdf-condo" onclick="gerarCalendarioPDF('${c.id}')" title="Compartilhar plano com síndico">📄 PDF</button>
         </div>
       </div>
     </div>`}).join('')}
@@ -1276,6 +1277,32 @@ function renderHome(main){
 // RENDER — NOVA VISITA
 // ═══════════════════════════════════════════════════════════════════════════
 let novaCondoSel = null;
+let condoDetailId = null;
+let novaTipo = 'pmp'; // 'pmp' ou 'reforma'
+
+// Checklist genérico de Vistoria de Reforma (NBR 16280)
+const CHECKLIST_REFORMA=[
+  {id:'rf1',  critico:true,  grupo:'⚠ Documentação Obrigatória', nome:'ART/RRT do responsável técnico',     detalhe:'Anotação/Registro de Responsabilidade Técnica vigente e quitada', norma:'NBR 16280:2020 / Lei 6.496/77'},
+  {id:'rf2',  critico:true,  grupo:'⚠ Documentação Obrigatória', nome:'Plano de Reforma assinado',           detalhe:'Documento técnico detalhando intervenções, materiais, prazo', norma:'NBR 16280:2020 item 5.2'},
+  {id:'rf3',  critico:true,  grupo:'⚠ Documentação Obrigatória', nome:'Autorização do Síndico/Assembleia',   detalhe:'Aprovação formal conforme regimento interno do condomínio', norma:'Convenção condomínio'},
+  {id:'rf4',  critico:false, grupo:'Documentação Obrigatória',   nome:'Termo de responsabilidade civil',     detalhe:'Assinado pelo proprietário e prestador de serviço', norma:'NBR 16280:2020'},
+  {id:'rf5',  critico:true,  grupo:'⚠ Estrutura',                nome:'Paredes estruturais — não demolir',  detalhe:'Verificar projeto estrutural antes de qualquer demolição', norma:'NBR 6118:2023'},
+  {id:'rf6',  critico:false, grupo:'Estrutura',                  nome:'Cargas no piso respeitam limite',     detalhe:'Limite típico 200kg/m² para residencial — confirmar com projeto', norma:'NBR 6120:2019'},
+  {id:'rf7',  critico:false, grupo:'Estrutura',                  nome:'Vedações verticais sem comprometimento', detalhe:'Aberturas/passagens em paredes não-estruturais documentadas', norma:'NBR 15575:2013'},
+  {id:'rf8',  critico:false, grupo:'Instalações Hidráulicas',    nome:'Tubulações não comprometidas',        detalhe:'Prumadas e ramais identificados; sem cortes em colunas', norma:'NBR 5626:2020'},
+  {id:'rf9',  critico:false, grupo:'Instalações Hidráulicas',    nome:'Estanqueidade após intervenção',      detalhe:'Teste de pressão em ramais alterados', norma:'NBR 5626:2020'},
+  {id:'rf10', critico:false, grupo:'Instalações Elétricas',      nome:'Quadro do apartamento conforme',      detalhe:'Cargas dimensionadas, DR, disjuntores adequados', norma:'NBR 5410:2004'},
+  {id:'rf11', critico:false, grupo:'Instalações Elétricas',      nome:'Fiação dentro de eletrodutos',        detalhe:'Sem emendas em alvenaria; bitolas corretas', norma:'NBR 5410:2004'},
+  {id:'rf12', critico:true,  grupo:'⚠ Gás',                      nome:'Instalação de gás por empresa habilitada', detalhe:'Empresa cadastrada na concessionária; teste de estanqueidade', norma:'NBR 13103:2020'},
+  {id:'rf13', critico:false, grupo:'Impermeabilização',          nome:'Áreas molhadas com impermeabilização novas', detalhe:'Box, varanda, cozinha — manta/cimento polimérico aplicado corretamente', norma:'NBR 9575:2010'},
+  {id:'rf14', critico:false, grupo:'Acabamentos',                nome:'Pisos e revestimentos sem trincas',   detalhe:'Assentamento, rejunte, juntas de dilatação', norma:'NBR 13753:1996'},
+  {id:'rf15', critico:false, grupo:'Acabamentos',                nome:'Esquadrias instaladas e vedadas',     detalhe:'Pingadeiras, calafetação, drenos', norma:'NBR 10821:2017'},
+  {id:'rf16', critico:false, grupo:'Canteiro de Obra',           nome:'Resíduos acondicionados corretamente',detalhe:'Caçamba autorizada, sem descarte irregular nas áreas comuns', norma:'CONAMA 307'},
+  {id:'rf17', critico:false, grupo:'Canteiro de Obra',           nome:'Horário de obra respeitado',          detalhe:'Conforme regimento (tipicamente 8h-17h dias úteis)', norma:'Regimento interno'},
+  {id:'rf18', critico:false, grupo:'Canteiro de Obra',           nome:'Identificação dos prestadores',       detalhe:'Cadastro na portaria com EPI, registro de entrada/saída', norma:'NR-6 / NR-18'},
+  {id:'rf19', critico:false, grupo:'Áreas Comuns',               nome:'Proteção de elevadores e corredores', detalhe:'Tapumes, lonas, proteção de pisos durante transporte de material', norma:'Boas práticas'},
+  {id:'rf20', critico:false, grupo:'Conclusão',                  nome:'Vistoria final de conformidade',      detalhe:'Comparação com projeto, lista de pendências, termo de aceite', norma:'NBR 16280:2020'},
+];
 let novaDataSel = null;
 const CONDO_CLASS_MAP={'monte-carlo':'selected-mc','morada-morumbi':'selected-mm','portal-primavera':'selected-pp','residencial-santa-clara':'selected-sc','jardins-do-malta':'selected-jm'};
 const CONDO_ID_MAP={'monte-carlo':'mc','morada-morumbi':'mm','portal-primavera':'pp','residencial-santa-clara':'sc','jardins-do-malta':'jm'};
@@ -1336,8 +1363,9 @@ function selectCondo(id){
   document.getElementById('btn-iniciar').disabled=false;
 }
 
-function iniciarVisita(condoId, dataStr){
+function iniciarVisita(condoId, dataStr, tipo){
   novaCondoSel=condoId;
+  novaTipo=tipo||'pmp';
   if(dataStr) novaDataSel=dataStr;
   navigate('nova-visita');
   setTimeout(()=>{
@@ -1346,6 +1374,118 @@ function iniciarVisita(condoId, dataStr){
     if(el) el.className='condo-opt '+CONDO_CLASS_MAP[condoId];
     document.getElementById('btn-iniciar').disabled=false;
   },50);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONDO DETAIL — Tela com tudo sobre um condomínio
+// ═══════════════════════════════════════════════════════════════════════════
+function abrirCondoDetail(condoId){
+  condoDetailId=condoId;
+  navigate('condo-detail');
+}
+
+function renderCondoDetail(main){
+  const condo=CONDOMINIOS[condoDetailId];
+  if(!condo){ navigate('home'); return; }
+  const allDates=[...getVisitDates2026(condoDetailId)].sort();
+  const hojeStr=todayStr();
+  const prox=allDates.find(d=>d>=hojeStr)||allDates[allDates.length-1];
+  const proximas=allDates.filter(d=>d>=hojeStr).slice(0,5);
+  const at=prox?atividadesDia(condoDetailId,prox,allDates):null;
+  const labels={padrao:'Inspeção padrão',mensal:'1ª visita do mês',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
+
+  // Histórico desse condo
+  const hist=getHistorico().filter(v=>v.condoId===condoDetailId);
+  const ultimas=hist.slice(0,5);
+  const totalNC=hist.reduce((s,v)=>s+Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length,0);
+
+  main.innerHTML=`
+  <div style="background:linear-gradient(135deg,${condo.cor},${condo.cor}CC);color:#fff;padding:22px 18px;display:flex;gap:14px;align-items:center">
+    <div style="width:64px;height:64px;flex-shrink:0;border-radius:10px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.3)">${condo.emblema}</div>
+    <div style="flex:1;min-width:0">
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:2px">${condo.nome}</h2>
+      <div style="font-size:11.5px;opacity:.9;margin-bottom:2px">👤 Síndico(a): <b>${condo.sindico}</b></div>
+      <div style="font-size:10.5px;opacity:.85;line-height:1.4">📍 ${condo.endereco}</div>
+      ${condo.cnpj?`<div style="font-size:10px;opacity:.8;margin-top:3px">CNPJ ${condo.cnpj}</div>`:''}
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:14px;background:var(--gray)">
+    <div style="background:#fff;border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:${condo.cor}">${hist.length}</div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px">Visitas realizadas</div></div>
+    <div style="background:#fff;border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:${totalNC>0?'#C00000':'#1B8A4A'}">${totalNC}</div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px">NCs acumuladas</div></div>
+    <div style="background:#fff;border-radius:8px;padding:10px;text-align:center"><div style="font-size:18px;font-weight:800;color:var(--teal)">${allDates.length}</div><div style="font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px">Visitas no ano</div></div>
+  </div>
+
+  ${prox?`<div style="margin:0 16px 12px;padding:14px;border-left:4px solid ${condo.cor};background:${condo.cor}11;border-radius:0 8px 8px 0">
+    <div style="font-size:10.5px;font-weight:700;color:${condo.cor};text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">📅 Próxima visita</div>
+    <div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px">${fmtMD(prox)} — ${labels[at.tipo]||'Padrão'}</div>
+    ${at.criticos.length?`<div style="font-size:11px;color:#C00000;font-weight:700;margin-top:4px">⚠ ${at.criticos.length} item(ns) crítico(s) a verificar</div>`:''}
+    ${at.extras.length?`<div style="font-size:11px;color:var(--text2);margin-top:4px;line-height:1.5">Itens extras: ${at.extras.slice(0,3).join(' · ')}${at.extras.length>3?' (+'+(at.extras.length-3)+')':''}</div>`:''}
+  </div>`:''}
+
+  <div style="padding:0 16px">
+    <div class="section-title" style="padding:8px 0">📋 Ações</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <button onclick="iniciarVisita('${condoDetailId}','${prox||''}','pmp')" style="padding:14px 10px;border:none;border-radius:10px;background:${condo.cor};color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px">
+        <span style="font-size:22px">🛠️</span>
+        Vistoria PMP
+        <span style="font-size:9px;opacity:.85;font-weight:500">Manutenção Preventiva</span>
+      </button>
+      <button onclick="iniciarVisita('${condoDetailId}','','reforma')" style="padding:14px 10px;border:none;border-radius:10px;background:#7B1FA2;color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px">
+        <span style="font-size:22px">🏗️</span>
+        Vistoria de Reforma
+        <span style="font-size:9px;opacity:.85;font-weight:500">NBR 16280 · com fotos+IA</span>
+      </button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:18px">
+      <button onclick="condoDetailVerAgenda()" style="padding:10px 8px;border:1.5px solid var(--gray2);border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-size:16px">📅</span>Agenda</button>
+      <button onclick="condoDetailHistorico()" style="padding:10px 8px;border:1.5px solid var(--gray2);border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-size:16px">📋</span>Histórico</button>
+      <button onclick="gerarCalendarioPDF('${condoDetailId}')" style="padding:10px 8px;border:1.5px solid var(--gray2);border-radius:8px;background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:var(--text2);display:flex;flex-direction:column;align-items:center;gap:3px"><span style="font-size:16px">📄</span>PDF Plano</button>
+    </div>
+  </div>
+
+  ${proximas.length>1?`
+  <div style="padding:0 16px">
+    <div class="section-title" style="padding:0 0 8px">Próximas visitas previstas</div>
+    <div class="card" style="margin:0 0 14px;overflow:hidden">
+      ${proximas.map((d,i)=>{
+        const dt=new Date(...d.split('-').map((n,j)=>j===1?Number(n)-1:Number(n)));
+        const a=atividadesDia(condoDetailId,d,allDates);
+        return `<div class="visit-item" style="cursor:pointer" onclick="iniciarVisita('${condoDetailId}','${d}','pmp')">
+          <div class="visit-dot ${condo.classe}"></div>
+          <div class="visit-info" style="flex:1"><strong>${dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'})}</strong><span>${labels[a.tipo]||'Padrão'}${a.criticos.length?' · ⚠ '+a.criticos.length+' críticos':''}</span></div>
+          <div class="visit-date">${fmtMD(d)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`:''}
+
+  ${ultimas.length?`
+  <div style="padding:0 16px">
+    <div class="section-title" style="padding:0 0 8px">Últimas visitas realizadas</div>
+    <div class="card" style="margin:0 0 24px;overflow:hidden">
+      ${ultimas.map(v=>{
+        const nc=Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length;
+        const tipoLabel=v.tipo==='reforma'?'🏗️ Reforma':'🛠️ PMP';
+        return `<div class="visit-item" onclick="verVisita('${v.id}')">
+          <div class="visit-dot ${condo.classe}"></div>
+          <div class="visit-info" style="flex:1"><strong>${tipoLabel} · ${v.data}</strong><span>${v.engenheiro||'—'}${v.hora?' · '+v.hora:''}</span></div>
+          ${nc>0?`<span class="badge badge-red">${nc} NC</span>`:`<span class="badge badge-green">✓ OK</span>`}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`:`<div style="padding:0 16px 24px;color:var(--text2);text-align:center;font-size:12px">Nenhuma visita realizada ainda neste condomínio.</div>`}
+  `;
+}
+
+function condoDetailVerAgenda(){
+  // Vai pra agenda e filtra pelo condo (simplificado: vai pra agenda geral)
+  navigate('agenda');
+}
+
+function condoDetailHistorico(){
+  navigate('historico');
+  // Poderia aplicar filtro por condo aqui no futuro
 }
 
 function iniciarChecklist(){
@@ -1359,6 +1499,7 @@ function iniciarChecklist(){
   visitaAtual = {
     id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
     condoId, data, hora,
+    tipo: novaTipo||'pmp',
     engenheiro: eng,
     representante: rep,
     itens: {},
@@ -1367,13 +1508,21 @@ function iniciarChecklist(){
   navigate('checklist');
 }
 
+// Helper: retorna checklist correto baseado no tipo da visita
+function getChecklistAtivo(visita){
+  if(!visita) return [];
+  const condo=CONDOMINIOS[visita.condoId];
+  if(visita.tipo==='reforma') return CHECKLIST_REFORMA;
+  return condo?.checklist||[];
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // RENDER — CHECKLIST
 // ═══════════════════════════════════════════════════════════════════════════
 function renderChecklist(main){
   if(!visitaAtual){ navigate('nova-visita'); return; }
   const condo = CONDOMINIOS[visitaAtual.condoId];
-  const itens = condo.checklist;
+  const itens = getChecklistAtivo(visitaAtual);
   const total = itens.length;
   const filled = itens.filter(i=>visitaAtual.itens[i.id]?.status).length;
   const pct = total>0 ? Math.round(filled/total*100) : 0;
@@ -1385,14 +1534,18 @@ function renderChecklist(main){
     grupos[it.grupo].push(it);
   });
 
-  // Pauta da visita — o que o engenheiro deve fazer hoje
-  const allDates=[...getVisitDates2026(visitaAtual.condoId)].sort();
-  const at=atividadesDia(visitaAtual.condoId,visitaAtual.data,allDates);
+  // Pauta da visita — só pra PMP. Reforma não tem periodicidade.
+  let at={tipo:'padrao',extras:[],criticos:[]};
+  if(visitaAtual.tipo!=='reforma'){
+    const allDates=[...getVisitDates2026(visitaAtual.condoId)].sort();
+    at=atividadesDia(visitaAtual.condoId,visitaAtual.data,allDates);
+  }
   const tipoLabels={padrao:'INSPEÇÃO PADRÃO',mensal:'1ª VISITA DO MÊS',trimestral:'VISITA TRIMESTRAL',semestral:'VISITA SEMESTRAL',anual:'VISITA ANUAL'};
   const tipoCorBg={padrao:'rgba(255,255,255,.15)',mensal:'rgba(0,180,172,.35)',trimestral:'rgba(0,180,172,.5)',semestral:'rgba(141,183,42,.5)',anual:'rgba(125,60,152,.5)'};
 
   let html=`
-  <div class="checklist-header" style="background:linear-gradient(135deg,${condo.cor} 0%,${condo.cor}DD 100%)">
+  <div class="checklist-header" style="background:linear-gradient(135deg,${visitaAtual.tipo==='reforma'?'#7B1FA2':condo.cor} 0%,${visitaAtual.tipo==='reforma'?'#5B0F87':condo.cor+'DD'} 100%)">
+    ${visitaAtual.tipo==='reforma'?'<div style="background:rgba(0,0,0,.25);color:#FBC02D;padding:4px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:inline-block;margin-bottom:8px">🏗️ Vistoria de Reforma · NBR 16280</div>':''}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="width:36px;height:36px;border-radius:6px;overflow:hidden;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2)">${condo.emblema}</div>
       <div style="flex:1;min-width:0">
@@ -1402,11 +1555,17 @@ function renderChecklist(main){
     </div>
     <p style="margin-bottom:10px">📅 ${visitaAtual.data} • ${visitaAtual.hora}</p>
 
-    <div style="background:${tipoCorBg[at.tipo]};border-radius:8px;padding:10px 12px;margin-bottom:10px">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.6px;margin-bottom:4px;opacity:.85">PAUTA DESTA VISITA</div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:6px">📋 ${tipoLabels[at.tipo]||'INSPEÇÃO PADRÃO'}</div>
-      ${at.criticos.length?`<div style="font-size:11px;background:rgba(192,0,0,.85);padding:6px 8px;border-radius:5px;margin-bottom:5px;font-weight:700">⚠ ${at.criticos.length} item(ns) CRÍTICO(S) a inspecionar — verificar com prioridade máxima</div>`:''}
-      ${at.extras.length?`<div style="font-size:11px;line-height:1.5;opacity:.92"><b>Itens extras desta visita (${at.tipo}):</b><br>${at.extras.map(e=>'· '+e).join('<br>')}</div>`:'<div style="font-size:11px;opacity:.85">Itens da rotina padrão de inspeção quinzenal/semanal.</div>'}
+    <div style="background:${visitaAtual.tipo==='reforma'?'rgba(0,0,0,.25)':tipoCorBg[at.tipo]};border-radius:8px;padding:10px 12px;margin-bottom:10px">
+      ${visitaAtual.tipo==='reforma'?`
+        <div style="font-size:10px;font-weight:700;letter-spacing:.6px;margin-bottom:4px;opacity:.85">PAUTA DESTA VISITA</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">🏗️ INSPEÇÃO DE REFORMA EM UNIDADE</div>
+        <div style="font-size:11px;line-height:1.6;opacity:.92">Verificar conformidade da reforma com NBR 16280:2020. Atenção especial aos itens críticos: ART, autorização do síndico, paredes estruturais, instalações de gás. Documentar com fotos toda intervenção.</div>
+      `:`
+        <div style="font-size:10px;font-weight:700;letter-spacing:.6px;margin-bottom:4px;opacity:.85">PAUTA DESTA VISITA</div>
+        <div style="font-size:14px;font-weight:700;margin-bottom:6px">📋 ${tipoLabels[at.tipo]||'INSPEÇÃO PADRÃO'}</div>
+        ${at.criticos.length?`<div style="font-size:11px;background:rgba(192,0,0,.85);padding:6px 8px;border-radius:5px;margin-bottom:5px;font-weight:700">⚠ ${at.criticos.length} item(ns) CRÍTICO(S) a inspecionar — verificar com prioridade máxima</div>`:''}
+        ${at.extras.length?`<div style="font-size:11px;line-height:1.5;opacity:.92"><b>Itens extras desta visita (${at.tipo}):</b><br>${at.extras.map(e=>'· '+e).join('<br>')}</div>`:'<div style="font-size:11px;opacity:.85">Itens da rotina padrão de inspeção quinzenal/semanal.</div>'}
+      `}
     </div>
 
     <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -2457,7 +2616,7 @@ function editarDataFoto(itemId,idx,ev){
 function renderRelatorio(main){
   if(!visitaAtual){ navigate('home'); return; }
   const condo = CONDOMINIOS[visitaAtual.condoId];
-  const itens = condo.checklist;
+  const itens = getChecklistAtivo(visitaAtual);
   const conf  = itens.filter(i=>visitaAtual.itens[i.id]?.status==='conforme').length;
   const nc    = itens.filter(i=>visitaAtual.itens[i.id]?.status==='nao_conforme').length;
   const na    = itens.filter(i=>visitaAtual.itens[i.id]?.status==='na').length;
@@ -2616,7 +2775,7 @@ function gerarPDF(){
   const v = visitaAtual;
   if(!v) return;
   const condo = CONDOMINIOS[v.condoId];
-  const itens = condo.checklist;
+  const itens = getChecklistAtivo(v);
   const conf  = itens.filter(i=>v.itens[i.id]?.status==='conforme').length;
   const nc    = itens.filter(i=>v.itens[i.id]?.status==='nao_conforme').length;
   const na    = itens.filter(i=>v.itens[i.id]?.status==='na').length;
@@ -2770,7 +2929,7 @@ function renderHistoricoDet(main){
   const v=visitaDetDetalhe;
   if(!v){ navigate('historico'); return; }
   const condo=CONDOMINIOS[v.condoId];
-  const itens=condo.checklist;
+  const itens=getChecklistAtivo(v);
   const nc=itens.filter(i=>v.itens[i.id]?.status==='nao_conforme').length;
   const conf=itens.filter(i=>v.itens[i.id]?.status==='conforme').length;
   const na=itens.filter(i=>v.itens[i.id]?.status==='na').length;
