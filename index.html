@@ -872,6 +872,8 @@ function getDeviceId(){
 
 async function uploadVisita(v){
   if(!sb) return {ok:false,err:'supabase indisponível'};
+  // Não re-uploadar visitas que o usuário marcou como deletadas
+  if(getDeletedIds().has(v.id)) return {ok:false,err:'visita deletada'};
   try{
     const {error}=await sb.from('visitas').upsert({
       id:v.id, condo_id:v.condoId, data:v.data, hora:v.hora||null,
@@ -911,11 +913,13 @@ async function downloadVisitas(){
   try{
     const {data,error}=await sb.from('visitas').select('*').order('created_at',{ascending:false}).limit(200);
     if(error) return {ok:false,err:error.message};
-    const remotas=(data||[]).map(visitaFromRow);
-    const local=getHistorico();
+    const deletadas=getDeletedIds(); // blacklist persistente — não ressuscita
+    const remotas=(data||[]).map(visitaFromRow).filter(v=>!deletadas.has(v.id));
+    const local=getHistorico().filter(v=>!deletadas.has(v.id));
     // Mescla: se a mesma visita estiver nos 2, mantém a mais recente (updated_at)
     const map={};
     [...local, ...remotas].forEach(v=>{
+      if(deletadas.has(v.id)) return; // dupla proteção
       const existing=map[v.id];
       if(!existing) map[v.id]=v;
       else {
@@ -3750,17 +3754,43 @@ async function excluirSelecionadas(){
   if(!_selecionadas.size){ alert('Nenhuma visita selecionada'); return; }
   if(!confirm(`⚠ Excluir ${_selecionadas.size} visita(s) selecionada(s)?\n\nIsso remove permanentemente todos os dados delas (checklists, fotos, assinaturas) — local e na nuvem. Não pode ser desfeito.`)) return;
   const ids=[..._selecionadas];
-  // Remove do local
+
+  // 1. Blacklist permanente — impede ressurreição
+  ids.forEach(addDeletedId);
+
+  // 2. Remove do histórico local
   const hist=getHistorico().filter(v=>!_selecionadas.has(v.id));
   localStorage.setItem('historico', JSON.stringify(hist));
-  // Remove do Supabase em lote
+
+  // 3. Remove da fila de uploads pendentes
+  const pending=getPendingQueue().filter(p=>!_selecionadas.has(p.id));
+  setPendingQueue(pending);
+
+  // 4. Remove do Supabase com retentativas
+  let falhas=[];
   if(sb){
-    try{
-      const {error}=await sb.from('visitas').delete().in('id',ids);
-      if(error) console.warn('Erro Supabase:',error);
-    }catch(e){console.warn(e);}
+    let tentativas=0, sucesso=false;
+    while(tentativas<3 && !sucesso){
+      tentativas++;
+      try{
+        const {error}=await sb.from('visitas').delete().in('id',ids);
+        if(!error){ sucesso=true; break; }
+        await new Promise(r=>setTimeout(r,500*tentativas));
+      }catch(e){ /* continua */ }
+    }
+    if(!sucesso){
+      // Agenda para retry
+      const pendDel=JSON.parse(localStorage.getItem('pending_deletes')||'[]');
+      ids.forEach(id=>{ if(!pendDel.includes(id)) pendDel.push(id); });
+      localStorage.setItem('pending_deletes', JSON.stringify(pendDel));
+      falhas=ids;
+    }
   }
-  showToast(`🗑 ${ids.length} visita(s) excluída(s)`);
+  if(falhas.length){
+    showToast('⚠ '+ids.length+' removidas localmente · '+falhas.length+' na nuvem serão re-tentadas');
+  } else {
+    showToast('🗑 '+ids.length+' visita(s) excluída(s) com sucesso');
+  }
   _selecionadas.clear();
   _modoSelecao=false;
   render();
@@ -3782,21 +3812,67 @@ function editarVisita(id, ev){
 }
 
 // Exclui uma visita (local + Supabase)
+// Blacklist de IDs deletados — protege contra ressurreição via downloadVisitas
+function getDeletedIds(){ try{return new Set(JSON.parse(localStorage.getItem('deleted_visitas_ids')||'[]'));}catch(e){return new Set();} }
+function addDeletedId(id){
+  const s=getDeletedIds(); s.add(id);
+  localStorage.setItem('deleted_visitas_ids', JSON.stringify([...s]));
+}
+
 async function excluirVisita(id, ev){
   if(ev){ev.stopPropagation();}
   if(!confirm('⚠ Excluir esta visita?\n\nIsso remove permanentemente:\n• Dados do checklist\n• Fotos e anotações\n• Assinaturas\n• Registro no banco em nuvem\n\nEsta ação NÃO pode ser desfeita.')) return;
-  // Remove local
+
+  // 1. Marca ID como deletado (blacklist permanente — impede ressurreição via sync)
+  addDeletedId(id);
+
+  // 2. Remove de localStorage histórico
   const hist=getHistorico().filter(v=>v.id!==id);
   localStorage.setItem('historico', JSON.stringify(hist));
-  // Remove no Supabase
+
+  // 3. Remove da fila de uploads pendentes (se estava lá)
+  const pending=getPendingQueue().filter(p=>p.id!==id);
+  setPendingQueue(pending);
+
+  // 4. Remove no Supabase com RETENTATIVAS (não falha silenciosamente)
   if(sb){
-    try{
-      const {error}=await sb.from('visitas').delete().eq('id',id);
-      if(error) console.warn('Erro ao deletar no Supabase:',error);
-    }catch(e){console.warn('Erro:',e);}
+    let tentativas=0, sucesso=false, ultimoErro=null;
+    while(tentativas<3 && !sucesso){
+      tentativas++;
+      try{
+        const {error}=await sb.from('visitas').delete().eq('id',id);
+        if(!error){ sucesso=true; break; }
+        ultimoErro=error;
+        await new Promise(r=>setTimeout(r,500*tentativas));
+      }catch(e){ ultimoErro=e; }
+    }
+    if(!sucesso){
+      // Mantém ID no blacklist — próxima sincronização tentará deletar novamente via tarefa
+      const pendDel=JSON.parse(localStorage.getItem('pending_deletes')||'[]');
+      if(!pendDel.includes(id)){ pendDel.push(id); localStorage.setItem('pending_deletes', JSON.stringify(pendDel)); }
+      showToast('⚠ Visita removida localmente. Falha ao excluir na nuvem (será tentado novamente)');
+      console.warn('Falha ao deletar no Supabase após 3 tentativas:', ultimoErro);
+      render();
+      return;
+    }
   }
   showToast('🗑 Visita excluída');
   render();
+}
+
+// Processa fila de deletes pendentes (visitas que não conseguimos deletar na nuvem)
+async function processPendingDeletes(){
+  if(!sb || !navigator.onLine) return;
+  const pending=JSON.parse(localStorage.getItem('pending_deletes')||'[]');
+  if(!pending.length) return;
+  const ainda=[];
+  for(const id of pending){
+    try{
+      const {error}=await sb.from('visitas').delete().eq('id',id);
+      if(error) ainda.push(id);
+    }catch(e){ ainda.push(id); }
+  }
+  localStorage.setItem('pending_deletes', JSON.stringify(ainda));
 }
 
 function verVisita(id){
@@ -4907,6 +4983,7 @@ setTimeout(()=>{
   });
 },2000);
 setInterval(processPendingQueue, 10000);
+setInterval(processPendingDeletes, 15000); // tenta deletar no Supabase visitas marcadas como removidas
 // Polling de segurança a cada 15s (caso Realtime caia ou esteja desabilitado)
 setInterval(()=>{
   if(sb && navigator.onLine && document.visibilityState==='visible') downloadVisitas().then(d=>{if(d?.ok && d.remotas>0 && ['home','historico','condo-detail'].includes(currentView)) render();});
