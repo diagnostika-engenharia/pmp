@@ -734,7 +734,12 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
           <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Plano</span>
         </button>
       </div>
-      <div class="sn-footer"><div class="sn-version">Diagnóstika · 2026</div></div>
+      <div class="sn-footer">
+        <button class="sn-btn" onclick="sairSistema()" style="color:#FFB4B4" title="Sair da conta">
+          <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span>Sair</span>
+        </button>
+        <div class="sn-version" style="margin-top:8px">Diagnóstika · 2026</div>
+      </div>
     </nav>
     <!-- Main content -->
     <main id="main"></main>
@@ -778,36 +783,61 @@ const SUPABASE_ANON='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 let sb=null;
 try{ if(window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}}); }catch(e){console.warn('Supabase init falhou:',e);}
 
-// Bloqueio de acesso para síndicos — este app é para engenheiros
+// Gate de autenticação ESTRITO — bloqueia tudo até validar
+// Adiciona overlay de loading imediatamente para esconder qualquer conteúdo
+(function(){
+  const s=document.createElement('style');
+  s.id='auth-gate-css';
+  s.textContent='body.auth-checking>:not(#auth-gate-loading){visibility:hidden!important} #auth-gate-loading{position:fixed;inset:0;background:linear-gradient(135deg,#0D3C44,#155B67);display:flex;align-items:center;justify-content:center;z-index:99999;color:#fff;font-family:sans-serif;font-size:14px} #auth-gate-loading.hide{display:none}';
+  document.head.appendChild(s);
+  document.body.classList.add('auth-checking');
+  const loading=document.createElement('div');
+  loading.id='auth-gate-loading';
+  loading.innerHTML='<div style="text-align:center"><div style="font-size:24px;margin-bottom:10px">🔒</div>Verificando acesso…</div>';
+  document.body.appendChild(loading);
+})();
+
+function bloqueioPMP(motivo){
+  document.body.classList.remove('auth-checking');
+  document.body.innerHTML=`<div style="position:fixed;inset:0;background:linear-gradient(135deg,#0D3C44,#155B67);color:#fff;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Segoe UI',sans-serif">
+    <div style="background:#fff;color:#1A2E31;border-radius:16px;padding:32px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+      <img src="assets/logo-dark.png" alt="Diagnóstika" style="height:60px;margin-bottom:14px">
+      <h2 style="color:#155B67;margin-bottom:10px;font-size:20px">🔒 Acesso Restrito</h2>
+      ${motivo==='sindico'?`
+        <p style="color:#4A6568;margin-bottom:16px;line-height:1.5;font-size:13px">Este aplicativo é exclusivo para a equipe técnica da Diagnóstika.</p>
+        <p style="color:#4A6568;margin-bottom:20px;line-height:1.5;font-size:13px">Você está logado(a) como <b>síndico(a)</b>. Acesse o portal específico:</p>
+        <a href="/sindico/" style="display:inline-block;background:#155B67;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:10px">📂 Ir para Portal do Síndico</a><br>
+        <button onclick="sb.auth.signOut().then(()=>location.replace('/'))" style="background:transparent;border:1.5px solid #5A7A7E;color:#5A7A7E;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;margin-top:12px">Sair e voltar ao portal</button>
+      `:`
+        <p style="color:#4A6568;margin-bottom:20px;line-height:1.5;font-size:13px">É necessário fazer login no portal de sistemas da Diagnóstika.</p>
+        <a href="/" style="display:inline-block;background:#155B67;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px">🔑 Ir para o Login</a>
+      `}
+    </div>
+  </div>`;
+}
+
 (async()=>{
-  if(!sb) return;
+  if(!sb){ bloqueioPMP('semsessao'); return; }
   try{
     const {data}=await sb.auth.getSession();
-    if(data?.session){
-      // Personaliza saudação com o nome do usuário logado (independente do RT da visita)
-      const u=data.session.user;
-      const nome=u.user_metadata?.nome || (u.email?u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'');
-      if(nome){
-        window.usuarioLogadoNome=nome;
-        if(typeof currentView!=='undefined' && currentView==='home' && typeof render==='function') render();
-      }
-      const {data:vincs}=await sb.from('user_condos').select('role').eq('user_id',u.id);
-      if(vincs && vincs.length>0 && vincs.every(v=>v.role==='sindico')){
-        // Usuário é apenas síndico → bloqueia acesso ao app PMP
-        document.body.innerHTML=`<div style="position:fixed;inset:0;background:linear-gradient(135deg,#0D3C44,#155B67);color:#fff;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Segoe UI',sans-serif">
-          <div style="background:#fff;color:#1A2E31;border-radius:16px;padding:32px;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-            <img src="assets/logo-dark.png" alt="Diagnóstika" style="height:60px;margin-bottom:14px">
-            <h2 style="color:#155B67;margin-bottom:10px;font-size:20px">🔒 Área Restrita</h2>
-            <p style="color:#4A6568;margin-bottom:16px;line-height:1.5;font-size:13px">Este aplicativo é exclusivo para a equipe técnica de campo da Diagnóstika Engenharia.</p>
-            <p style="color:#4A6568;margin-bottom:20px;line-height:1.5;font-size:13px">Você está logado(a) como <b>síndico(a)</b>. Acesse o portal específico:</p>
-            <a href="/sindico/" style="display:inline-block;background:#155B67;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:10px">📂 Ir para Portal do Síndico</a><br>
-            <button onclick="sb.auth.signOut().then(()=>location.reload())" style="background:transparent;border:1.5px solid #5A7A7E;color:#5A7A7E;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;margin-top:12px">Sair desta conta</button>
-          </div>
-        </div>`;
-        return;
-      }
+    if(!data?.session){ bloqueioPMP('semsessao'); return; }
+    const u=data.session.user;
+    const {data:vincs}=await sb.from('user_condos').select('role').eq('user_id',u.id);
+    // Se tem QUALQUER vínculo como síndico → bloqueia (não pode ser síndico de um condo e engenheiro de outro)
+    if(vincs && vincs.some(v=>v.role==='sindico')){
+      bloqueioPMP('sindico');
+      return;
     }
-  }catch(e){console.warn('Auth check falhou:',e);}
+    // Aprovado — libera a UI
+    const nome=u.user_metadata?.nome || (u.email?u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'');
+    if(nome) window.usuarioLogadoNome=nome;
+    document.body.classList.remove('auth-checking');
+    const ld=document.getElementById('auth-gate-loading'); if(ld) ld.remove();
+    if(typeof currentView!=='undefined' && currentView==='home' && typeof render==='function') render();
+  }catch(e){
+    console.warn('Auth check falhou:',e);
+    bloqueioPMP('semsessao');
+  }
 })();
 
 function getDeviceId(){
