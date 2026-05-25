@@ -872,10 +872,10 @@ function getDeviceId(){
 
 async function uploadVisita(v){
   if(!sb) return {ok:false,err:'supabase indisponível'};
-  // Não re-uploadar visitas que o usuário marcou como deletadas
+  // Não re-uploadar visitas que o usuário marcou como deletadas (blacklist local)
   if(getDeletedIds().has(v.id)) return {ok:false,err:'visita deletada'};
   try{
-    const {error}=await sb.from('visitas').upsert({
+    const result=await sb.from('visitas').upsert({
       id:v.id, condo_id:v.condoId, data:v.data, hora:v.hora||null,
       engenheiro:v.engenheiro||null, representante:v.representante||null,
       itens:v.itens||{}, obs_geral:v.obsGeral||null,
@@ -888,7 +888,25 @@ async function uploadVisita(v){
       itens_custom:v.itensCustom||null,
       device_id:getDeviceId()
     },{onConflict:'id'});
-    if(error) return {ok:false,err:error.message};
+    const error=result.error;
+    if(error){
+      // Detecta blacklist server-side (banco bloqueou re-inserção de ID deletado)
+      const msg=(error.message||'').toLowerCase();
+      if(msg.includes('já foi excluída') || msg.includes('blacklist') || error.code==='P0001'){
+        addDeletedId(v.id); // adiciona ao blacklist local
+        // Remove do histórico local
+        const hist=getHistorico().filter(x=>x.id!==v.id);
+        localStorage.setItem('historico', JSON.stringify(hist));
+        // Remove da fila de pendentes
+        const pending=getPendingQueue().filter(p=>p.id!==v.id);
+        setPendingQueue(pending);
+        console.warn('Visita zombie removida do localStorage:', v.id);
+        // Re-renderiza pra refletir limpeza
+        if(typeof render==='function') render();
+        return {ok:false, err:'visita-zombie-bloqueada', zombie:true};
+      }
+      return {ok:false,err:error.message};
+    }
     return {ok:true};
   }catch(e){ return {ok:false,err:e.message}; }
 }
