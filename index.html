@@ -597,6 +597,19 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .cam-error p{margin-bottom:14px;font-size:14px;line-height:1.5}
 .cam-error button{padding:12px 20px;background:#155B67;color:#fff;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin:0 6px}
 
+/* Assinatura Digital */
+.sig-block{margin-bottom:14px}
+.sig-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.sig-label strong{font-size:12px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700}
+.sig-label button{background:transparent;border:1px solid var(--gray2);color:var(--text2);border-radius:5px;padding:4px 10px;font-size:11px;cursor:pointer;font-weight:600}
+.sig-label button:hover{background:var(--gray)}
+.sig-pad-wrap{position:relative;border:2px dashed var(--gray3);border-radius:10px;background:#fff;overflow:hidden}
+.sig-pad-wrap.has-sig{border-color:var(--green);border-style:solid}
+.sig-pad{width:100%;height:140px;display:block;cursor:crosshair;touch-action:none;background:#FAFBFC}
+.sig-pad-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--gray3);font-size:13px;pointer-events:none;font-style:italic;flex-direction:column;gap:4px}
+.sig-pad-placeholder small{font-size:10px;color:var(--gray3)}
+.sig-name{margin-top:8px;width:100%;padding:8px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12px;font-family:inherit}
+
 /* Preview do Relatório / PDF */
 .preview-overlay{position:fixed;inset:0;background:#2a2a2a;z-index:200;display:flex;flex-direction:column}
 .preview-topbar{background:#1a1a1a;color:#fff;padding:10px 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;border-bottom:1px solid #333;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.4);z-index:2}
@@ -778,6 +791,7 @@ async function uploadVisita(v){
       itens:v.itens||{}, obs_geral:v.obsGeral||null,
       tipo:v.tipo||'pmp',
       bloco:v.bloco||null, apartamento:v.apartamento||null, morador:v.morador||null,
+      assinatura_eng:v.assinaturaEng||null, assinatura_resp:v.assinaturaResp||null,
       device_id:getDeviceId()
     },{onConflict:'id'});
     if(error) return {ok:false,err:error.message};
@@ -1626,6 +1640,60 @@ function iniciarChecklist(){
   };
   navigate('checklist');
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ASSINATURA DIGITAL (canvas + toque/mouse)
+// ═══════════════════════════════════════════════════════════════════════════
+const _sigPads={};
+function initSigPad(canvasId, dataURLInicial, onSave){
+  const canvas=document.getElementById(canvasId);
+  if(!canvas) return;
+  const wrap=canvas.closest('.sig-pad-wrap');
+  const ph=document.getElementById(canvasId+'-ph');
+  const ctx=canvas.getContext('2d');
+  const setSize=()=>{
+    const r=canvas.getBoundingClientRect();
+    const dpr=window.devicePixelRatio||1;
+    canvas.width=r.width*dpr; canvas.height=r.height*dpr;
+    ctx.setTransform(1,0,0,1,0,0); ctx.scale(dpr,dpr);
+    ctx.strokeStyle='#1A2E31'; ctx.lineWidth=2.2; ctx.lineCap='round'; ctx.lineJoin='round';
+  };
+  setSize();
+  setTimeout(setSize,80);
+  let drawing=false, hasContent=!!dataURLInicial;
+  if(dataURLInicial){
+    const img=new Image();
+    img.onload=()=>{ ctx.drawImage(img,0,0,canvas.width/(window.devicePixelRatio||1),canvas.height/(window.devicePixelRatio||1)); if(ph)ph.style.display='none'; wrap?.classList.add('has-sig'); };
+    img.src=dataURLInicial;
+  }
+  const getPos=ev=>{
+    const r=canvas.getBoundingClientRect();
+    const t=ev.touches?ev.touches[0]:ev;
+    return {x:t.clientX-r.left, y:t.clientY-r.top};
+  };
+  const start=ev=>{
+    ev.preventDefault();
+    drawing=true;
+    const p=getPos(ev);
+    ctx.beginPath(); ctx.moveTo(p.x,p.y);
+    if(!hasContent){ hasContent=true; if(ph)ph.style.display='none'; wrap?.classList.add('has-sig'); }
+  };
+  const move=ev=>{ if(!drawing)return; ev.preventDefault(); const p=getPos(ev); ctx.lineTo(p.x,p.y); ctx.stroke(); };
+  const end=()=>{ if(!drawing)return; drawing=false; if(hasContent && onSave) onSave(canvas.toDataURL('image/png')); };
+  canvas.addEventListener('mousedown',start);
+  canvas.addEventListener('mousemove',move);
+  canvas.addEventListener('mouseup',end);
+  canvas.addEventListener('mouseleave',end);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',end);
+  _sigPads[canvasId]={canvas,ctx,clear:()=>{
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    hasContent=false; if(ph)ph.style.display='flex'; wrap?.classList.remove('has-sig');
+    if(onSave) onSave(null);
+  }};
+}
+function limparAssinatura(canvasId){ _sigPads[canvasId]?.clear(); }
 
 // Helper: retorna checklist correto baseado no tipo da visita
 function getChecklistAtivo(visita){
@@ -2825,11 +2893,36 @@ function renderRelatorio(main){
   <div style="padding:0 16px 8px">
     <div class="section-title" style="padding:0 0 8px">Engenheiro</div>
     <input class="form-input" type="text" placeholder="Nome do engenheiro" value="${visitaAtual.engenheiro||''}" onchange="visitaAtual.engenheiro=this.value" style="margin-bottom:10px">
-    <div class="section-title" style="padding:0 0 8px">Representante do condomínio</div>
-    <input class="form-input" type="text" placeholder="Síndico / Zelador" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value">
+    <div class="section-title" style="padding:0 0 8px">${visitaAtual.tipo==='reforma'?'Responsável Técnico pela Obra':'Representante do condomínio'}</div>
+    <input class="form-input" type="text" placeholder="${visitaAtual.tipo==='reforma'?'Engenheiro/arquiteto contratado':'Síndico / Zelador'}" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value">
   </div>
 
-  <div style="height:16px"></div>
+  <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(21,91,103,.05),rgba(0,180,172,.03));border-top:1px solid var(--gray2);border-bottom:1px solid var(--gray2);margin-top:14px">
+    <div class="section-title" style="padding:0 0 10px">✍ Assinaturas Digitais</div>
+
+    <div class="sig-block">
+      <div class="sig-label"><strong>Engenheiro Responsável</strong><button onclick="limparAssinatura('sig-eng')">🗑 Limpar</button></div>
+      <div class="sig-pad-wrap ${visitaAtual.assinaturaEng?'has-sig':''}">
+        <canvas id="sig-eng" class="sig-pad"></canvas>
+        <div class="sig-pad-placeholder" id="sig-eng-ph" ${visitaAtual.assinaturaEng?'style="display:none"':''}>✍ Assine aqui<small>com o dedo (celular) ou mouse (PC)</small></div>
+      </div>
+    </div>
+
+    <div class="sig-block">
+      <div class="sig-label"><strong>${visitaAtual.tipo==='reforma'?'Morador(a) / Proprietário':'Síndico / Representante do Condomínio'}</strong><button onclick="limparAssinatura('sig-resp')">🗑 Limpar</button></div>
+      <div class="sig-pad-wrap ${visitaAtual.assinaturaResp?'has-sig':''}">
+        <canvas id="sig-resp" class="sig-pad"></canvas>
+        <div class="sig-pad-placeholder" id="sig-resp-ph" ${visitaAtual.assinaturaResp?'style="display:none"':''}>✍ Solicite a assinatura aqui<small>com o dedo direto na tela do celular</small></div>
+      </div>
+      ${visitaAtual.tipo==='reforma'?`<input class="sig-name" type="text" placeholder="Nome de quem assinou (obrigatório)" value="${visitaAtual.morador||''}" onchange="visitaAtual.assinaturaRespNome=this.value">`:''}
+    </div>
+
+    <div style="font-size:10.5px;color:var(--text2);background:rgba(0,180,172,.08);padding:8px 10px;border-radius:6px;border-left:3px solid var(--turq);line-height:1.5">
+      💡 As assinaturas ficam gravadas com a visita e aparecem no PDF do relatório como evidência de aceite/ciência.
+    </div>
+  </div>
+
+  <div style="height:14px"></div>
   <button class="btn-pdf" onclick="gerarPDF()">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
     Gerar PDF / Imprimir
@@ -2839,6 +2932,12 @@ function renderRelatorio(main){
     Salvar e Concluir Visita
   </button>
   <div style="height:24px"></div>`;
+
+  // Inicializa pads de assinatura após o DOM montar
+  setTimeout(()=>{
+    initSigPad('sig-eng', visitaAtual.assinaturaEng, dataURL=>{ visitaAtual.assinaturaEng=dataURL; });
+    initSigPad('sig-resp', visitaAtual.assinaturaResp, dataURL=>{ visitaAtual.assinaturaResp=dataURL; });
+  },100);
 }
 
 function concluirVisita(){
@@ -3058,14 +3157,16 @@ function gerarPDF(){
 
   <div class="print-sigs">
     <div>
+      ${v.assinaturaEng?`<img src="${v.assinaturaEng}" style="max-width:100%;height:50pt;object-fit:contain;display:block;margin-bottom:4pt">`:'<div style="height:50pt"></div>'}
       <div class="print-sig-line">Engenheiro Responsável</div>
       <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.engenheiro||'________________________________'}</div>
       <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">Diagnóstika Engenharia</div>
     </div>
     <div>
-      <div class="print-sig-line">Representante do Condomínio</div>
-      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.representante||'________________________________'}</div>
-      <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">${condo.nome}</div>
+      ${v.assinaturaResp?`<img src="${v.assinaturaResp}" style="max-width:100%;height:50pt;object-fit:contain;display:block;margin-bottom:4pt">`:'<div style="height:50pt"></div>'}
+      <div class="print-sig-line">${isReforma?'Morador(a) / Proprietário':'Representante do Condomínio'}</div>
+      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${(isReforma?v.morador:v.representante)||'________________________________'}</div>
+      <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">${isReforma?'Unidade '+[v.bloco&&'Bl '+v.bloco,v.apartamento&&'Ap '+v.apartamento].filter(Boolean).join(' '):condo.nome}</div>
     </div>
   </div>
 
