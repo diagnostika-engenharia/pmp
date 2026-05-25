@@ -1787,30 +1787,76 @@ async function carregarEventosRemotos(){
   try{
     const {data,error}=await sb.from('app_config').select('*').like('key','eventos_%');
     if(error || !data) return;
-    const all={};
+    // Merge não-destrutivo: preserva eventos locais que ainda não foram sincronizados
+    const all=JSON.parse(localStorage.getItem('eventos_extras')||'{}');
     data.forEach(row=>{
       const condoId=row.key.replace('eventos_','');
-      all[condoId]=row.value||[];
+      const remotos=row.value||[];
+      const locais=all[condoId]||[];
+      // Une por id, remoto vence em caso de conflito
+      const map={};
+      locais.forEach(e=>{ if(e&&e.id) map[e.id]=e; });
+      remotos.forEach(e=>{ if(e&&e.id) map[e.id]=e; });
+      all[condoId]=Object.values(map).sort((a,b)=>(a.data||'').localeCompare(b.data||''));
     });
     localStorage.setItem('eventos_extras', JSON.stringify(all));
+    if(currentView==='condo-detail') render();
   }catch(e){ console.warn('Erro ao baixar eventos:',e); }
 }
 function adicionarEvento(condoId){
-  const data=prompt('Data do evento (DD/MM/AAAA):','');
-  if(!data) return;
-  const m=data.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})$/);
-  if(!m){ alert('Formato inválido. Use DD/MM/AAAA'); return; }
-  const yr=m[3].length===2?2000+parseInt(m[3]):parseInt(m[3]);
-  const dataISO=`${yr}-${String(m[2]).padStart(2,'0')}-${String(m[1]).padStart(2,'0')}`;
-  const titulo=prompt('Título do evento (ex: Ensaio de estanqueidade — Piscina):','');
-  if(!titulo) return;
-  const descricao=prompt('Descrição / detalhes (opcional):','')||'';
-  const tipoLabel=prompt('Tipo (ensaio, laudo, inspeção especial, perícia, obra, outro):','ensaio')||'evento';
-  const eventos=getEventos(condoId);
-  eventos.push({id:'evt_'+Date.now().toString(36), data:dataISO, titulo, descricao, tipo:tipoLabel.toLowerCase(), criadoEm:new Date().toISOString()});
-  setEventos(condoId, eventos);
-  showToast('✓ Evento adicionado');
-  if(currentView==='condo-detail') render();
+  const cor=(typeof CONDOMINIOS!=='undefined'&&CONDOMINIOS[condoId]?.cor)||'#155B67';
+  const hoje=new Date().toISOString().slice(0,10);
+  const ov=document.createElement('div');
+  ov.className='modal-overlay';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`
+    <div style="background:#fff;border-radius:14px;max-width:460px;width:100%;padding:22px;box-shadow:0 12px 48px rgba(0,0,0,.3);position:relative">
+      <button onclick="this.closest('div[style*=fixed]').remove()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:#5A7A7E;line-height:1">×</button>
+      <h2 style="color:${cor};font-size:18px;margin:0 0 4px;font-weight:700">📌 Novo Evento</h2>
+      <p style="font-size:12px;color:#4A6568;margin:0 0 16px">Ensaios, laudos, perícias, obras e atividades pontuais.</p>
+
+      <label style="font-size:11px;font-weight:700;color:#4A6568;text-transform:uppercase;display:block;margin-bottom:5px">Data *</label>
+      <input id="evt-data" type="date" value="${hoje}" min="2024-01-01" max="2030-12-31" style="width:100%;padding:10px 12px;border:1.5px solid #E0EAEC;border-radius:8px;font-size:14px;margin-bottom:12px;font-family:inherit">
+
+      <label style="font-size:11px;font-weight:700;color:#4A6568;text-transform:uppercase;display:block;margin-bottom:5px">Título *</label>
+      <input id="evt-titulo" type="text" placeholder="Ex: Ensaio de estanqueidade — Piscina" lang="pt-BR" spellcheck="true" autocapitalize="sentences" style="width:100%;padding:10px 12px;border:1.5px solid #E0EAEC;border-radius:8px;font-size:14px;margin-bottom:12px;font-family:inherit">
+
+      <label style="font-size:11px;font-weight:700;color:#4A6568;text-transform:uppercase;display:block;margin-bottom:5px">Tipo</label>
+      <select id="evt-tipo" style="width:100%;padding:10px 12px;border:1.5px solid #E0EAEC;border-radius:8px;font-size:14px;margin-bottom:12px;font-family:inherit;background:#fff">
+        <option value="ensaio">Ensaio</option>
+        <option value="laudo">Laudo</option>
+        <option value="inspeção especial">Inspeção especial</option>
+        <option value="perícia">Perícia</option>
+        <option value="obra">Obra</option>
+        <option value="reunião">Reunião / Assembleia</option>
+        <option value="outro">Outro</option>
+      </select>
+
+      <label style="font-size:11px;font-weight:700;color:#4A6568;text-transform:uppercase;display:block;margin-bottom:5px">Descrição / detalhes <span style="font-weight:400;text-transform:none">(opcional)</span></label>
+      <textarea id="evt-desc" placeholder="Detalhes adicionais sobre o evento…" lang="pt-BR" spellcheck="true" autocapitalize="sentences" style="width:100%;padding:10px 12px;border:1.5px solid #E0EAEC;border-radius:8px;font-size:13px;min-height:70px;resize:vertical;font-family:inherit;margin-bottom:16px"></textarea>
+
+      <div style="display:flex;gap:8px">
+        <button onclick="this.closest('div[style*=fixed]').remove()" style="flex:0 0 auto;padding:11px 18px;border:1.5px solid #A8BFC2;background:#fff;color:#4A6568;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">Cancelar</button>
+        <button id="btn-salvar-evt" style="flex:1;padding:11px;border:none;background:${cor};color:#fff;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px">✓ Salvar Evento</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  setTimeout(()=>{document.getElementById('evt-titulo')?.focus();},100);
+  document.getElementById('btn-salvar-evt').onclick=()=>{
+    const dataVal=document.getElementById('evt-data').value;
+    const titulo=document.getElementById('evt-titulo').value.trim();
+    const tipo=document.getElementById('evt-tipo').value;
+    const descricao=document.getElementById('evt-desc').value.trim();
+    if(!dataVal){ alert('Selecione a data do evento'); return; }
+    if(!titulo){ alert('Digite o título do evento'); return; }
+    const eventos=getEventos(condoId);
+    eventos.push({id:'evt_'+Date.now().toString(36),data:dataVal,titulo,descricao,tipo:tipo,criadoEm:new Date().toISOString()});
+    setEventos(condoId,eventos);
+    ov.remove();
+    showToast('✓ Evento adicionado');
+    if(currentView==='condo-detail') render();
+  };
 }
 function removerEvento(condoId, eventoId){
   if(!confirm('Remover este evento?')) return;
