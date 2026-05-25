@@ -2023,9 +2023,10 @@ function renderCondoDetail(main){
         const [yy,mm,dd]=d.split('-').map(Number);
         const dt=new Date(yy,mm-1,dd);
         const a=atividadesDia(condoDetailId,d,allDates);
-        return `<div class="visit-item" style="cursor:pointer" onclick="iniciarVisita('${condoDetailId}','${d}','pmp')">
+        return `<div class="visit-item" style="cursor:pointer">
           <div class="visit-dot ${condo.classe}"></div>
-          <div class="visit-info" style="flex:1"><strong>${dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'})}</strong><span>${labels[a.tipo]||'Padrão'}${a.criticos.length?' · ⚠ '+a.criticos.length+' críticos':''}</span></div>
+          <div class="visit-info" style="flex:1" onclick="iniciarVisita('${condoDetailId}','${d}','pmp')"><strong>${dt.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'})}</strong><span>${labels[a.tipo]||'Padrão'} · ${a.extras.length} item(ns)${a.custom?' ✏️':''}${a.criticos.length?' · ⚠ '+a.criticos.length+' críticos':''}</span></div>
+          <button onclick="event.stopPropagation();personalizarItensVisita('${condoDetailId}','${d}')" title="Personalizar itens" style="background:transparent;border:1.5px solid var(--gray2);border-radius:6px;padding:5px 9px;cursor:pointer;font-size:11px;font-weight:700;color:var(--teal);margin-right:4px">✏️</button>
           <div class="visit-date">${fmtMD(d)}</div>
         </div>`;
       }).join('')}
@@ -4063,34 +4064,196 @@ function buildMonthGridUnified(year, month, visitsMC, visitsMM){
   </div>`;
 }
 
+// ════════════════════════════════════════════════════════════════════════
+// ROTA DE INSPEÇÃO — distribui itens do plano nas visitas do mês de forma
+// lógica, agrupando por área física para o engenheiro otimizar o roteiro
+// ════════════════════════════════════════════════════════════════════════
+const ROTA_INSPECAO={
+  'monte-carlo':{ // 4 visitas/mês (semanal) → 4 grupos rotativos
+    'Estrutura e Fundações':1,
+    'Impermeabilização':1,
+    'Hidráulica e Saneamento':2,
+    'Cobertura e Telhado':2,
+    'Elétrica e SPDA':3,
+    'Sistema de Incêndio':3,
+    'Áreas Comuns':4,
+    'CFTV e Segurança':4,
+    'Gestão e Documentação':'todos'
+  },
+  'morada-morumbi':{ // 2 visitas/mês (quinzenal) → 2 grupos rotativos + críticos toda visita
+    'CRÍTICO — RISCO IMEDIATO (LT-2025-09)':'todos',
+    'Estrutura e Fundações':1,
+    'Piscinas e Impermeabilização':1,
+    'Impermeabilização Geral':1,
+    'Hidráulica e Saneamento':2,
+    'Elétrica e SPDA':2,
+    'Sistema de Incêndio':2,
+    'Áreas Comuns':2,
+    'Gestão e Documentação':'todos'
+  }
+};
+
+// Customizações por visita (engenheiro pode override) — salvo em localStorage + Supabase
+function getCustomItensVisita(condoId, dateStr){
+  try{
+    const all=JSON.parse(localStorage.getItem('custom_itens_visitas')||'{}');
+    return all[condoId+'|'+dateStr] || null; // null = usar padrão; array = override
+  }catch(e){ return null; }
+}
+function setCustomItensVisita(condoId, dateStr, itens){
+  const all=JSON.parse(localStorage.getItem('custom_itens_visitas')||'{}');
+  if(itens===null){ delete all[condoId+'|'+dateStr]; } else { all[condoId+'|'+dateStr]=itens; }
+  localStorage.setItem('custom_itens_visitas', JSON.stringify(all));
+  if(sb){
+    sb.from('app_config').upsert({key:'custom_itens_'+condoId, value:Object.fromEntries(Object.entries(all).filter(([k])=>k.startsWith(condoId+'|')).map(([k,v])=>[k.split('|')[1],v])), updated_at:new Date().toISOString()},{onConflict:'key'}).then(r=>{if(r.error)console.warn('sync custom itens:',r.error);});
+  }
+}
+
+// Modal de personalização de itens da visita — engenheiro escolhe o que verificar
+function personalizarItensVisita(condoId, dateStr){
+  const condo=CONDOMINIOS[condoId];
+  if(!condo){ alert('Condomínio não encontrado'); return; }
+  const allDates=[...getVisitDates2026(condoId)].sort();
+  const at=atividadesDia(condoId, dateStr, allDates);
+  const itensSugeridos=new Set(at.extras);
+  const custom=getCustomItensVisita(condoId, dateStr);
+  const itensSelecionados=new Set(custom||at.extras);
+
+  const [y,m,d]=dateStr.split('-').map(Number);
+  const dataLeg=new Date(y,m-1,d).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  // Agrupa todos os itens do plano por grupo
+  const grupos={};
+  condo.plano.forEach((item,idx)=>{
+    if(item.critico||item.prioridade==='Crítico') return; // críticos sempre incluídos automaticamente
+    if(!grupos[item.grupo]) grupos[item.grupo]=[];
+    grupos[item.grupo].push({...item, _idx:idx, sugerido:itensSugeridos.has(item.nome), selecionado:itensSelecionados.has(item.nome)});
+  });
+
+  const ov=document.createElement('div');
+  ov.id='pers-modal';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto';
+  ov.onclick=e=>{if(e.target===ov)ov.remove();};
+  ov.innerHTML=`<div style="background:#fff;border-radius:14px;max-width:640px;width:100%;padding:22px;box-shadow:0 12px 48px rgba(0,0,0,.3);position:relative;margin:auto">
+    <button onclick="document.getElementById('pers-modal').remove()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:#5A7A7E;line-height:1">×</button>
+    <h2 style="color:${condo.cor};font-size:18px;margin:0 0 4px;font-weight:700">✏️ Personalizar Itens da Visita</h2>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:14px">${dataLeg} — ${condo.short}</div>
+
+    <div style="background:#F0F4F5;border-radius:8px;padding:10px 12px;margin-bottom:14px;font-size:11.5px;color:var(--text)">
+      💡 <b>Selecione os itens que serão inspecionados nesta visita.</b> Os marcados em <span style="background:rgba(0,180,172,.18);padding:1px 6px;border-radius:4px;color:var(--turq-dk);font-weight:700">turquesa</span> são a sugestão padrão do plano. Você pode incluir ou excluir o que quiser.
+    </div>
+
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap">
+      <button onclick="persSelecionarTodos(true)" style="padding:6px 12px;border:1.5px solid var(--gray2);background:#fff;color:var(--text2);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">☑ Marcar todos</button>
+      <button onclick="persSelecionarTodos(false)" style="padding:6px 12px;border:1.5px solid var(--gray2);background:#fff;color:var(--text2);border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">☐ Desmarcar todos</button>
+      <button onclick="persRestaurarPadrao()" style="padding:6px 12px;border:1.5px solid var(--teal);background:#fff;color:var(--teal);border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">↻ Restaurar padrão</button>
+    </div>
+
+    <div id="pers-grupos" style="max-height:50vh;overflow-y:auto;border:1px solid var(--gray2);border-radius:8px;padding:6px">
+      ${Object.entries(grupos).map(([grupo, itens])=>`
+        <div style="margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:${condo.cor};text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;border-bottom:1px solid var(--gray2);margin-bottom:4px">${grupo}</div>
+          ${itens.map(it=>`
+            <label style="display:flex;align-items:flex-start;gap:8px;padding:6px;cursor:pointer;border-radius:6px;${it.sugerido?'background:rgba(0,180,172,.07)':''}" onmouseover="this.style.background='var(--gray)'" onmouseout="this.style.background='${it.sugerido?'rgba(0,180,172,.07)':'transparent'}'">
+              <input type="checkbox" class="pers-chk" data-nome="${it.nome.replace(/"/g,'&quot;')}" ${it.selecionado?'checked':''} style="margin-top:2px;width:16px;height:16px;cursor:pointer;accent-color:${condo.cor}">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.3">${it.nome}${it.sugerido?' <span style="background:rgba(0,180,172,.18);color:var(--turq-dk);font-size:9px;padding:1px 5px;border-radius:8px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;margin-left:4px">sugerido</span>':''}</div>
+                <div style="font-size:10.5px;color:var(--text2);margin-top:1px">⏱ ${it.periodicidade} · ${it.norma||''}</div>
+              </div>
+            </label>
+          `).join('')}
+        </div>
+      `).join('')}
+    </div>
+
+    ${at.criticos.length?`<div style="background:rgba(192,0,0,.06);border-left:3px solid #C00000;padding:8px 12px;margin-top:12px;font-size:11.5px;color:#7A0000"><b>⚠ ${at.criticos.length} item(ns) crítico(s)</b> serão monitorados automaticamente em TODA visita (não são opcionais).</div>`:''}
+
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button onclick="document.getElementById('pers-modal').remove()" style="flex:0 0 auto;padding:11px 18px;border:1.5px solid var(--gray3);background:#fff;color:var(--text2);border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">Cancelar</button>
+      <button id="btn-pers-save" onclick="salvarPersonalizacaoVisita('${condoId}','${dateStr}')" style="flex:1;padding:11px;border:none;background:${condo.cor};color:#fff;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px">💾 Salvar (<span id="pers-count">${[...itensSelecionados].length}</span> itens)</button>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+  // Update count when checkboxes change
+  ov.querySelectorAll('.pers-chk').forEach(c=>c.onchange=()=>{
+    document.getElementById('pers-count').textContent=ov.querySelectorAll('.pers-chk:checked').length;
+  });
+}
+function persSelecionarTodos(estado){
+  document.querySelectorAll('#pers-modal .pers-chk').forEach(c=>{c.checked=estado;});
+  document.getElementById('pers-count').textContent=document.querySelectorAll('#pers-modal .pers-chk:checked').length;
+}
+function persRestaurarPadrao(){
+  document.querySelectorAll('#pers-modal .pers-chk').forEach(c=>{
+    const labelBg=c.closest('label').style.background;
+    c.checked=labelBg.includes('rgba(0, 180, 172')||labelBg.includes('rgba(0,180,172');
+  });
+  document.getElementById('pers-count').textContent=document.querySelectorAll('#pers-modal .pers-chk:checked').length;
+}
+async function salvarPersonalizacaoVisita(condoId, dateStr){
+  const itens=[...document.querySelectorAll('#pers-modal .pers-chk:checked')].map(c=>c.dataset.nome);
+  // Se a lista está igual à sugestão padrão (e não há custom), não precisa salvar — usa o default
+  setCustomItensVisita(condoId, dateStr, itens);
+  document.getElementById('pers-modal').remove();
+  if(currentView==='condo-detail') render();
+  showToast('✓ Itens da visita atualizados ('+itens.length+')');
+}
+
 function atividadesDia(condoId, dateStr, allDates){
   const condo=CONDOMINIOS[condoId];
+  if(!condo) return {tipo:'padrao',extras:[],criticos:[],custom:false};
   const dt=new Date(dateStr+'T12:00:00');
   const month=dt.getMonth()+1;
   const yearMonth=dateStr.substring(0,7);
-  const firstOfMonth=allDates.filter(d=>d.startsWith(yearMonth))[0]===dateStr;
+  const visitasDoMes=allDates.filter(d=>d.startsWith(yearMonth)).sort();
+  const visitaIdx=visitasDoMes.indexOf(dateStr)+1; // 1..N
+  const totalNoMes=visitasDoMes.length;
+  const rota=ROTA_INSPECAO[condoId]||{};
 
-  const byPer=(p)=>condo.plano.filter(i=>(i.periodicidade||'').toLowerCase().includes(p));
+  // Critérios de periodicidade (em que momentos do ano cada periodicidade dispara)
+  const periodicidadeAtiva=(p)=>{
+    const pl=(p||'').toLowerCase();
+    if(pl.includes('semanal')||pl.includes('quinzenal')||pl.includes('mensal')) return true;
+    if(pl.includes('trimest')) return [1,4,7,10].includes(month);
+    if(pl.includes('semest')) return [1,7].includes(month);
+    if(pl.includes('anual')) return month===12;
+    return false;
+  };
 
-  // Determine cycle type and extras
-  let tipo='padrao'; const extras=[];
-  if(firstOfMonth){
-    tipo='mensal';
-    if([1,4,7,10].includes(month)){
-      tipo='trimestral';
-      byPer('trimest').forEach(i=>extras.push(i.nome));
-    }
-    if([1,7].includes(month)){
-      if(tipo!=='trimestral') tipo='semestral';
-      byPer('semest').forEach(i=>extras.push(i.nome));
-    }
-    if(month===1){
-      tipo='anual';
-      byPer('anual').forEach(i=>extras.push(i.nome));
-    }
+  // Distribui o item na rota: rota=1..N → só naquele índice; 'todos' → toda visita
+  const itemNestaVisita=(item)=>{
+    const rotaItem=rota[item.grupo];
+    if(rotaItem==='todos'||rotaItem==null) return rotaItem==='todos'; // grupo não mapeado = não distribui
+    if(totalNoMes<=2){ return (rotaItem<=2&&visitaIdx===1)||(rotaItem>2&&visitaIdx===2); }
+    if(totalNoMes===3){ return (rotaItem<=2&&visitaIdx===1)||(rotaItem===3&&visitaIdx===2)||(rotaItem===4&&visitaIdx===3); }
+    return rotaItem===visitaIdx;
+  };
+
+  // Override do engenheiro
+  const custom=getCustomItensVisita(condoId, dateStr);
+  let extras=[];
+  if(custom){
+    extras=custom.slice();
+  } else {
+    condo.plano.forEach(item=>{
+      if(item.critico||item.prioridade==='Crítico') return; // críticos vão pra lista separada
+      if(!periodicidadeAtiva(item.periodicidade)) return;
+      if(!itemNestaVisita(item)) return;
+      extras.push(item.nome);
+    });
   }
+
+  // Determina tipo de visita
+  let tipo='padrao';
+  if(visitaIdx===1){
+    tipo='mensal';
+    if([1,4,7,10].includes(month)) tipo='trimestral';
+    if([1,7].includes(month)) tipo='semestral';
+    if(month===12) tipo='anual';
+  }
+
   const criticos=condo.plano.filter(i=>i.critico||i.prioridade==='Crítico').map(i=>i.nome);
-  return {tipo, extras, criticos};
+  return {tipo, extras, criticos, custom:!!custom, visitaIdx, totalNoMes};
 }
 
 function renderCelula(condoId, dateStr, allDates){
