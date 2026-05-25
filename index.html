@@ -860,14 +860,84 @@ async function syncTodasVisitas(silent=false){
   return {ok,fail,downloaded:d.ok?d.remotas:0};
 }
 
-// Status visual do supabase no header
-function atualizarStatusSync(){
+// — Fila de retry para uploads que falharam (offline-first) —
+const PENDING_KEY='pending_uploads';
+function getPendingQueue(){ try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'[]');}catch(e){return[];} }
+function setPendingQueue(arr){ localStorage.setItem(PENDING_KEY,JSON.stringify(arr)); atualizarStatusSync(); }
+function addToPendingQueue(visita){
+  const pending=getPendingQueue();
+  const filtered=pending.filter(p=>p.id!==visita.id);
+  filtered.push(visita);
+  setPendingQueue(filtered);
+}
+async function processPendingQueue(){
+  if(!sb || !navigator.onLine) return;
+  const pending=getPendingQueue();
+  if(!pending.length) return;
+  const stillPending=[];
+  for(const v of pending){
+    const r=await uploadVisita(v);
+    if(!r.ok) stillPending.push(v);
+  }
+  setPendingQueue(stillPending);
+  if(stillPending.length===0 && pending.length>0){
+    showToast('✓ '+pending.length+' visita(s) sincronizada(s) agora');
+  }
+}
+
+// — Realtime: recebe mudanças de outros dispositivos via WebSocket —
+let _realtimeChannel=null;
+function iniciarRealtime(){
+  if(!sb || _realtimeChannel) return;
+  try{
+    _realtimeChannel=sb.channel('visitas-realtime')
+      .on('postgres_changes', {event:'*', schema:'public', table:'visitas'}, payload=>{
+        const local=getHistorico();
+        if(payload.eventType==='DELETE'){
+          const filtered=local.filter(v=>v.id!==payload.old?.id);
+          localStorage.setItem('historico', JSON.stringify(filtered));
+        } else {
+          // INSERT ou UPDATE
+          const novo=visitaFromRow(payload.new);
+          // Ignora se for da nossa própria origem (já temos local)
+          if(novo._updatedAt){
+            const existing=local.find(v=>v.id===novo.id);
+            if(existing && new Date(existing._updatedAt||0).getTime() >= new Date(novo._updatedAt).getTime()) return;
+          }
+          const idx=local.findIndex(v=>v.id===novo.id);
+          if(idx>=0) local[idx]=novo;
+          else local.unshift(novo);
+          localStorage.setItem('historico', JSON.stringify(local.slice(0,200)));
+        }
+        // Re-renderiza apenas se está numa tela que mostra visitas
+        if(['home','historico','condo-detail'].includes(currentView)) render();
+        atualizarStatusSync(payload.eventType==='INSERT'?'+ nova visita':'atualizado');
+      })
+      .subscribe(status=>{
+        console.log('☁ Realtime:',status);
+        atualizarStatusSync();
+      });
+  }catch(e){ console.warn('Realtime falhou:',e); }
+}
+
+// Status visual no header
+function atualizarStatusSync(extraInfo){
   const el=document.getElementById('sync-status');
   if(!el) return;
-  if(!sb){ el.textContent='⚠'; el.title='Supabase offline'; el.style.color='#FBC02D'; return; }
-  el.textContent='☁';
-  el.title='Sincronização ativa · clique para sincronizar tudo';
-  el.style.color='#fff';
+  const pendingCount=getPendingQueue().length;
+  if(!sb){
+    el.innerHTML='⚠'; el.title='Supabase indisponível'; el.style.color='#FBC02D';
+  } else if(!navigator.onLine){
+    el.innerHTML='📴'; el.title='Sem internet — '+(pendingCount?pendingCount+' visita(s) na fila':'tudo salvo localmente'); el.style.color='#E67E22';
+  } else if(pendingCount>0){
+    el.innerHTML='⏳<sup style="font-size:9px">'+pendingCount+'</sup>'; el.title=pendingCount+' visita(s) aguardando sincronização'; el.style.color='#FBC02D';
+  } else {
+    el.innerHTML='☁'; el.title='Tempo real ativo · clique para sincronizar manualmente'; el.style.color='#fff';
+  }
+  if(extraInfo){
+    el.style.background='rgba(27,138,74,.4)'; el.style.borderRadius='12px'; el.style.padding='3px 9px';
+    setTimeout(()=>{ el.style.background=''; el.style.padding='0 10px'; },2000);
+  }
 }
 // ═══════════════════════════════════════════════════════════════════════════
 // DATA
@@ -1148,15 +1218,19 @@ function getHistorico(){
 }
 function saveVisita(v){
   const h=getHistorico();
-  // remove duplicata por id (se houver)
   const idx=h.findIndex(x=>x.id===v.id);
   if(idx>=0) h.splice(idx,1);
+  // Marca timestamp local pra resolver conflitos no realtime
+  v._updatedAt=new Date().toISOString();
   h.unshift(v);
   localStorage.setItem('historico', JSON.stringify(h.slice(0,100)));
-  // Upload async para Supabase (não bloqueia)
+  // Upload async — se falhar, vai pra fila de retry
   uploadVisita(v).then(r=>{
     if(r.ok){ console.log('☁ Visita sincronizada:',v.id); }
-    else { console.warn('☁ Falha no upload:',r.err); }
+    else {
+      console.warn('☁ Falha no upload, adicionando à fila:',r.err);
+      addToPendingQueue(v);
+    }
   });
 }
 
@@ -3967,12 +4041,35 @@ if(draft){ try{ visitaAtual=JSON.parse(draft); }catch(e){} }
 render();
 atualizarStatusSync();
 
-// Sync inicial 3s após abrir e depois a cada 60s em background
-setTimeout(()=>{ if(sb) syncTodasVisitas(true); },3000);
-setInterval(()=>{ if(sb && document.visibilityState==='visible') syncTodasVisitas(true); },60000);
-// Sync quando a aba volta a ficar visível (volta do background)
+// Sincronização robusta:
+// 1) Sync inicial (download tudo do servidor)
+// 2) Realtime via WebSocket: recebe mudanças instantaneamente
+// 3) Fila de retry: visitas que falharam tentam de novo a cada 10s
+// 4) Reprocessa fila quando volta internet
+// 5) Re-sincroniza ao voltar do background (sleep do celular)
+setTimeout(()=>{
+  if(!sb) return;
+  syncTodasVisitas(true).then(()=>{
+    iniciarRealtime();
+    processPendingQueue();
+  });
+},2000);
+setInterval(processPendingQueue, 10000);
+// Polling de segurança a cada 15s (caso Realtime caia ou esteja desabilitado)
+setInterval(()=>{
+  if(sb && navigator.onLine && document.visibilityState==='visible') downloadVisitas().then(d=>{if(d?.ok && d.remotas>0 && ['home','historico','condo-detail'].includes(currentView)) render();});
+},15000);
+window.addEventListener('online', ()=>{
+  atualizarStatusSync('voltou online');
+  processPendingQueue();
+  syncTodasVisitas(true);
+});
+window.addEventListener('offline', ()=>atualizarStatusSync());
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible' && sb) syncTodasVisitas(true);
+  if(document.visibilityState==='visible' && sb){
+    syncTodasVisitas(true);
+    processPendingQueue();
+  }
 });
 
 // Keyboard shortcut: ESC = go back
