@@ -1307,7 +1307,73 @@ const CHECKLIST_REFORMA=[
   {id:'rf18', critico:false, grupo:'Canteiro de Obra',           nome:'Identificação dos prestadores',       detalhe:'Cadastro na portaria com EPI, registro de entrada/saída', norma:'NR-6 / NR-18'},
   {id:'rf19', critico:false, grupo:'Áreas Comuns',               nome:'Proteção de elevadores e corredores', detalhe:'Tapumes, lonas, proteção de pisos durante transporte de material', norma:'Boas práticas'},
   {id:'rf20', critico:false, grupo:'Conclusão',                  nome:'Vistoria final de conformidade',      detalhe:'Comparação com projeto, lista de pendências, termo de aceite', norma:'NBR 16280:2020'},
+  {id:'rf21', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Localização e padrão da unidade externa', detalhe:'Conformidade com padrão estético do condomínio (ver regras específicas)', norma:'NBR 16401:2008 / Regras internas'},
+  {id:'rf22', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Boneca / ocultação decorativa',           detalhe:'Painel, grelha ou compartimento conforme modelo aprovado pelo condomínio', norma:'Regras internas / Estética da fachada'},
+  {id:'rf23', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Drenagem do condensado canalizada',       detalhe:'Sem gotejamento em fachada, vizinhos ou área comum. Tubulação fixa ao ralo predial', norma:'NBR 16401:2008'},
+  {id:'rf24', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Tubulações pintadas e identificadas',     detalhe:'Cor padrão (geralmente branco fosco), isolamento térmico não exposto', norma:'NBR 16401 / NBR 6493'},
+  {id:'rf25', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Carga elétrica e disjuntor próprio',      detalhe:'Disjuntor exclusivo, fio de bitola compatível com BTUs e classe energética', norma:'NBR 5410:2004 item 5.2'},
+  {id:'rf26', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Suportes anti-vibração e fixação estrutural', detalhe:'Buchas e parafusos compatíveis, suportes amortecedores, cargas respeitadas', norma:'NBR 16401 / NBR 6118'},
+  {id:'rf27', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Gás refrigerante R-32/R-410A compatível', detalhe:'Verificar ficha técnica do equipamento, vazamentos com detector', norma:'Resolução CONAMA 267 / NBR 16401'},
+  {id:'rf28', critico:false, grupo:'Climatização / Ar Condicionado', nome:'Documentação técnica do instalador',      detalhe:'PMOC ou ART do instalador, ficha de manutenção entregue ao morador', norma:'Portaria GM/MS 3.523/98'},
 ];
+
+// Regras específicas de Ar Condicionado por condomínio (vem dos manuais e documentos)
+const REGRAS_AR_CONDICIONADO={
+  'monte-carlo':{
+    titulo:'📋 Padrão Monte Carlo · Ref: OCULTAÇÃO BONECA MONTE CARLO',
+    regras:[
+      'Unidade externa (condensadora) deve ser instalada OBRIGATORIAMENTE dentro da "boneca" decorativa conforme modelo aprovado pelo condomínio',
+      'Cor da boneca: branco fosco padrão fachada (ref. tinta documentada)',
+      'Drenagem do condensado: tubulação branca de PVC ø25mm canalizada até o ralo da varanda — VEDADO gotejar na fachada',
+      'Localização única: na varanda do apartamento, nicho já previsto pelo projeto original',
+      'Tubulações de cobre/cabo: passagem oculta dentro da boneca, sem exposição externa',
+      'Aprovação prévia da Engenharia Condominial Diagnóstika antes da execução (envio de foto da boneca + posição)',
+    ]
+  },
+  'morada-morumbi':{
+    titulo:'📋 Padrão Morada Morumbi',
+    regras:[
+      'Unidade externa apenas em nichos pré-existentes nas varandas ou áreas técnicas indicadas',
+      'Cor das tubulações: branco fosco, isolamento térmico revestido (não pode ficar amarelo aparente)',
+      'Drenagem canalizada ao ralo da varanda — não permitido descarte direto na fachada',
+      'Bombas/condensadoras com suportes anti-vibração obrigatórios (sons inferiores a 50dB no apto vizinho)',
+      'Carga elétrica deve respeitar o quadro do apartamento (consultar projeto elétrico original)',
+      'PMOC obrigatório para split acima de 9.000 BTUs',
+    ]
+  },
+  'portal-primavera':{
+    titulo:'📋 Padrão Portal Primavera · Ref: Manual do Proprietário BRZ',
+    regras:[
+      'Conforme Manual do Proprietário (BRZ Empreendimentos), instalações de ar condicionado devem seguir projeto original do empreendimento',
+      'Local da condensadora: nicho específico previsto no projeto de cada apartamento',
+      'Tubulações: passagem exclusiva por shaft técnico ou prumada vertical projetada',
+      'Drenagem: canalizada para tubulação pluvial predial (NUNCA esgoto)',
+      'Vedações da fachada não podem ser comprometidas — qualquer furo requer aprovação técnica',
+      'Garantia da impermeabilização original perdida em caso de furos não autorizados',
+    ]
+  },
+  'residencial-santa-clara':{
+    titulo:'📋 Padrão Residencial Santa Clara',
+    regras:[
+      'Instalação somente em local aprovado pela administração do condomínio',
+      'Padrão estético: tubulações pintadas conforme cor da fachada',
+      'Drenagem canalizada — sem gotejamento em áreas comuns',
+      'Suportes adequados às cargas (verificar estrutura antes da fixação)',
+      'Empresa instaladora deve apresentar ART e seguir NBR 16401',
+    ]
+  },
+  'jardins-do-malta':{
+    titulo:'📋 Padrão Jardins do Malta',
+    regras:[
+      'Instalação conforme projeto Anhanguera Incorporações (consultar manual ou plantas)',
+      'Atenção especial: condomínio possui processo judicial sobre vícios construtivos — documentar fotograficamente qualquer intervenção',
+      'Cor das tubulações: branco padrão fachada',
+      'Drenagem canalizada para ralo da varanda',
+      'Fixação não pode comprometer impermeabilização da fachada',
+      'Recomenda-se laudo técnico do instalador para isentar a Diagnóstika de responsabilidade futura',
+    ]
+  }
+};
 let novaDataSel = null;
 const CONDO_CLASS_MAP={'monte-carlo':'selected-mc','morada-morumbi':'selected-mm','portal-primavera':'selected-pp','residencial-santa-clara':'selected-sc','jardins-do-malta':'selected-jm'};
 const CONDO_ID_MAP={'monte-carlo':'mc','morada-morumbi':'mm','portal-primavera':'pp','residencial-santa-clara':'sc','jardins-do-malta':'jm'};
@@ -1565,8 +1631,38 @@ function iniciarChecklist(){
 function getChecklistAtivo(visita){
   if(!visita) return [];
   const condo=CONDOMINIOS[visita.condoId];
-  if(visita.tipo==='reforma') return CHECKLIST_REFORMA;
-  return condo?.checklist||[];
+  let base = visita.tipo==='reforma' ? CHECKLIST_REFORMA : (condo?.checklist||[]);
+  const custom = visita.itensCustom || [];
+  return [...base, ...custom];
+}
+
+// Adiciona item customizado à visita atual
+function adicionarItemCustom(){
+  if(!visitaAtual) return;
+  const nome=prompt('Nome do item a vistoriar:','');
+  if(!nome) return;
+  const detalhe=prompt('Detalhe / o que verificar:','')||'';
+  if(!visitaAtual.itensCustom) visitaAtual.itensCustom=[];
+  const id='custom_'+Date.now().toString(36);
+  visitaAtual.itensCustom.push({
+    id, nome, detalhe,
+    grupo:'➕ Outros Itens Avaliados',
+    norma:'Item adicionado pelo engenheiro em campo',
+    critico:false
+  });
+  renderChecklist(document.getElementById('main'));
+  setTimeout(()=>{
+    document.getElementById('ci-'+id)?.scrollIntoView({behavior:'smooth',block:'center'});
+  },80);
+}
+
+function removerItemCustom(itemId){
+  if(!confirm('Remover este item personalizado?')) return;
+  if(visitaAtual?.itensCustom){
+    visitaAtual.itensCustom=visitaAtual.itensCustom.filter(i=>i.id!==itemId);
+    delete visitaAtual.itens[itemId];
+    renderChecklist(document.getElementById('main'));
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1628,10 +1724,24 @@ function renderChecklist(main){
 
   Object.entries(grupos).forEach(([grp,items])=>{
     const isCritGrp = grp.includes('CRÍTICO');
-    html+=`<div class="group-header">
-      <div class="group-dot" style="background:${isCritGrp?'#C00000':condo.cor}"></div>
+    const isCustomGrp = grp.includes('Outros Itens');
+    const isClimGrp = grp.toLowerCase().includes('climatiz')||grp.toLowerCase().includes('ar condicionado');
+    html+=`<div class="group-header" ${isCustomGrp?'style="background:rgba(0,180,172,.08);color:var(--turq-dk)"':''}>
+      <div class="group-dot" style="background:${isCritGrp?'#C00000':isCustomGrp?'var(--turq)':condo.cor}"></div>
       ${grp}
     </div>`;
+    // Banner com regras do condomínio para Climatização
+    if(isClimGrp){
+      const reg=REGRAS_AR_CONDICIONADO[visitaAtual.condoId];
+      if(reg){
+        html+=`<div style="margin:0;padding:14px 16px;background:linear-gradient(135deg,rgba(0,180,172,.08),rgba(21,91,103,.04));border-bottom:1px solid var(--gray2)">
+          <div style="font-size:11px;font-weight:700;color:var(--teal);margin-bottom:8px">${reg.titulo}</div>
+          <ul style="margin:0;padding-left:18px;font-size:11.5px;line-height:1.6;color:var(--text2)">
+            ${reg.regras.map(r=>`<li style="margin-bottom:3px">${r}</li>`).join('')}
+          </ul>
+        </div>`;
+      }
+    }
     items.forEach(item=>{
       const st = visitaAtual.itens[item.id]?.status||'';
       const obs= visitaAtual.itens[item.id]?.obs||'';
@@ -1651,9 +1761,11 @@ function renderChecklist(main){
             ${fotos.length?'+ Adicionar outra foto':'Tirar / Adicionar foto com anotações'}
           </button>
         </div>`;
+      const isCustom = item.id.startsWith('custom_');
       html+=`
-      <div class="checklist-item ${st?'status-'+st:''} ${item.critico?'is-critico':''}" id="ci-${item.id}">
+      <div class="checklist-item ${st?'status-'+st:''} ${item.critico?'is-critico':''}" id="ci-${item.id}" ${isCustom?'style="border-left:3px solid var(--turq)"':''}>
         ${item.critico?'<div class="item-critico-tag">⚠ Crítico</div>':''}
+        ${isCustom?`<button onclick="removerItemCustom('${item.id}')" style="float:right;background:transparent;border:1px solid var(--gray2);color:var(--text2);border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer">✕ remover</button>`:''}
         <div class="item-name">${item.nome}</div>
         <div class="item-detail">${item.detalhe}</div>
         <div class="status-btns">
@@ -1668,6 +1780,14 @@ function renderChecklist(main){
       </div>`;
     });
   });
+
+  // Botão para adicionar item personalizado
+  html+=`<div style="padding:14px 16px;background:var(--gray)">
+    <button onclick="adicionarItemCustom()" style="width:100%;padding:12px;border:2px dashed var(--turq);border-radius:10px;background:rgba(0,180,172,.05);color:var(--turq-dk);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      ➕ Adicionar Item Personalizado
+    </button>
+    <div style="font-size:10.5px;color:var(--text2);text-align:center;margin-top:6px;line-height:1.4">Use para vistoriar algo que não está na lista padrão (ex: reparo específico, equipamento extra, etc.)</div>
+  </div>`;
 
   html+=`<div class="checklist-footer">
     <button class="btn-finish" ${filled===total?'':'disabled'} onclick="finalizarChecklist()">
