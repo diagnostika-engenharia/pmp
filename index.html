@@ -799,17 +799,65 @@ async function uploadVisita(v){
   }catch(e){ return {ok:false,err:e.message}; }
 }
 
+// Converte registro Supabase (snake_case) -> visita local (camelCase)
+function visitaFromRow(r){
+  return {
+    id:r.id, condoId:r.condo_id, data:r.data, hora:r.hora,
+    tipo:r.tipo||'pmp',
+    engenheiro:r.engenheiro, representante:r.representante,
+    bloco:r.bloco, apartamento:r.apartamento, morador:r.morador,
+    itens:r.itens||{}, obsGeral:r.obs_geral,
+    assinaturaEng:r.assinatura_eng, assinaturaResp:r.assinatura_resp,
+    _updatedAt:r.updated_at
+  };
+}
+
+async function downloadVisitas(){
+  if(!sb) return {ok:false,err:'supabase indisponível'};
+  try{
+    const {data,error}=await sb.from('visitas').select('*').order('created_at',{ascending:false}).limit(200);
+    if(error) return {ok:false,err:error.message};
+    const remotas=(data||[]).map(visitaFromRow);
+    const local=getHistorico();
+    // Mescla: se a mesma visita estiver nos 2, mantém a mais recente (updated_at)
+    const map={};
+    [...local, ...remotas].forEach(v=>{
+      const existing=map[v.id];
+      if(!existing) map[v.id]=v;
+      else {
+        const aT=new Date(existing._updatedAt||0).getTime();
+        const bT=new Date(v._updatedAt||0).getTime();
+        if(bT>=aT) map[v.id]=v;
+      }
+    });
+    const merged=Object.values(map).sort((a,b)=>{
+      const ad=a.data||'', bd=b.data||'';
+      if(ad!==bd) return bd.localeCompare(ad);
+      return new Date(b._updatedAt||0)-new Date(a._updatedAt||0);
+    });
+    localStorage.setItem('historico', JSON.stringify(merged.slice(0,200)));
+    return {ok:true, count:merged.length, remotas:remotas.length};
+  }catch(e){ return {ok:false,err:e.message}; }
+}
+
 async function syncTodasVisitas(silent=false){
   if(!sb){ if(!silent) showToast('☁ Sincronização indisponível'); return; }
+  // 1. Upload de visitas locais que não estão na nuvem (ou são mais recentes)
   const hist=getHistorico();
-  if(!silent) showToast('☁ Sincronizando '+hist.length+' visitas…');
   let ok=0, fail=0;
   for(const v of hist){
     const r=await uploadVisita(v);
     if(r.ok) ok++; else fail++;
   }
-  if(!silent) showToast(`☁ ${ok} sincronizadas${fail?' · '+fail+' falharam':''}`);
-  return {ok,fail};
+  // 2. Download de visitas remotas (de outros dispositivos)
+  const d=await downloadVisitas();
+  if(!silent){
+    if(d.ok) showToast(`☁ ${d.remotas} visitas no banco · ${ok} enviadas${fail?' · '+fail+' falhas':''}`);
+    else showToast('⚠ '+d.err);
+  }
+  // Re-renderiza a tela atual com dados atualizados
+  if(d.ok && d.remotas>0) render();
+  return {ok,fail,downloaded:d.ok?d.remotas:0};
 }
 
 // Status visual do supabase no header
@@ -3919,12 +3967,13 @@ if(draft){ try{ visitaAtual=JSON.parse(draft); }catch(e){} }
 render();
 atualizarStatusSync();
 
-// Sync de visitas antigas em background ao abrir (uma vez por sessão)
-setTimeout(()=>{
-  if(sb && !sessionStorage.getItem('sync_done')){
-    syncTodasVisitas(true).then(r=>{ if(r) sessionStorage.setItem('sync_done','1'); });
-  }
-},3000);
+// Sync inicial 3s após abrir e depois a cada 60s em background
+setTimeout(()=>{ if(sb) syncTodasVisitas(true); },3000);
+setInterval(()=>{ if(sb && document.visibilityState==='visible') syncTodasVisitas(true); },60000);
+// Sync quando a aba volta a ficar visível (volta do background)
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible' && sb) syncTodasVisitas(true);
+});
 
 // Keyboard shortcut: ESC = go back
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') goBack(); });
