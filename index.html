@@ -518,6 +518,13 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .prog-condo-nome.pp{color:var(--lime-dk)}
 .prog-condo-nome.sc{color:var(--purple)}
 .prog-condo-nome.jm{color:var(--amber-dk)}
+.visit-dot.tt{background:#5A7A7E}
+.hist-icon.tt{background:rgba(90,122,126,.12);color:#3D5559}
+.condo-opt.selected-tt{border-color:#5A7A7E;background:rgba(90,122,126,.07)}
+.plano-tab.active-tt{border-color:#5A7A7E;background:rgba(90,122,126,.1);color:#3D5559}
+.cd-pip-tt{background:#5A7A7E}
+.prog-condo-bloco.tt-bloco{border-left:3px solid #5A7A7E;background:rgba(90,122,126,.05)}
+.prog-condo-nome.tt{color:#3D5559}
 
 /* ── Sidebar ─────────────────────────────────────────────────────────────── */
 .sn-logo-area{padding:16px 14px 14px;border-bottom:1px solid rgba(255,255,255,.12);display:flex;align-items:center}
@@ -1248,6 +1255,30 @@ const CONDOMINIOS = {
       {grupo:'Gestão', nome:'Relatório técnico mensal (cláusula contratual)', periodicidade:'Mensal', norma:'NBR 5674:2012', prioridade:'Alta'},
       {grupo:'Gestão', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta'},
     ]
+  },
+  'condominio-teste':{
+    id:'condominio-teste', nome:'Condomínio TESTE — Sandbox', short:'TESTE',
+    cidade:'Ambiente de testes', frequencia:'Sob demanda', classe:'tt',
+    sindico:'Síndico Teste', endereco:'Endereço fictício — não usar em produção',
+    cnpj:'00.000.000/0001-00',
+    observacao:'⚠ AMBIENTE DE TESTES — use este condomínio para validar novas funcionalidades antes de aplicar aos condomínios reais.',
+    emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#5A7A7E"/><text x="32" y="42" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#fff">TESTE</text><circle cx="32" cy="20" r="4" fill="#FBC02D"/></svg>',
+    cor:'#5A7A7E',
+    checklist:[
+      {id:'tt1', critico:false, grupo:'Estrutura',     nome:'Item de teste — fachada',        detalhe:'Item exemplo para validação de fluxo', norma:'NBR exemplo'},
+      {id:'tt2', critico:false, grupo:'Hidráulica',    nome:'Item de teste — caixa d\'água',  detalhe:'Item exemplo para validação de fluxo', norma:'NBR exemplo'},
+      {id:'tt3', critico:false, grupo:'Elétrica',      nome:'Item de teste — quadro',          detalhe:'Item exemplo para validação de fluxo', norma:'NBR exemplo'},
+      {id:'tt4', critico:false, grupo:'Incêndio',      nome:'Item de teste — extintor',        detalhe:'Item exemplo para validação de fluxo', norma:'NBR exemplo'},
+      {id:'tt5', critico:false, grupo:'Áreas Comuns',  nome:'Item de teste — playground',      detalhe:'Item exemplo para validação de fluxo', norma:'NBR exemplo'},
+    ],
+    plano:[
+      {grupo:'Estrutura',     nome:'Teste — Inspeção estrutural',    periodicidade:'Mensal',    norma:'NBR exemplo', prioridade:'Média'},
+      {grupo:'Hidráulica',    nome:'Teste — Sistema hidráulico',     periodicidade:'Mensal',    norma:'NBR exemplo', prioridade:'Média'},
+      {grupo:'Elétrica',      nome:'Teste — Quadros elétricos',      periodicidade:'Mensal',    norma:'NBR exemplo', prioridade:'Média'},
+      {grupo:'Incêndio',      nome:'Teste — Equipamentos de combate', periodicidade:'Trimestral', norma:'NBR exemplo', prioridade:'Média'},
+      {grupo:'Áreas Comuns',  nome:'Teste — Áreas comuns',           periodicidade:'Mensal',    norma:'NBR exemplo', prioridade:'Média'},
+      {grupo:'Gestão',        nome:'Teste — Relatório',              periodicidade:'Mensal',    norma:'NBR exemplo', prioridade:'Média'},
+    ]
   }
 };
 
@@ -1416,7 +1447,8 @@ function renderHome(main){
     {id:'morada-morumbi',label:'Morada Morumbi',cls:'mm',freq:'📅 Quinzenal'},
     {id:'portal-primavera',label:'Portal Primavera',cls:'pp',freq:'📅 Quinzenal'},
     {id:'residencial-santa-clara',label:'Santa Clara',cls:'sc',freq:'📅 Quinzenal'},
-    {id:'jardins-do-malta',label:'Jardins do Malta',cls:'jm',freq:'📅 Quinzenal'}
+    {id:'jardins-do-malta',label:'Jardins do Malta',cls:'jm',freq:'📅 Quinzenal'},
+    {id:'condominio-teste',label:'TESTE (sandbox)',cls:'tt',freq:'🧪 Testes'}
   ];
   const ultimas={};
   condosList.forEach(c=>{ultimas[c.id]=hist.filter(v=>v.condoId===c.id)[0];});
@@ -1640,7 +1672,7 @@ const REGRAS_AR_CONDICIONADO={
   }
 };
 let novaDataSel = null;
-const CONDO_CLASS_MAP={'monte-carlo':'selected-mc','morada-morumbi':'selected-mm','portal-primavera':'selected-pp','residencial-santa-clara':'selected-sc','jardins-do-malta':'selected-jm'};
+const CONDO_CLASS_MAP={'monte-carlo':'selected-mc','morada-morumbi':'selected-mm','portal-primavera':'selected-pp','residencial-santa-clara':'selected-sc','jardins-do-malta':'selected-jm','condominio-teste':'selected-tt'};
 const CONDO_ID_MAP={'monte-carlo':'mc','morada-morumbi':'mm','portal-primavera':'pp','residencial-santa-clara':'sc','jardins-do-malta':'jm'};
 
 function renderNovaVisita(main){
@@ -3943,6 +3975,8 @@ function getVisitDates2026(condoId){
     // Quinzenal (2 visitas/mês) — Hortolândia/SP. Base Jan 7 (pareado com Morada Morumbi)
     let d=new Date(2026,0,7);
     while(d.getFullYear()===2026){set.add(dateKey(d));d.setDate(d.getDate()+14);}
+  } else if(condoId==='condominio-teste'){
+    // Sandbox — sem agenda fixa, deixa vazio (usuário cria eventos manualmente)
   }
   return set;
 }
@@ -4454,9 +4488,7 @@ ${eventos.length?`
 </table>
 
 <div style="margin-top:20pt;padding-top:10pt;border-top:1pt solid #155B67;font-size:8pt;color:#5A7A7E;line-height:1.6;text-align:center">
-  <b>Diagnóstika Engenharia LTDA</b> · CNPJ 54.027.948/0001-60<br>
-  Eng. Civil Claudemir Scaranello · CREA/SP 50.707.124-26<br>
-  📧 contato@diagnostikaengenharia.com.br · 📞 (19) 98151-5494<br>
+  <b>Diagnóstika Engenharia LTDA</b> · CNPJ 54.027.948/0001-60 · CREA/SP 50.707.124-26<br>
   <i style="font-size:7pt;color:#888">Documento elaborado em ${hoje.toLocaleDateString('pt-BR')} · válido para o exercício 2026</i>
 </div>`;
 
