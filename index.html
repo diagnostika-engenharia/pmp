@@ -4216,18 +4216,6 @@ function gerarAgendaSindico(condoId){
     });
   }
 
-  // Estimativa de custos para planejamento financeiro
-  // Custos médios de mercado em SP — valores referenciais
-  const custos=[
-    {item:'Limpeza e desinfecção de reservatório (semestral)', periodicidade:'2x/ano (jan, jul)', valor:'R$ 800 a R$ 2.500/limpeza', total:'R$ 1.600 a R$ 5.000/ano'},
-    {item:'Recarga de extintores', periodicidade:'Anual (até 5 anos) · vencidos', valor:'R$ 30 a R$ 80/unidade', total:'depende da qtd'},
-    {item:'Teste hidrostático mangueira de hidrante', periodicidade:'Anual', valor:'R$ 80 a R$ 150/mangueira', total:'varia por bloco'},
-    {item:'Inspeção e medição SPDA (para-raios)', periodicidade:'Anual', valor:'R$ 800 a R$ 2.000', total:'R$ 800 a R$ 2.000/ano'},
-    {item:'Análise de potabilidade da água', periodicidade:'Semestral', valor:'R$ 250 a R$ 500/análise', total:'R$ 500 a R$ 1.000/ano'},
-    {item:'Manutenção de bomba de recalque (preventiva)', periodicidade:'Anual', valor:'R$ 300 a R$ 800', total:'R$ 300 a R$ 800/ano'},
-    {item:'Manutenção corretiva (eventual)', periodicidade:'Sob demanda', valor:'orçamento específico', total:'reserva de 5-10% do orçamento'},
-  ];
-
   document.getElementById('print-area').innerHTML=`
 <!-- CAPA -->
 <div class="print-header">
@@ -4255,7 +4243,7 @@ function gerarAgendaSindico(condoId){
   <div style="font-size:9pt;line-height:1.7;color:#1A2E31">
     Este documento apresenta a <b>programação completa de manutenção preventiva</b> do condomínio para o ano de 2026, conforme contrato firmado com a <b>Diagnóstika Engenharia</b>. O cronograma a seguir foi elaborado com base nas <b>normas técnicas brasileiras aplicáveis</b> (NBR 5674, 6118, 9575, 10339, 5419, 12962, 13714, 5410, NBR 16401, Portaria GM/MS 888/2021 e demais correlatas), nas <b>particularidades construtivas</b> do empreendimento e nos <b>laudos técnicos prévios</b> existentes.
     <br><br>
-    O presente plano visa: (1) o cumprimento das obrigações legais e contratuais do condomínio, (2) a preservação da vida útil das edificações, (3) a antecipação de riscos com identificação precoce de patologias, (4) o auxílio ao síndico no <b>planejamento financeiro anual</b> das demandas de manutenção, evitando custos emergenciais.
+    O presente plano visa: (1) o cumprimento das obrigações legais e contratuais do condomínio, (2) a preservação da vida útil das edificações, (3) a antecipação de riscos com identificação precoce de patologias, (4) a documentação técnica completa de cada inspeção realizada, garantindo rastreabilidade e respaldo normativo às tomadas de decisão da gestão condominial.
   </div>
 </div>
 
@@ -4326,41 +4314,6 @@ ${eventos.length?`
   </thead>
   <tbody>${cronograma}</tbody>
 </table>
-
-<!-- PÁGINA FINAL: PLANEJAMENTO FINANCEIRO -->
-<div style="page-break-before:always"></div>
-<div class="print-header">
-  <img src="assets/logo-vertical.png" alt="Diagnóstika" onerror="this.style.display='none'">
-  <div class="print-header-right">
-    <div class="print-title" style="font-size:13pt">💰 Planejamento Financeiro Anual</div>
-    <div>Custos previstos · ${condo.nome}</div>
-  </div>
-</div>
-<div style="background:#E8F5EE;border-left:4pt solid #1B8A4A;padding:10pt 12pt;border-radius:0 4pt 4pt 0;margin-bottom:14pt;font-size:9pt;line-height:1.6">
-  <b style="color:#1B8A4A">📊 GUIA DE PLANEJAMENTO ORÇAMENTÁRIO</b><br>
-  Esta seção apresenta uma <b>estimativa de custos</b> dos serviços técnicos previstos no plano para que o(a) síndico(a) possa <b>antecipar despesas anuais</b> na previsão orçamentária do condomínio. Os valores são <b>referenciais de mercado (SP, 2026)</b> e <b>não substituem orçamentos formais</b> dos prestadores. A Diagnóstika não realiza estes serviços diretamente — atuamos como assessoria técnica indicando padrões, fiscalizando execução e validando conformidade.
-</div>
-<table style="width:100%;border-collapse:collapse;font-size:9pt;border:.5pt solid #E0EAEC">
-  <thead>
-    <tr style="background:#1B8A4A;color:#fff">
-      <th style="padding:6pt 8pt;text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.4pt">Serviço</th>
-      <th style="padding:6pt 8pt;text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.4pt">Periodicidade</th>
-      <th style="padding:6pt 8pt;text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.4pt">Valor Referencial</th>
-      <th style="padding:6pt 8pt;text-align:left;font-size:8pt;text-transform:uppercase;letter-spacing:.4pt">Estimativa Anual</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${custos.map((c,i)=>`<tr style="${i%2?'background:#F0F4F5;':''}border-bottom:.5pt solid #E0EAEC">
-      <td style="padding:7pt 8pt;font-weight:600">${c.item}</td>
-      <td style="padding:7pt 8pt;font-size:8.5pt;color:#5A7A7E">${c.periodicidade}</td>
-      <td style="padding:7pt 8pt;font-size:8.5pt">${c.valor}</td>
-      <td style="padding:7pt 8pt;font-weight:700;color:#1B8A4A">${c.total}</td>
-    </tr>`).join('')}
-  </tbody>
-</table>
-<div style="background:#FFF8E1;border-left:3pt solid #FBC02D;padding:8pt 10pt;border-radius:0 3pt 3pt 0;margin-top:12pt;font-size:8.5pt;color:#3B2A0A;line-height:1.5">
-  ⚠ <b>Não inclui:</b> manutenção corretiva emergencial (vazamentos, panes elétricas, etc.), obras de reparo estrutural identificadas em laudo, reformas de modernização, taxa de honorários da Diagnóstika Engenharia (já contratada à parte).
-</div>
 
 <div style="margin-top:20pt;padding-top:10pt;border-top:1pt solid #155B67;font-size:8pt;color:#5A7A7E;line-height:1.6;text-align:center">
   <b>Diagnóstika Engenharia LTDA</b> · CNPJ 54.027.948/0001-60<br>
