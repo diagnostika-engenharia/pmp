@@ -1,4 +1,4 @@
-const CACHE = 'diagnostika-v44';
+const CACHE = 'diagnostika-v45';
 const ASSETS = ['./', './index.html', './manifest.json', './assets/logo-dark.png', './assets/logo-vertical.png', './assets/icon.png'];
 
 self.addEventListener('install', e => {
