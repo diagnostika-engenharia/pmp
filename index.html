@@ -784,7 +784,14 @@ try{ if(window.supabase) sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_A
   try{
     const {data}=await sb.auth.getSession();
     if(data?.session){
-      const {data:vincs}=await sb.from('user_condos').select('role').eq('user_id',data.session.user.id);
+      // Personaliza saudação com o nome do usuário logado (independente do RT da visita)
+      const u=data.session.user;
+      const nome=u.user_metadata?.nome || (u.email?u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'');
+      if(nome){
+        window.usuarioLogadoNome=nome;
+        if(typeof currentView!=='undefined' && currentView==='home' && typeof render==='function') render();
+      }
+      const {data:vincs}=await sb.from('user_condos').select('role').eq('user_id',u.id);
       if(vincs && vincs.length>0 && vincs.every(v=>v.role==='sindico')){
         // Usuário é apenas síndico → bloqueia acesso ao app PMP
         document.body.innerHTML=`<div style="position:fixed;inset:0;background:linear-gradient(135deg,#0D3C44,#155B67);color:#fff;display:flex;align-items:center;justify-content:center;padding:20px;font-family:'Segoe UI',sans-serif">
@@ -1387,7 +1394,7 @@ function renderHome(main){
 
   main.innerHTML=`
   <div class="home-hero">
-    <h1>Olá${eng?', '+eng.split(' ')[0]:''}! 👋</h1>
+    <h1>Olá${(window.usuarioLogadoNome||eng)?', '+(window.usuarioLogadoNome||eng).split(' ')[0]:''}! 👋</h1>
     <p>Gestão de manutenção preventiva predial</p>
     <div class="date">${hoje.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}</div>
   </div>
