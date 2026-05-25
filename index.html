@@ -1321,10 +1321,10 @@ function render(){
       renderChecklist(main); break;
     case 'relatorio':     setNavActive('nav-nova');     setHeader('Relatório da Visita',true); renderRelatorio(main); break;
     case 'condo-detail':  setNavActive('nav-home');     setHeader(condoDetailId?CONDOMINIOS[condoDetailId]?.short||'Condomínio':'Condomínio',true); renderCondoDetail(main); break;
-    case 'historico':     setNavActive('nav-historico');setHeader('Histórico de Visitas');    renderHistorico(main); break;
+    case 'historico':     setNavActive('nav-historico');setHeader('Histórico de Visitas',true);renderHistorico(main); break;
     case 'historico-det': setNavActive('nav-historico');setHeader('Detalhe da Visita',true);  renderHistoricoDet(main); break;
-    case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026');              renderAgendaView(main); break;
-    case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção');     renderPlano(main); break;
+    case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026',true);         renderAgendaView(main); break;
+    case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
   }
 }
 
