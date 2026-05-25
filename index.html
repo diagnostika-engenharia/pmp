@@ -1408,18 +1408,35 @@ function renderHome(main){
   </div>
 
   ${hist.length>0 ? `
-  <div class="section-title">Últimas visitas</div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 16px 8px">
+    <div class="section-title" style="padding:0">Últimas visitas ${_modoSelecao?`<span style="background:#C00000;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;margin-left:6px">${_selecionadas.size} selecionada(s)</span>`:''}</div>
+    <button onclick="toggleModoSelecao()" style="background:transparent;border:1px solid var(--gray2);color:${_modoSelecao?'#C00000':'var(--text2)'};border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">${_modoSelecao?'✕ Cancelar':'☑ Selecionar'}</button>
+  </div>
+  ${_modoSelecao?`<div style="margin:0 16px 8px;display:flex;gap:6px;flex-wrap:wrap">
+    <button onclick="selecionarTodas()" style="flex:1;min-width:110px;background:var(--gray);border:1px solid var(--gray2);color:var(--text2);border-radius:6px;padding:7px;font-size:11px;font-weight:600;cursor:pointer">Selecionar todas</button>
+    <button onclick="limparSelecao()" style="flex:1;min-width:110px;background:var(--gray);border:1px solid var(--gray2);color:var(--text2);border-radius:6px;padding:7px;font-size:11px;font-weight:600;cursor:pointer">Limpar</button>
+    <button onclick="excluirSelecionadas()" style="flex:1;min-width:140px;background:#C00000;border:none;color:#fff;border-radius:6px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">🗑 Excluir (${_selecionadas.size})</button>
+  </div>`:''}
   <div class="card" style="margin:0 16px 24px;overflow:hidden">
-    ${hist.slice(0,3).map(v=>{
+    ${hist.slice(0,_modoSelecao?20:5).map(v=>{
       const c=CONDOMINIOS[v.condoId];
       const nc=Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length;
-      return `<div class="visit-item" onclick="verVisita('${v.id}')">
+      const tipoTag=v.tipo==='reforma'?'<span style="font-size:9px;background:#7B1FA2;color:#fff;padding:1px 6px;border-radius:8px;font-weight:700;margin-left:4px">🏗️ Reforma</span>':'';
+      const isSel=_selecionadas.has(v.id);
+      return `<div class="visit-item" style="${isSel?'background:rgba(192,0,0,.06);':''}" onclick="${_modoSelecao?`toggleSelecaoVisita('${v.id}',event)`:`verVisita('${v.id}')`}">
+        ${_modoSelecao?`<input type="checkbox" ${isSel?'checked':''} onclick="event.stopPropagation();toggleSelecaoVisita('${v.id}',event)" style="margin-right:4px;width:18px;height:18px;cursor:pointer;accent-color:#C00000">`:''}
         <div class="visit-dot ${c?.classe||'mc'}"></div>
         <div class="visit-info">
-          <strong>${c?.short||v.condoId}</strong>
-          <span>${v.data} ${v.hora||''}</span>
+          <strong>${c?.short||v.condoId}${tipoTag}</strong>
+          <span>${v.data} ${v.hora||''}${v.engenheiro?' · '+v.engenheiro:''}</span>
         </div>
-        ${nc>0 ? `<span class="badge badge-red">${nc} NC</span>` : `<span class="badge badge-green">OK</span>`}
+        ${!_modoSelecao?`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+          ${nc>0 ? `<span class="badge badge-red">${nc} NC</span>` : `<span class="badge badge-green">OK</span>`}
+          <div style="display:flex;gap:3px">
+            <button onclick="editarVisita('${v.id}',event)" title="Editar" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:10px;color:var(--teal)">✏</button>
+            <button onclick="excluirVisita('${v.id}',event)" title="Excluir" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:2px 6px;cursor:pointer;font-size:10px;color:#C00000">🗑</button>
+          </div>
+        </div>`:`<span class="badge ${nc>0?'badge-red':'badge-green'}">${nc>0?nc+' NC':'OK'}</span>`}
       </div>`;
     }).join('')}
   </div>` : ''}
@@ -3448,13 +3465,25 @@ function renderHistorico(main){
     </div>`;
     return;
   }
-  main.innerHTML=hist.map(v=>{
+  let barra='';
+  barra=`<div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px 8px;background:var(--white);border-bottom:1px solid var(--gray2)">
+    <div style="font-size:13px;font-weight:700;color:var(--text)">${hist.length} visita${hist.length>1?'s':''} ${_modoSelecao?`<span style="background:#C00000;color:#fff;padding:2px 8px;border-radius:10px;font-size:10px;margin-left:6px">${_selecionadas.size} selecionada(s)</span>`:''}</div>
+    <button onclick="toggleModoSelecao()" style="background:transparent;border:1px solid var(--gray2);color:${_modoSelecao?'#C00000':'var(--text2)'};border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer">${_modoSelecao?'✕ Cancelar':'☑ Selecionar'}</button>
+  </div>
+  ${_modoSelecao?`<div style="padding:8px 16px;background:var(--white);border-bottom:1px solid var(--gray2);display:flex;gap:6px;flex-wrap:wrap">
+    <button onclick="selecionarTodas()" style="flex:1;min-width:110px;background:var(--gray);border:1px solid var(--gray2);color:var(--text2);border-radius:6px;padding:7px;font-size:11px;font-weight:600;cursor:pointer">Selecionar todas</button>
+    <button onclick="limparSelecao()" style="flex:1;min-width:110px;background:var(--gray);border:1px solid var(--gray2);color:var(--text2);border-radius:6px;padding:7px;font-size:11px;font-weight:600;cursor:pointer">Limpar</button>
+    <button onclick="excluirSelecionadas()" style="flex:1;min-width:140px;background:#C00000;border:none;color:#fff;border-radius:6px;padding:7px;font-size:11px;font-weight:700;cursor:pointer">🗑 Excluir (${_selecionadas.size})</button>
+  </div>`:''}`;
+  main.innerHTML=barra+hist.map(v=>{
     const c=CONDOMINIOS[v.condoId];
     const nc=Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length;
     const total=c?c.checklist.length:0;
     const conf=Object.values(v.itens||{}).filter(i=>i.status==='conforme').length;
     const tipoTag=v.tipo==='reforma'?'<span style="font-size:9px;background:#7B1FA2;color:#fff;padding:1px 6px;border-radius:8px;font-weight:700;margin-left:4px">🏗️ REFORMA</span>':'';
-    return `<div class="hist-item" onclick="verVisita('${v.id}')">
+    const isSel=_selecionadas.has(v.id);
+    return `<div class="hist-item" style="${isSel?'background:rgba(192,0,0,.06);':''}" onclick="${_modoSelecao?`toggleSelecaoVisita('${v.id}',event)`:`verVisita('${v.id}')`}">
+      ${_modoSelecao?`<input type="checkbox" ${isSel?'checked':''} onclick="event.stopPropagation();toggleSelecaoVisita('${v.id}',event)" style="width:18px;height:18px;cursor:pointer;accent-color:#C00000;margin-right:4px">`:''}
       <div class="hist-icon ${c?.classe||'mc'}">🏢</div>
       <div class="hist-info">
         <strong>${c?.short||v.condoId}${tipoTag}</strong>
@@ -3462,13 +3491,56 @@ function renderHistorico(main){
       </div>
       <div class="hist-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         ${nc>0?`<span class="badge badge-red">${nc} NC</span>`:`<span class="badge badge-green">✓ OK</span>`}
-        <div style="display:flex;gap:4px">
+        ${!_modoSelecao?`<div style="display:flex;gap:4px">
           <button onclick="editarVisita('${v.id}',event)" title="Editar" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:11px;color:var(--teal)">✏</button>
           <button onclick="excluirVisita('${v.id}',event)" title="Excluir" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:11px;color:#C00000">🗑</button>
-        </div>
+        </div>`:''}
       </div>
     </div>`;
   }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SELEÇÃO MÚLTIPLA de visitas (para exclusão em lote)
+// ═══════════════════════════════════════════════════════════════════════════
+let _modoSelecao = false;
+let _selecionadas = new Set();
+
+function toggleModoSelecao(){
+  _modoSelecao = !_modoSelecao;
+  _selecionadas.clear();
+  render();
+}
+function toggleSelecaoVisita(id, ev){
+  if(ev){ev.stopPropagation();}
+  if(_selecionadas.has(id)) _selecionadas.delete(id);
+  else _selecionadas.add(id);
+  render();
+}
+function selecionarTodas(){
+  const hist=getHistorico();
+  hist.forEach(v=>_selecionadas.add(v.id));
+  render();
+}
+function limparSelecao(){ _selecionadas.clear(); render(); }
+async function excluirSelecionadas(){
+  if(!_selecionadas.size){ alert('Nenhuma visita selecionada'); return; }
+  if(!confirm(`⚠ Excluir ${_selecionadas.size} visita(s) selecionada(s)?\n\nIsso remove permanentemente todos os dados delas (checklists, fotos, assinaturas) — local e na nuvem. Não pode ser desfeito.`)) return;
+  const ids=[..._selecionadas];
+  // Remove do local
+  const hist=getHistorico().filter(v=>!_selecionadas.has(v.id));
+  localStorage.setItem('historico', JSON.stringify(hist));
+  // Remove do Supabase em lote
+  if(sb){
+    try{
+      const {error}=await sb.from('visitas').delete().in('id',ids);
+      if(error) console.warn('Erro Supabase:',error);
+    }catch(e){console.warn(e);}
+  }
+  showToast(`🗑 ${ids.length} visita(s) excluída(s)`);
+  _selecionadas.clear();
+  _modoSelecao=false;
+  render();
 }
 
 // Edita uma visita finalizada (carrega como visitaAtual + abre checklist)
