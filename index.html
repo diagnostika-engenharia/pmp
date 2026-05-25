@@ -1309,6 +1309,28 @@ function setNavActive(id){
   if(sn) sn.classList.add('active');
 }
 
+// Ativa correção ortográfica pt-BR em todos os campos de texto após cada render
+function aplicarSpellcheckPtBR(){
+  const root = document.getElementById('main');
+  if(!root) return;
+  const tipos = new Set(['text','search','url',undefined,null,'']);
+  root.querySelectorAll('textarea').forEach(el=>{
+    if(!el.hasAttribute('spellcheck')) el.setAttribute('spellcheck','true');
+    el.setAttribute('lang','pt-BR');
+    if(!el.hasAttribute('autocorrect')) el.setAttribute('autocorrect','on');
+    if(!el.hasAttribute('autocapitalize')) el.setAttribute('autocapitalize','sentences');
+  });
+  root.querySelectorAll('input').forEach(el=>{
+    const t=(el.getAttribute('type')||'text').toLowerCase();
+    if(!tipos.has(t)) return;
+    if(el.id==='cfg-apikey') return; // chave de API: sem spellcheck
+    if(!el.hasAttribute('spellcheck')) el.setAttribute('spellcheck','true');
+    el.setAttribute('lang','pt-BR');
+    if(!el.hasAttribute('autocorrect')) el.setAttribute('autocorrect','on');
+    if(!el.hasAttribute('autocapitalize')) el.setAttribute('autocapitalize','sentences');
+  });
+}
+
 function render(){
   const main = document.getElementById('main');
   switch(currentView){
@@ -1326,6 +1348,7 @@ function render(){
     case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026',true);         renderAgendaView(main); break;
     case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
   }
+  aplicarSpellcheckPtBR();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
