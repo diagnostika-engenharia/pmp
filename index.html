@@ -4167,6 +4167,28 @@ function programacaoAnual(condoId){
     target.forEach(d=>{ if(result[d]) result[d].push(item.nome); });
   });
 
+  // CAP por visita: limita itens não-críticos por dia (deixa espaço para reformas)
+  // Cada condomínio tem teto baseado na frequência: visitas mais raras suportam mais itens
+  const condoTeto={
+    'monte-carlo':6,        // semanal (4x/mês) → 6 itens/visita
+    'morada-morumbi':9,     // quinzenal (2x/mês) → 9 itens/visita
+    'portal-primavera':9,   // quinzenal
+    'residencial-santa-clara':9, // quinzenal
+    'jardins-do-malta':9    // quinzenal
+  };
+  const MAX_ITENS_VISITA=condoTeto[condoId]||8;
+  // Roll forward: itens excedentes vão para a próxima visita com capacidade
+  for(let i=0;i<allDates.length;i++){
+    while(result[allDates[i]].length>MAX_ITENS_VISITA){
+      let targetIdx=-1;
+      for(let j=i+1;j<allDates.length;j++){
+        if(result[allDates[j]].length<MAX_ITENS_VISITA){ targetIdx=j; break; }
+      }
+      if(targetIdx<0) break; // sem capacidade futura
+      result[allDates[targetIdx]].push(result[allDates[i]].pop());
+    }
+  }
+
   _progCache[condoId]=result;
   return result;
 }
