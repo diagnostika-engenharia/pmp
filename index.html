@@ -776,6 +776,8 @@ async function uploadVisita(v){
       id:v.id, condo_id:v.condoId, data:v.data, hora:v.hora||null,
       engenheiro:v.engenheiro||null, representante:v.representante||null,
       itens:v.itens||{}, obs_geral:v.obsGeral||null,
+      tipo:v.tipo||'pmp',
+      bloco:v.bloco||null, apartamento:v.apartamento||null, morador:v.morador||null,
       device_id:getDeviceId()
     },{onConflict:'id'});
     if(error) return {ok:false,err:error.message};
@@ -1366,9 +1368,28 @@ function renderNovaVisita(main){
       <label class="form-label">Engenheiro responsável</label>
       <input class="form-input" type="text" id="inp-eng" placeholder="Nome completo" value="${getEngenheiro()}" oninput="setEngenheiro(this.value)">
     </div>
+    ${novaTipo==='reforma'?`
+    <div style="background:rgba(123,31,162,.05);border-left:4px solid #7B1FA2;padding:12px 14px;border-radius:0 8px 8px 0;margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#7B1FA2;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">🏗️ Dados da Unidade em Reforma</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <label class="form-label" style="margin-bottom:4px">Bloco</label>
+          <input class="form-input" type="text" id="inp-bloco" placeholder="Ex: A, B, Bloco 1" style="padding:9px 11px;font-size:14px">
+        </div>
+        <div>
+          <label class="form-label" style="margin-bottom:4px">Apartamento</label>
+          <input class="form-input" type="text" id="inp-apto" placeholder="Ex: 101, 32, ap 305" style="padding:9px 11px;font-size:14px">
+        </div>
+      </div>
+      <div>
+        <label class="form-label" style="margin-bottom:4px">Nome do morador(a)</label>
+        <input class="form-input" type="text" id="inp-morador" placeholder="Nome completo do proprietário ou responsável" style="padding:9px 11px;font-size:14px">
+      </div>
+    </div>
+    `:''}
     <div class="form-group">
-      <label class="form-label">${novaTipo==='reforma'?'Proprietário / Responsável da Obra':'Representante do condomínio'}</label>
-      <input class="form-input" type="text" id="inp-rep" placeholder="${novaTipo==='reforma'?'Nome do proprietário ou síndico':'Síndico / Zelador'}">
+      <label class="form-label">${novaTipo==='reforma'?'Responsável Técnico pela Obra (engenheiro/arquiteto)':'Representante do condomínio'}</label>
+      <input class="form-input" type="text" id="inp-rep" placeholder="${novaTipo==='reforma'?'Nome do RT contratado pelo morador':'Síndico / Zelador'}">
     </div>
     <button class="btn-primary" id="btn-iniciar" onclick="iniciarChecklist()" style="background:${tipoCor}" ${novaCondoSel?'':'disabled'}>
       Iniciar Checklist →
@@ -1523,12 +1544,17 @@ function iniciarChecklist(){
   const eng  = document.getElementById('inp-eng').value;
   const rep  = document.getElementById('inp-rep').value;
   if(eng) setEngenheiro(eng);
+  // Campos extras de reforma
+  const bloco = document.getElementById('inp-bloco')?.value || '';
+  const apartamento = document.getElementById('inp-apto')?.value || '';
+  const morador = document.getElementById('inp-morador')?.value || '';
   visitaAtual = {
     id: Date.now().toString(36)+Math.random().toString(36).slice(2,6),
     condoId, data, hora,
     tipo: novaTipo||'pmp',
     engenheiro: eng,
     representante: rep,
+    bloco, apartamento, morador,
     itens: {},
     obsGeral: ''
   };
@@ -1572,7 +1598,8 @@ function renderChecklist(main){
 
   let html=`
   <div class="checklist-header" style="background:linear-gradient(135deg,${visitaAtual.tipo==='reforma'?'#7B1FA2':condo.cor} 0%,${visitaAtual.tipo==='reforma'?'#5B0F87':condo.cor+'DD'} 100%)">
-    ${visitaAtual.tipo==='reforma'?'<div style="background:rgba(0,0,0,.25);color:#FBC02D;padding:4px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:inline-block;margin-bottom:8px">🏗️ Vistoria de Reforma · NBR 16280</div>':''}
+    ${visitaAtual.tipo==='reforma'?`<div style="background:rgba(0,0,0,.25);color:#FBC02D;padding:4px 10px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:inline-block;margin-bottom:8px">🏗️ Vistoria de Reforma · NBR 16280</div>
+    ${(visitaAtual.bloco||visitaAtual.apartamento||visitaAtual.morador)?`<div style="background:rgba(255,255,255,.12);padding:8px 11px;border-radius:6px;font-size:11.5px;line-height:1.5;margin-bottom:8px"><b>📍 Unidade:</b> ${[visitaAtual.bloco&&'Bloco '+visitaAtual.bloco, visitaAtual.apartamento&&'Apto '+visitaAtual.apartamento].filter(Boolean).join(' · ')}${visitaAtual.morador?'<br><b>👤 Morador(a):</b> '+visitaAtual.morador:''}</div>`:''}`:''}
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px">
       <div style="width:36px;height:36px;border-radius:6px;overflow:hidden;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.2)">${condo.emblema}</div>
       <div style="flex:1;min-width:0">
