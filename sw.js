@@ -1,4 +1,4 @@
-const CACHE = 'diagnostika-v54';
+const CACHE = 'diagnostika-v55';
 const ASSETS = ['./', './index.html', './manifest.json', './assets/logo-dark.png', './assets/logo-vertical.png', './assets/icon.png'];
 
 self.addEventListener('install', e => {
@@ -14,7 +14,29 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  const req = e.request;
+  const url = new URL(req.url);
+
+  // Network-first para HTML (index.html navegação) — garante código sempre atualizado
+  const isHTML = req.mode === 'navigate' ||
+                 req.headers.get('accept')?.includes('text/html') ||
+                 url.pathname.endsWith('/') ||
+                 url.pathname.endsWith('.html');
+
+  if (isHTML) {
+    e.respondWith(
+      fetch(req).then(resp => {
+        // Salva cópia no cache para fallback offline
+        const copy = resp.clone();
+        caches.open(CACHE).then(c => c.put(req, copy)).catch(()=>{});
+        return resp;
+      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Cache-first para assets (CSS, JS, imagens, fontes)
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).catch(() => caches.match('./index.html')))
+    caches.match(req).then(r => r || fetch(req).catch(() => caches.match('./index.html')))
   );
 });

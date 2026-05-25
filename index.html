@@ -823,19 +823,36 @@ function bloqueioPMP(motivo){
   </div>`;
 }
 
+// Espera supabase carregar (CDN pode demorar) — máximo 6 segundos
+async function aguardarSupabase(maxMs=6000){
+  const start=Date.now();
+  while(!window.supabase && Date.now()-start<maxMs){
+    await new Promise(r=>setTimeout(r,80));
+  }
+  if(window.supabase && !sb){
+    try{ sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}}); }catch(e){console.warn('Supabase init tardio:',e);}
+  }
+  return !!sb;
+}
+
 (async()=>{
-  if(!sb){ bloqueioPMP('semsessao'); return; }
+  const ok=await aguardarSupabase();
+  if(!ok){ bloqueioPMP('semsessao'); return; }
   try{
-    const {data}=await sb.auth.getSession();
-    if(!data?.session){ bloqueioPMP('semsessao'); return; }
-    const u=data.session.user;
+    // Tenta getSession com até 3 retentativas (caso storage ainda esteja sincronizando entre subpastas)
+    let session=null;
+    for(let i=0;i<3;i++){
+      const {data}=await sb.auth.getSession();
+      if(data?.session){ session=data.session; break; }
+      await new Promise(r=>setTimeout(r,250));
+    }
+    if(!session){ bloqueioPMP('semsessao'); return; }
+    const u=session.user;
     const {data:vincs}=await sb.from('user_condos').select('role').eq('user_id',u.id);
-    // Se tem QUALQUER vínculo como síndico → bloqueia (não pode ser síndico de um condo e engenheiro de outro)
     if(vincs && vincs.some(v=>v.role==='sindico')){
       bloqueioPMP('sindico');
       return;
     }
-    // Aprovado — libera a UI
     const nome=u.user_metadata?.nome || (u.email?u.email.split('@')[0].replace(/[._]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'');
     if(nome) window.usuarioLogadoNome=nome;
     document.body.classList.remove('auth-checking');
