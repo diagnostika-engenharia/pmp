@@ -36,7 +36,9 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
   position:relative;z-index:10;
   box-shadow:0 2px 8px rgba(0,0,0,.2);
 }
-#header img{height:40px;object-fit:contain;flex-shrink:0;filter:brightness(0) invert(1)}
+#header img{height:48px;object-fit:contain;flex-shrink:0;filter:brightness(0) invert(1)}
+#header{height:auto;min-height:64px;padding:6px 12px}
+:root{--header-h:64px}
 #header-title{flex:1;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:4px}
 .icon-btn{width:40px;height:40px;border:none;background:rgba(255,255,255,.15);border-radius:50%;color:var(--white);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .2s}
 .icon-btn:hover{background:rgba(255,255,255,.25)}
@@ -345,8 +347,8 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
   font-family:'Segoe UI',system-ui,sans-serif;
   color:#1A2E31;font-size:12pt;line-height:1.5;
 }
-.print-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:12pt;border-bottom:2pt solid #155B67;margin-bottom:14pt}
-.print-header img{height:36pt}
+.print-header{display:flex;align-items:center;justify-content:space-between;padding-bottom:14pt;border-bottom:2.5pt solid #155B67;margin-bottom:14pt;gap:14pt}
+.print-header img{height:72pt;max-width:160pt;object-fit:contain}
 .print-header-right{text-align:right;font-size:9pt;color:#5A7A7E}
 .print-title{font-size:15pt;font-weight:700;color:#155B67;margin-bottom:3pt}
 .print-subtitle{font-size:10pt;color:#5A7A7E;margin-bottom:14pt}
@@ -792,6 +794,10 @@ async function uploadVisita(v){
       tipo:v.tipo||'pmp',
       bloco:v.bloco||null, apartamento:v.apartamento||null, morador:v.morador||null,
       assinatura_eng:v.assinaturaEng||null, assinatura_resp:v.assinaturaResp||null,
+      assinatura_resp_nome:v.assinaturaRespNome||null,
+      assinatura_resp_doc:v.assinaturaRespDoc||null,
+      assinatura_resp_funcao:v.assinaturaRespFuncao||null,
+      itens_custom:v.itensCustom||null,
       device_id:getDeviceId()
     },{onConflict:'id'});
     if(error) return {ok:false,err:error.message};
@@ -808,6 +814,8 @@ function visitaFromRow(r){
     bloco:r.bloco, apartamento:r.apartamento, morador:r.morador,
     itens:r.itens||{}, obsGeral:r.obs_geral,
     assinaturaEng:r.assinatura_eng, assinaturaResp:r.assinatura_resp,
+    assinaturaRespNome:r.assinatura_resp_nome, assinaturaRespDoc:r.assinatura_resp_doc, assinaturaRespFuncao:r.assinatura_resp_funcao,
+    itensCustom:r.itens_custom||[],
     _updatedAt:r.updated_at
   };
 }
@@ -1209,8 +1217,20 @@ let visitaAtual = null;   // {condoId, data, hora, engenheiro, representante, it
 let navStack = [];
 let planoTab = 'monte-carlo';
 
-function getEngenheiro(){ return localStorage.getItem('eng_nome')||'' }
-function setEngenheiro(v){ localStorage.setItem('eng_nome',v) }
+// Engenheiro padrão da empresa
+const ENG_PADRAO={
+  nome:'Claudemir Scaranello',
+  crea:'CREA/SP 50.707.124-26',
+  cpf:'259.994.288-82',
+  cargo:'Engenheiro Civil · Responsável Técnico'
+};
+function getEngenheiro(){ return localStorage.getItem('eng_nome')||ENG_PADRAO.nome; }
+function setEngenheiro(v){ localStorage.setItem('eng_nome',v||ENG_PADRAO.nome); }
+function getEngenheiroCompleto(){
+  const nome=getEngenheiro();
+  if(nome===ENG_PADRAO.nome) return ENG_PADRAO;
+  return {nome,crea:'',cpf:'',cargo:''};
+}
 
 function getHistorico(){
   try{ return JSON.parse(localStorage.getItem('historico')||'[]') }
@@ -1720,7 +1740,13 @@ function renderCondoDetail(main){
         return `<div class="visit-item" onclick="verVisita('${v.id}')">
           <div class="visit-dot ${condo.classe}"></div>
           <div class="visit-info" style="flex:1"><strong>${tipoLabel} · ${v.data}</strong><span>${v.engenheiro||'—'}${v.hora?' · '+v.hora:''}</span></div>
-          ${nc>0?`<span class="badge badge-red">${nc} NC</span>`:`<span class="badge badge-green">✓ OK</span>`}
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+            ${nc>0?`<span class="badge badge-red">${nc} NC</span>`:`<span class="badge badge-green">✓ OK</span>`}
+            <div style="display:flex;gap:4px">
+              <button onclick="editarVisita('${v.id}',event)" title="Editar" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:10px;color:var(--teal)">✏</button>
+              <button onclick="excluirVisita('${v.id}',event)" title="Excluir" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:10px;color:#C00000">🗑</button>
+            </div>
+          </div>
         </div>`;
       }).join('')}
     </div>
@@ -3031,12 +3057,28 @@ function renderRelatorio(main){
     </div>
 
     <div class="sig-block">
-      <div class="sig-label"><strong>${visitaAtual.tipo==='reforma'?'Morador(a) / Proprietário':'Síndico / Representante do Condomínio'}</strong><button onclick="limparAssinatura('sig-resp')">🗑 Limpar</button></div>
+      <div class="sig-label"><strong>Pessoa Responsável que Assinou</strong><button onclick="limparAssinatura('sig-resp')">🗑 Limpar</button></div>
       <div class="sig-pad-wrap ${visitaAtual.assinaturaResp?'has-sig':''}">
         <canvas id="sig-resp" class="sig-pad"></canvas>
         <div class="sig-pad-placeholder" id="sig-resp-ph" ${visitaAtual.assinaturaResp?'style="display:none"':''}>✍ Solicite a assinatura aqui<small>com o dedo direto na tela do celular</small></div>
       </div>
-      ${visitaAtual.tipo==='reforma'?`<input class="sig-name" type="text" placeholder="Nome de quem assinou (obrigatório)" value="${visitaAtual.morador||''}" onchange="visitaAtual.assinaturaRespNome=this.value">`:''}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px">
+        <input class="sig-name" type="text" placeholder="Nome completo de quem assinou" value="${visitaAtual.assinaturaRespNome||visitaAtual.morador||visitaAtual.representante||''}" oninput="visitaAtual.assinaturaRespNome=this.value">
+        <input class="sig-name" type="text" placeholder="CPF / RG (documento)" value="${visitaAtual.assinaturaRespDoc||''}" oninput="visitaAtual.assinaturaRespDoc=this.value">
+      </div>
+      <select class="sig-name" style="margin-top:6px;cursor:pointer" onchange="visitaAtual.assinaturaRespFuncao=this.value">
+        <option value="">Função / vínculo com a obra · selecione</option>
+        <option value="Morador(a) / Proprietário" ${visitaAtual.assinaturaRespFuncao==='Morador(a) / Proprietário'?'selected':''}>Morador(a) / Proprietário</option>
+        <option value="Síndico(a)" ${visitaAtual.assinaturaRespFuncao==='Síndico(a)'?'selected':''}>Síndico(a)</option>
+        <option value="Zelador / Administrador" ${visitaAtual.assinaturaRespFuncao==='Zelador / Administrador'?'selected':''}>Zelador / Administrador</option>
+        <option value="Pedreiro / Mestre de obra" ${visitaAtual.assinaturaRespFuncao==='Pedreiro / Mestre de obra'?'selected':''}>Pedreiro / Mestre de obra</option>
+        <option value="Empreiteiro" ${visitaAtual.assinaturaRespFuncao==='Empreiteiro'?'selected':''}>Empreiteiro</option>
+        <option value="Engenheiro / Arquiteto contratado" ${visitaAtual.assinaturaRespFuncao==='Engenheiro / Arquiteto contratado'?'selected':''}>Engenheiro / Arquiteto contratado</option>
+        <option value="Inquilino" ${visitaAtual.assinaturaRespFuncao==='Inquilino'?'selected':''}>Inquilino</option>
+        <option value="Familiar / Representante" ${visitaAtual.assinaturaRespFuncao==='Familiar / Representante'?'selected':''}>Familiar / Representante</option>
+        <option value="Outro" ${visitaAtual.assinaturaRespFuncao==='Outro'?'selected':''}>Outro (especificar abaixo)</option>
+      </select>
+      ${visitaAtual.assinaturaRespFuncao==='Outro'?`<input class="sig-name" type="text" placeholder="Especifique a função" value="${visitaAtual.assinaturaRespFuncaoOutra||''}" oninput="visitaAtual.assinaturaRespFuncaoOutra=this.value;visitaAtual.assinaturaRespFuncao=this.value||'Outro'" style="margin-top:6px">`:''}
     </div>
 
     <div style="font-size:10.5px;color:var(--text2);background:rgba(0,180,172,.08);padding:8px 10px;border-radius:6px;border-left:3px solid var(--turq);line-height:1.5">
@@ -3281,13 +3323,15 @@ function gerarPDF(){
     <div>
       ${v.assinaturaEng?`<img src="${v.assinaturaEng}" style="max-width:100%;height:50pt;object-fit:contain;display:block;margin-bottom:4pt">`:'<div style="height:50pt"></div>'}
       <div class="print-sig-line">Engenheiro Responsável</div>
-      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.engenheiro||'________________________________'}</div>
-      <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">Diagnóstika Engenharia</div>
+      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.engenheiro||ENG_PADRAO.nome}</div>
+      ${(v.engenheiro===ENG_PADRAO.nome||!v.engenheiro)?`<div style="margin-top:1pt;font-size:8pt;color:#5A7A7E">${ENG_PADRAO.crea}</div><div style="font-size:7.5pt;color:#888">CPF ${ENG_PADRAO.cpf}</div>`:''}
+      <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">Diagnóstika Engenharia LTDA · CNPJ 54.027.948/0001-60</div>
     </div>
     <div>
       ${v.assinaturaResp?`<img src="${v.assinaturaResp}" style="max-width:100%;height:50pt;object-fit:contain;display:block;margin-bottom:4pt">`:'<div style="height:50pt"></div>'}
-      <div class="print-sig-line">${isReforma?'Morador(a) / Proprietário':'Representante do Condomínio'}</div>
-      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${(isReforma?v.morador:v.representante)||'________________________________'}</div>
+      <div class="print-sig-line">${v.assinaturaRespFuncao||(isReforma?'Morador(a) / Responsável':'Representante do Condomínio')}</div>
+      <div style="margin-top:4pt;font-size:9pt;color:#1A2E31;font-weight:600">${v.assinaturaRespNome||(isReforma?v.morador:v.representante)||'________________________________'}</div>
+      ${v.assinaturaRespDoc?`<div style="margin-top:1pt;font-size:8pt;color:#5A7A7E">Doc: ${v.assinaturaRespDoc}</div>`:''}
       <div style="margin-top:2pt;font-size:8pt;color:#5A7A7E">${isReforma?'Unidade '+[v.bloco&&'Bl '+v.bloco,v.apartamento&&'Ap '+v.apartamento].filter(Boolean).join(' '):condo.nome}</div>
     </div>
   </div>
@@ -3329,18 +3373,55 @@ function renderHistorico(main){
     const nc=Object.values(v.itens||{}).filter(i=>i.status==='nao_conforme').length;
     const total=c?c.checklist.length:0;
     const conf=Object.values(v.itens||{}).filter(i=>i.status==='conforme').length;
+    const tipoTag=v.tipo==='reforma'?'<span style="font-size:9px;background:#7B1FA2;color:#fff;padding:1px 6px;border-radius:8px;font-weight:700;margin-left:4px">🏗️ REFORMA</span>':'';
     return `<div class="hist-item" onclick="verVisita('${v.id}')">
       <div class="hist-icon ${c?.classe||'mc'}">🏢</div>
       <div class="hist-info">
-        <strong>${c?.short||v.condoId}</strong>
+        <strong>${c?.short||v.condoId}${tipoTag}</strong>
         <span>${v.data} ${v.hora?'• '+v.hora:''} ${v.engenheiro?'• '+v.engenheiro:''}</span>
       </div>
-      <div class="hist-right">
-        <small>${conf}/${total} conf.</small>
+      <div class="hist-right" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
         ${nc>0?`<span class="badge badge-red">${nc} NC</span>`:`<span class="badge badge-green">✓ OK</span>`}
+        <div style="display:flex;gap:4px">
+          <button onclick="editarVisita('${v.id}',event)" title="Editar" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:11px;color:var(--teal)">✏</button>
+          <button onclick="excluirVisita('${v.id}',event)" title="Excluir" style="background:transparent;border:1px solid var(--gray2);border-radius:5px;padding:3px 7px;cursor:pointer;font-size:11px;color:#C00000">🗑</button>
+        </div>
       </div>
     </div>`;
   }).join('');
+}
+
+// Edita uma visita finalizada (carrega como visitaAtual + abre checklist)
+function editarVisita(id, ev){
+  if(ev){ev.stopPropagation();}
+  const hist=getHistorico();
+  const v=hist.find(x=>x.id===id);
+  if(!v){ alert('Visita não encontrada'); return; }
+  visitaAtual={...v};
+  if(!visitaAtual.itens) visitaAtual.itens={};
+  if(!visitaAtual.itensCustom) visitaAtual.itensCustom=[];
+  novaCondoSel=v.condoId;
+  novaTipo=v.tipo||'pmp';
+  showToast('✏ Modo edição — alterações sobrescrevem a visita original');
+  navigate('checklist');
+}
+
+// Exclui uma visita (local + Supabase)
+async function excluirVisita(id, ev){
+  if(ev){ev.stopPropagation();}
+  if(!confirm('⚠ Excluir esta visita?\n\nIsso remove permanentemente:\n• Dados do checklist\n• Fotos e anotações\n• Assinaturas\n• Registro no banco em nuvem\n\nEsta ação NÃO pode ser desfeita.')) return;
+  // Remove local
+  const hist=getHistorico().filter(v=>v.id!==id);
+  localStorage.setItem('historico', JSON.stringify(hist));
+  // Remove no Supabase
+  if(sb){
+    try{
+      const {error}=await sb.from('visitas').delete().eq('id',id);
+      if(error) console.warn('Erro ao deletar no Supabase:',error);
+    }catch(e){console.warn('Erro:',e);}
+  }
+  showToast('🗑 Visita excluída');
+  render();
 }
 
 function verVisita(id){
@@ -3389,10 +3470,19 @@ function renderHistoricoDet(main){
       </div>
     </div>`;
   }).join('')}
-  <div style="padding:16px">
-    <button class="btn-pdf" onclick="gerarPDFHistorico('${v.id}')">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+  <div style="padding:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+    <button class="btn-pdf" onclick="editarVisita('${v.id}')" style="background:var(--teal);margin:0;width:auto">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      Editar Visita
+    </button>
+    <button class="btn-pdf" onclick="gerarPDFHistorico('${v.id}')" style="background:var(--gray4);margin:0;width:auto">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Reimprimir PDF
+    </button>
+  </div>
+  <div style="padding:0 16px 24px">
+    <button onclick="excluirVisita('${v.id}')" style="width:100%;padding:12px;border:1.5px solid #C00000;border-radius:var(--r-sm);background:transparent;color:#C00000;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+      🗑 Excluir esta visita permanentemente
     </button>
   </div>`;
 }
