@@ -813,7 +813,7 @@ function bloqueioPMP(motivo){
       ${motivo==='sindico'?`
         <p style="color:#4A6568;margin-bottom:16px;line-height:1.5;font-size:13px">Este aplicativo é exclusivo para a equipe técnica da Diagnóstika.</p>
         <p style="color:#4A6568;margin-bottom:20px;line-height:1.5;font-size:13px">Você está logado(a) como <b>síndico(a)</b>. Acesse o portal específico:</p>
-        <a href="/sindico/" style="display:inline-block;background:#155B67;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:10px">📂 Ir para Portal do Síndico</a><br>
+        <a href="/sindico/" style="display:inline-block;background:#155B67;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;font-size:14px;margin-bottom:10px">📂 Ir para Portal do Síndico(a)</a><br>
         <button onclick="sb.auth.signOut().then(()=>location.replace('/'))" style="background:transparent;border:1.5px solid #5A7A7E;color:#5A7A7E;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px;margin-top:12px">Sair e voltar ao portal</button>
       `:`
         <p style="color:#4A6568;margin-bottom:20px;line-height:1.5;font-size:13px">É necessário fazer login no portal de sistemas da Diagnóstika.</p>
@@ -1115,7 +1115,7 @@ const CONDOMINIOS = {
       {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta', obs:'Verificar fixação, altura regulamentar e integridade — carga mínima de segurança'},
       {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta', obs:'Inspecionar equipamentos, fixação e estado do piso de impacto — interditar equipamentos com risco'},
       {grupo:'Áreas Comuns', nome:'Garagem e acessos veiculares', periodicidade:'Mensal', norma:'CBPM', prioridade:'Média', obs:'Verificar piso, sinalização, iluminação e portões — verificar drenos de piso'},
-      {grupo:'Gestão e Documentação', nome:'Relatório de visita', periodicidade:'Semanal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Elaborar relatório técnico após cada visita — enviar ao síndico em até 48h'},
+      {grupo:'Gestão e Documentação', nome:'Relatório de visita', periodicidade:'Semanal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Elaborar relatório técnico após cada visita — enviar ao síndico(a) em até 48h'},
       {grupo:'Gestão e Documentação', nome:'Registro fotográfico', periodicidade:'Semanal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Documentar condições de todos os sistemas — nomear arquivos com data e local'},
       {grupo:'Gestão e Documentação', nome:'Atualização do plano', periodicidade:'Anual', norma:'NBR 5674:2012', prioridade:'Média', obs:'Revisar e atualizar este plano anualmente — incluir novos sistemas ou patologias'},
       {grupo:'Gestão e Documentação', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta', obs:'Manter ART ativa junto ao CREA-SP — renovar antes do vencimento'},
@@ -1180,7 +1180,7 @@ const CONDOMINIOS = {
       {grupo:'Áreas Comuns', nome:'Revestimentos e pisos', periodicidade:'Mensal', norma:'NBR 13753:1996', prioridade:'Alta', obs:'Verificar piso solto, trincado ou com risco de queda — interditar área com risco'},
       {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta', obs:'Verificar fixação, altura e integridade — carga mínima de segurança'},
       {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta', obs:'Inspecionar equipamentos e piso de impacto — interditar equipamentos com risco'},
-      {grupo:'Gestão e Documentação', nome:'Relatório de visita quinzenal', periodicidade:'Quinzenal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Elaborar relatório técnico após cada visita — enviar ao síndico em até 48h'},
+      {grupo:'Gestão e Documentação', nome:'Relatório de visita quinzenal', periodicidade:'Quinzenal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Elaborar relatório técnico após cada visita — enviar ao síndico(a) em até 48h'},
       {grupo:'Gestão e Documentação', nome:'Registro fotográfico', periodicidade:'Quinzenal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Documentar todos os sistemas em cada visita — nomear arquivos com data e local'},
       {grupo:'Gestão e Documentação', nome:'Acompanhamento LT-2025-09', periodicidade:'Quinzenal', norma:'LT-2025-09 / NBR 5674:2012', prioridade:'Crítico', critico:true, obs:'Monitorar evolução de todas as patologias críticas do Laudo LT-2025-09 — atualizar planilha de acompanhamento a cada visita'},
       {grupo:'Gestão e Documentação', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta', obs:'Manter ART ativa junto ao CREA-SP — renovar antes do vencimento'},
@@ -1326,7 +1326,7 @@ const CONDOMINIOS = {
   'condominio-teste':{
     id:'condominio-teste', nome:'Condomínio TESTE — Sandbox', short:'TESTE',
     cidade:'Ambiente de testes', frequencia:'Sob demanda', classe:'tt',
-    sindico:'Síndico Teste', endereco:'Endereço fictício — não usar em produção',
+    sindico:'Síndico(a) Teste', endereco:'Endereço fictício — não usar em produção',
     cnpj:'00.000.000/0001-00',
     observacao:'⚠ AMBIENTE DE TESTES — use este condomínio para validar novas funcionalidades antes de aplicar aos condomínios reais.',
     emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#5A7A7E"/><text x="32" y="42" text-anchor="middle" font-family="Arial,sans-serif" font-size="20" font-weight="700" fill="#fff">TESTE</text><circle cx="32" cy="20" r="4" fill="#FBC02D"/></svg>',
@@ -1558,7 +1558,7 @@ function renderHome(main){
         ${prox?`<div class="prox-act"><b>Próxima: ${fmtMD(prox)}</b> · ${labels[at.tipo]||'Padrão'}${at.criticos.length?' · <span style="color:#C00000;font-weight:700">⚠ '+at.criticos.length+' críticos</span>':''}</div>`:''}
         <div class="card-actions" onclick="event.stopPropagation()">
           <button class="btn-visit" onclick="abrirCondoDetail('${c.id}')">📂 Abrir</button>
-          <button class="btn-pdf-condo" onclick="gerarCalendarioPDF('${c.id}')" title="Compartilhar plano com síndico">📄 PDF</button>
+          <button class="btn-pdf-condo" onclick="gerarCalendarioPDF('${c.id}')" title="Compartilhar plano com síndico(a)">📄 PDF</button>
         </div>
       </div>
     </div>`}).join('')}
@@ -1819,7 +1819,7 @@ function renderNovaVisita(main){
     `:''}
     <div class="form-group">
       <label class="form-label">${novaTipo==='reforma'?'Responsável Técnico pela Obra (engenheiro/arquiteto)':'Representante do condomínio'}</label>
-      <input class="form-input" type="text" id="inp-rep" placeholder="${novaTipo==='reforma'?'Nome do RT contratado pelo morador':'Síndico / Zelador'}">
+      <input class="form-input" type="text" id="inp-rep" placeholder="${novaTipo==='reforma'?'Nome do RT contratado pelo morador':'Síndico(a) / Zelador(a)'}">
     </div>
     <button class="btn-primary" id="btn-iniciar" onclick="iniciarChecklist()" style="background:${tipoCor}" ${novaCondoSel?'':'disabled'}>
       Iniciar Checklist →
@@ -2020,7 +2020,7 @@ function renderCondoDetail(main){
     <button onclick="gerarAgendaSindico('${condoDetailId}')" style="width:100%;padding:14px 16px;border:none;border-radius:10px;background:linear-gradient(135deg,#1B8A4A,#147239);color:#fff;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:10px;box-shadow:0 2px 8px rgba(27,138,74,.3)">
       <span style="font-size:18px">📅</span>
       <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.2">
-        <span>Agenda Completa do Síndico</span>
+        <span>Agenda Completa do Síndico(a)</span>
         <span style="font-size:10px;font-weight:500;opacity:.9">PDF profissional · cronograma + custos + eventos</span>
       </div>
     </button>
@@ -2267,7 +2267,7 @@ function renderChecklist(main){
       ${visitaAtual.tipo==='reforma'?`
         <div style="font-size:10px;font-weight:700;letter-spacing:.6px;margin-bottom:4px;opacity:.85">PAUTA DESTA VISITA</div>
         <div style="font-size:14px;font-weight:700;margin-bottom:6px">🏗️ INSPEÇÃO DE REFORMA EM UNIDADE</div>
-        <div style="font-size:11px;line-height:1.6;opacity:.92">Verificar conformidade da reforma com NBR 16280:2020. Atenção especial aos itens críticos: ART, autorização do síndico, paredes estruturais, instalações de gás. Documentar com fotos toda intervenção.</div>
+        <div style="font-size:11px;line-height:1.6;opacity:.92">Verificar conformidade da reforma com NBR 16280:2020. Atenção especial aos itens críticos: ART, autorização do(a) síndico(a), paredes estruturais, instalações de gás. Documentar com fotos toda intervenção.</div>
       `:`
         <div style="font-size:10px;font-weight:700;letter-spacing:.6px;margin-bottom:4px;opacity:.85">PAUTA DESTA VISITA</div>
         <div style="font-size:14px;font-weight:700;margin-bottom:6px">📋 ${tipoLabels[at.tipo]||'INSPEÇÃO PADRÃO'}</div>
@@ -3384,7 +3384,7 @@ function renderRelatorio(main){
     <div class="section-title" style="padding:0 0 8px">Engenheiro</div>
     <input class="form-input" type="text" placeholder="Nome do engenheiro" value="${visitaAtual.engenheiro||''}" onchange="visitaAtual.engenheiro=this.value" style="margin-bottom:10px">
     <div class="section-title" style="padding:0 0 8px">${visitaAtual.tipo==='reforma'?'Responsável Técnico pela Obra':'Representante do condomínio'}</div>
-    <input class="form-input" type="text" placeholder="${visitaAtual.tipo==='reforma'?'Engenheiro/arquiteto contratado':'Síndico / Zelador'}" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value">
+    <input class="form-input" type="text" placeholder="${visitaAtual.tipo==='reforma'?'Engenheiro/arquiteto contratado':'Síndico(a) / Zelador(a)'}" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value">
   </div>
 
   <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(21,91,103,.05),rgba(0,180,172,.03));border-top:1px solid var(--gray2);border-bottom:1px solid var(--gray2);margin-top:14px">
@@ -4031,7 +4031,7 @@ function switchPlano(id){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// COMPARTILHAR PARA SÍNDICO (Web Share API + fallback WhatsApp)
+// COMPARTILHAR PARA SÍNDICO(A) (Web Share API + fallback WhatsApp)
 // ═══════════════════════════════════════════════════════════════════════════
 function compartilharSindico(condoId){
   const condo=CONDOMINIOS[condoId];
@@ -4652,7 +4652,7 @@ ${(()=>{const eventos=getEventos(condoId).filter(e=>e.data>=new Date().toISOStri
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// AGENDA DETALHADA PARA SÍNDICO — cronograma visita-a-visita + financeiro
+// AGENDA DETALHADA PARA SÍNDICO(A) — cronograma visita-a-visita + financeiro
 // ═══════════════════════════════════════════════════════════════════════════
 function gerarAgendaSindico(condoId){
   const condo=CONDOMINIOS[condoId];
@@ -4823,7 +4823,7 @@ ${eventos.length?`
 
   mostrarPreviewRelatorio(
     document.getElementById('print-area').innerHTML,
-    `Agenda Síndico · ${condo.short} · 2026`,
+    `Agenda Síndico(a) · ${condo.short} · 2026`,
     {title:`Programação Anual ${condo.short} 2026`, text:`📋 *Programação Anual de Manutenção 2026*\n🏢 ${condo.nome}\n👤 ${condo.sindico}\n\n${visitDates.size} visitas técnicas + ${eventos.length} eventos especiais\n\nDiagnóstika Engenharia\nEng. Civil Claudemir Scaranello\nCREA/SP 50.707.124-26`}
   );
   setTimeout(()=>{document.getElementById('print-area').innerHTML='';},200);
