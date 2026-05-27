@@ -7,7 +7,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Diagnóstika">
-<title>Diagnóstika — Manutenção Preventiva</title>
+<title>Diagnóstika — Painel Técnico</title>
 <link rel="manifest" href="manifest.json">
 <style>
 /* ── Reset & Tokens ─────────────────────────────────────────────────────── */
@@ -702,6 +702,70 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .print-foto{border:1pt solid #E0EAEC;border-radius:3pt;overflow:hidden}
 .print-foto img{width:100%;height:auto;display:block}
 .print-foto-cap{padding:3pt 5pt;font-size:7pt;color:#5A7A7E;background:#F0F4F5}
+
+/* TILES de demandas — mesmo padrão usado em Sindico e Admin */
+.section-title-tiles{font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin:18px 16px 8px;display:flex;align-items:center;gap:8px}
+.section-title-tiles .count{background:#fff;border:1px solid var(--gray2);padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700}
+.section-title-tiles.urgent{color:#C00000}
+.section-title-tiles.urgent .count{background:#C00000;color:#fff;border-color:transparent}
+.section-title-tiles.muted{color:var(--gray4);opacity:.7}
+
+.dem-tile-grid{display:grid;gap:10px;padding:0 16px;margin-bottom:8px}
+.dem-tile-grid.ativas{grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.dem-tile-grid.resolvidas{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+.dem-tile-grid.fechadas{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+
+.dem-tile{background:#fff;border-radius:10px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid #A8BFC2;cursor:pointer;transition:all .18s;display:flex;flex-direction:column;gap:5px;position:relative}
+.dem-tile:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(0,0,0,.10)}
+.dem-tile.s-aberta{border-left-color:#C00000;min-height:130px}
+.dem-tile.s-em_andamento{border-left-color:#E65100;min-height:130px}
+.dem-tile.s-resolvida{border-left-color:#9CC4AC;min-height:110px;background:rgba(255,255,255,.55);opacity:.72;box-shadow:0 1px 2px rgba(0,0,0,.03);filter:saturate(.55)}
+.dem-tile.s-resolvida:hover{opacity:1;filter:saturate(1);background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.dem-tile.s-fechada{border-left-color:#C9D4D7;min-height:95px;background:rgba(248,249,250,.7);opacity:.55;filter:saturate(.3) brightness(1.02)}
+.dem-tile.s-fechada:hover{opacity:1;filter:saturate(1)}
+.dem-tile.morador{background-image:linear-gradient(to bottom right,rgba(125,60,152,.06),transparent 70%)}
+.dem-tile.urg-alta{border-left-width:5px}
+.dt-head{display:flex;justify-content:space-between;align-items:flex-start;gap:6px}
+.dt-proto{font-size:9.5px;font-weight:700;color:var(--teal);font-family:'SF Mono',Menlo,Consolas,monospace;letter-spacing:.3px}
+.dem-tile.s-resolvida .dt-proto{color:var(--gray4)}
+.dem-tile.s-fechada .dt-proto{color:#A8BFC2}
+.dt-status{padding:2px 8px;border-radius:9px;font-size:9px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+.dt-status.s-aberta{background:#C00000}.dt-status.s-em_andamento{background:#E65100}.dt-status.s-resolvida{background:#9CC4AC}.dt-status.s-fechada{background:#C9D4D7;color:#5A7A7E}
+.dt-titulo{font-size:13.5px;font-weight:700;color:var(--text);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dem-tile.s-resolvida .dt-titulo{font-weight:600;color:var(--text2)}
+.dem-tile.s-fechada .dt-titulo{font-weight:500;color:var(--gray4);font-size:12.5px}
+.dt-meta{font-size:11px;color:var(--text2);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.dt-info-row{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;flex-wrap:wrap}
+.dt-icons{font-size:10.5px;color:var(--gray4);display:flex;gap:8px;flex-wrap:wrap}
+.dt-ind{display:inline-flex;align-items:center;gap:3px;font-weight:600}
+.dt-mor-badge{background:#7D3C98;color:#fff;padding:1px 7px;border-radius:6px;font-size:9px;font-weight:800;letter-spacing:.3px}
+.dt-unidade{font-size:10.5px;background:rgba(125,60,152,.08);padding:2px 7px;border-radius:5px;font-weight:600;color:#7D3C98;align-self:flex-start}
+.dt-prog{display:flex;align-items:center;gap:6px;font-size:11px;color:#0D3C44;background:rgba(13,60,68,.08);padding:5px 8px;border-radius:6px;font-weight:600}
+.dt-pill{display:inline-block;padding:2px 8px;border-radius:9px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.dt-pill.mc{background:rgba(21,91,103,.18);color:#155B67}
+.dt-pill.mm{background:rgba(0,180,172,.20);color:#008A83}
+.dt-pill.pp{background:rgba(141,183,42,.22);color:#6a8a1e}
+.dt-pill.sc{background:rgba(125,60,152,.20);color:#7D3C98}
+.dt-pill.jm{background:rgba(212,162,76,.25);color:#A87826}
+.dt-pill.tt{background:rgba(168,191,194,.30);color:#5A7A7E}
+
+.dem-modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto;z-index:200}
+.dem-modal-ov.open{display:flex}
+.dem-modal{background:#fff;border-radius:14px;max-width:760px;width:100%;box-shadow:0 12px 40px rgba(0,0,0,.4);margin:auto;overflow:hidden}
+.dem-modal-head{background:var(--teal);color:#fff;padding:14px 22px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.dem-modal-head .mh-proto{font-size:11px;opacity:.85;font-family:'SF Mono',Menlo,Consolas,monospace}
+.dem-modal-head h2{font-size:17px;font-weight:700;margin:2px 0 0;line-height:1.3}
+.dem-modal-x{background:rgba(255,255,255,.2);border:none;color:#fff;width:30px;height:30px;border-radius:50%;cursor:pointer;font-size:18px;flex-shrink:0}
+.dem-modal-body{padding:18px 22px}
+.dem-btn-act{padding:8px 14px;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:700;border:none;font-family:inherit;display:inline-flex;align-items:center;gap:4px}
+.dem-btn-pri{background:var(--teal);color:#fff}
+.dem-btn-prog{background:#0D3C44;color:#fff}
+.dem-btn-start{background:#E65100;color:#fff}
+.dem-btn-ok{background:#1B8A4A;color:#fff}
+.dem-btn-close{background:#A8BFC2;color:var(--text)}
+.dem-btn-sec{background:transparent;border:1.5px solid #A8BFC2!important;color:var(--text2)}
+.dem-btn-del{background:transparent;border:1.5px solid #C00000!important;color:#C00000}
+.dem-btn-wa{background:#25D366;color:#fff;text-decoration:none}
 </style>
 </head>
 <body>
@@ -712,7 +776,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
     </button>
     <a href="https://diagnostika-engenharia.github.io/" title="Voltar ao portal Diagnóstika" style="display:inline-flex;align-items:center;flex-shrink:0;text-decoration:none"><img src="assets/logo-dark.png" alt="Diagnóstika" id="header-logo" style="cursor:pointer"></a>
-    <div id="header-title">Manutenção Preventiva</div>
+    <div id="header-title">Painel Técnico</div>
     <span id="sync-status" onclick="syncTodasVisitas()" title="Status de sincronização" style="cursor:pointer;font-size:18px;padding:0 10px;color:#fff;user-select:none">☁</span>
     <div id="header-actions"></div>
   </header>
@@ -765,6 +829,10 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
     <button class="nav-btn" id="nav-agenda" onclick="navigate('agenda')">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg>
       <span>Agenda</span>
+    </button>
+    <button class="nav-btn" id="nav-demandas" onclick="navigate('demandas')">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>Demandas <span id="nav-dem-badge" style="background:#C00000;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:2px;display:none"></span></span>
     </button>
     <button class="nav-btn" id="nav-historico" onclick="navigate('historico')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1005,19 +1073,30 @@ async function processPendingQueue(){
 let _demandasProgPMP = [];
 let _demandasProgChannel = null;
 
+let _demandasAllPMP = [];  // TODAS demandas (não só programadas)
+
 async function carregarDemandasProgPMP(){
   if(!sb) return;
   try{
     const {data,error} = await sb.from('demandas')
-      .select('id,condo_id,protocolo,titulo,descricao,categoria,urgencia,status,fotos,data_programada,hora_programada,tipo_programado,descricao_programada,resposta,programado_em,programado_por,created_at')
+      .select('*')
       .is('deletada_em',null)
-      .not('data_programada','is',null)
-      .neq('status','fechada')
-      .order('data_programada',{ascending:true});
+      .order('created_at',{ascending:false});
     if(error) throw error;
-    _demandasProgPMP = data || [];
-    if(['home','agenda','condo-detail'].includes(currentView)) render();
-  }catch(e){ console.warn('Erro carregar demandas programadas:',e); }
+    _demandasAllPMP = data || [];
+    _demandasProgPMP = (data || []).filter(d => d.data_programada && d.status!=='fechada')
+      .sort((a,b)=>(a.data_programada||'').localeCompare(b.data_programada||''));
+
+    // Badge no nav
+    const abertas = _demandasAllPMP.filter(d => d.status==='aberta' || d.status==='em_andamento').length;
+    const badge = document.getElementById('nav-dem-badge');
+    if(badge){
+      if(abertas>0){ badge.textContent=abertas; badge.style.display='inline-block'; }
+      else badge.style.display='none';
+    }
+
+    if(['home','agenda','condo-detail','demandas'].includes(currentView)) render();
+  }catch(e){ console.warn('Erro carregar demandas:',e); }
 }
 
 function demandasDoDia(condoId, dateStr){
@@ -1514,7 +1593,7 @@ function aplicarSpellcheckPtBR(){
 function render(){
   const main = document.getElementById('main');
   switch(currentView){
-    case 'home':          setNavActive('nav-home');     setHeader('Manutenção Preventiva'); renderHome(main); break;
+    case 'home':          setNavActive('nav-home');     setHeader('Painel Técnico'); renderHome(main); break;
     case 'nova-visita':   setNavActive('nav-nova');     setHeader('Nova Visita',true);      renderNovaVisita(main); break;
     case 'checklist':     setNavActive('nav-nova');     setHeader('Checklist de Campo',true,
       `<button class="icon-btn" onclick="salvarRascunho()" title="Salvar rascunho">
@@ -1526,6 +1605,7 @@ function render(){
     case 'historico':     setNavActive('nav-historico');setHeader('Histórico de Visitas',true);renderHistorico(main); break;
     case 'historico-det': setNavActive('nav-historico');setHeader('Detalhe da Visita',true);  renderHistoricoDet(main); break;
     case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026',true);         renderAgendaView(main); break;
+    case 'demandas':      setNavActive('nav-demandas'); setHeader('Demandas e Chamados',true); renderDemandasView(main); break;
     case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
   }
   aplicarSpellcheckPtBR();
@@ -5198,6 +5278,324 @@ function setAgendaTab(tab){
   const tbC=document.getElementById('avtab-cal');
   if(tbP)tbP.className='av-tab'+(tab==='prog'?' at-mc':'');
   if(tbC)tbC.className='av-tab'+(tab==='cal'?' at-mc':'');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VIEW DEMANDAS — tab nova no PMP (Fase 1 da unificação Admin+PMP)
+// ═══════════════════════════════════════════════════════════════════════════
+const DEM_CATS = {corretiva:'🔧 Manutenção corretiva',duvida:'❓ Dúvida técnica',reforma:'🏗️ Aprovação de reforma',laudo:'📋 Solicitação de laudo',emergencia:'🚨 Emergência',documento:'📄 Documento'};
+const DEM_URGS = {baixa:'🟢 Baixa',media:'🟡 Média',alta:'🔴 Alta'};
+const DEM_STAT = {aberta:'🆕 Aberta',em_andamento:'⏳ Em andamento',resolvida:'Resolvida',fechada:'Fechada'};
+const DEM_SUB_MOR = {reforma:'🏗️ Reforma',duvida:'❓ Dúvida técnica',corretiva:'🔧 Problema na unidade',art:'📜 SOLIC. ART'};
+const DEM_SERV = {'pisos-paredes':'Revestimentos','hidraulica':'Hidráulica','eletrica':'Elétrica','gas':'Gás','ar-condicionado':'AC','rebaixamento':'Rebaixamento','bancadas':'Bancadas','tela-protecao':'Tela','contrapiso':'Contrapiso','outros':'Outros'};
+const DEM_ART = {'reforma-completa':'Reforma completa','banheiro':'Banheiro','cozinha':'Cozinha','hidraulica':'Hidráulica','eletrica':'Elétrica','ar-condicionado':'AC','outros':'Outros'};
+const DEM_PRAZO = {'imediato':'⚡ Imediato','15dias':'Em 15 dias','30dias':'Em 30 dias','60dias':'Em até 60 dias','indefinido':'Indefinido'};
+
+let _demFiltros = {origem:'', condo:'', busca:''};
+
+function condoClassPMP(condoId){
+  return ({'monte-carlo':'mc','morada-morumbi':'mm','portal-primavera':'pp','residencial-santa-clara':'sc','jardins-do-malta':'jm','condominio-teste':'tt'})[condoId] || 'mc';
+}
+function condoShortPMP(condoId){
+  return CONDOMINIOS[condoId]?.short || condoId;
+}
+
+function renderTilePMP(d){
+  const fotos = d.fotos || [];
+  const nFotos = fotos.filter(a=>a && a.tipo!=='documento').length;
+  const nDocs = fotos.filter(a=>a && a.tipo==='documento').length;
+  const dt = new Date(d.created_at);
+  const horas = Math.floor((new Date() - dt) / 3600000);
+  let quando = horas<1?'agora':horas<24?'há '+horas+'h':horas<48?'ontem':dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+
+  const isMor = (d.origem||'sindico')==='morador';
+  const det = d.detalhes || {};
+  const sub = det.subtipo_morador;
+  const urgAlta = d.urgencia==='alta';
+
+  const inds = [];
+  if(nFotos) inds.push(`<span class="dt-ind">📎 ${nFotos}</span>`);
+  if(nDocs) inds.push(`<span class="dt-ind">📄 ${nDocs}</span>`);
+  if(d.resposta) inds.push(`<span class="dt-ind">💬 1</span>`);
+  if(d.data_programada) inds.push(`<span class="dt-ind">📅</span>`);
+  if(isMor && sub==='reforma' && det.tem_rt===false) inds.push(`<span class="dt-ind" style="color:#C00000">⚠ Sem RT</span>`);
+
+  let prog = '';
+  if(d.data_programada && (d.status==='aberta'||d.status==='em_andamento')){
+    prog = `<div class="dt-prog">📅 <span><b>${fmtBR(d.data_programada).substring(0,5)}</b>${d.hora_programada?' '+d.hora_programada.substring(0,5):''} · ${d.tipo_programado||'Visita'}</span></div>`;
+  }
+
+  let unidade = '';
+  if(isMor && (d.status==='aberta'||d.status==='em_andamento')){
+    unidade = `<span class="dt-unidade">🏠 ${(d.morador_nome||'').split(' ').slice(0,2).join(' ')} · ${d.morador_apto||''}</span>`;
+  }
+
+  let metaExtra = '';
+  if(isMor && sub){
+    metaExtra = `<span>${DEM_SUB_MOR[sub]||sub}</span>`;
+  } else {
+    metaExtra = `<span>${DEM_CATS[d.categoria]||d.categoria}</span>`;
+  }
+  if(urgAlta) metaExtra += `<span style="color:#C00000;font-weight:800">🔴 ALTA</span>`;
+  if(isMor && sub==='art') metaExtra += `<span style="background:rgba(212,162,76,.20);color:#A87826;padding:1px 6px;border-radius:5px;font-size:10px;font-weight:700">💰 Oport.</span>`;
+
+  let badges = '';
+  if(isMor) badges += `<span class="dt-mor-badge">🏠 MOR</span>`;
+  badges += `<span class="dt-status s-${d.status}">${DEM_STAT[d.status]||d.status}</span>`;
+
+  const classes = ['dem-tile','s-'+d.status,isMor?'morador':'',urgAlta?'urg-alta':''].filter(Boolean).join(' ');
+  return `<div class="${classes}" onclick="abrirDetalheDemandaPMP('${d.id}')" data-dem-id="${d.id}">
+    <div class="dt-head">
+      <span class="dt-proto">📋 ${d.protocolo||'—'}</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-end">${badges}</div>
+    </div>
+    <div class="dt-titulo">${(d.titulo||'').replace(/</g,'&lt;')}</div>
+    <div class="dt-meta">
+      <span class="dt-pill ${condoClassPMP(d.condo_id)}">${condoShortPMP(d.condo_id)}</span>
+      ${metaExtra}
+    </div>
+    ${unidade}
+    ${prog}
+    <div class="dt-info-row">
+      <div class="dt-icons">${inds.join('')}</div>
+      <div style="font-size:10.5px;color:var(--gray4)">${quando}</div>
+    </div>
+  </div>`;
+}
+
+function renderDemandasView(main){
+  const lista = _demandasAllPMP || [];
+
+  if(!lista.length){
+    main.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--text2)">
+      <div style="font-size:54px;margin-bottom:10px">💬</div>
+      <h3 style="font-size:18px;margin-bottom:6px;color:var(--text)">Nenhuma demanda</h3>
+      <p style="font-size:13px">Quando síndicos ou moradores enviarem chamados, eles aparecem aqui.</p>
+    </div>`;
+    return;
+  }
+
+  // Filtros
+  let v = lista;
+  if(_demFiltros.origem) v = v.filter(d=>(d.origem||'sindico')===_demFiltros.origem);
+  if(_demFiltros.condo) v = v.filter(d=>d.condo_id===_demFiltros.condo);
+  if(_demFiltros.busca){
+    const b = _demFiltros.busca.toLowerCase();
+    v = v.filter(d=>(d.protocolo||'').toLowerCase().includes(b)||(d.titulo||'').toLowerCase().includes(b)||(d.descricao||'').toLowerCase().includes(b));
+  }
+
+  // Toolbar
+  const condoOpts = Object.entries(CONDOMINIOS).map(([k,c])=>`<option value="${k}" ${_demFiltros.condo===k?'selected':''}>${c.short||c.nome}</option>`).join('');
+  let html = `<div style="background:#fff;border-radius:10px;padding:11px 14px;margin:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <select onchange="_demFiltros.origem=this.value;renderDemandasView(document.getElementById('main'))" style="padding:7px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12.5px">
+      <option value="">Todas as origens</option>
+      <option value="sindico" ${_demFiltros.origem==='sindico'?'selected':''}>👤 Síndicos</option>
+      <option value="morador" ${_demFiltros.origem==='morador'?'selected':''}>🏠 Moradores</option>
+    </select>
+    <select onchange="_demFiltros.condo=this.value;renderDemandasView(document.getElementById('main'))" style="padding:7px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12.5px">
+      <option value="">Todos condomínios</option>${condoOpts}
+    </select>
+    <input type="search" placeholder="🔍 Buscar..." value="${_demFiltros.busca}" oninput="_demFiltros.busca=this.value;clearTimeout(window._demSearchT);window._demSearchT=setTimeout(()=>renderDemandasView(document.getElementById('main')),250)" style="padding:7px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12.5px;flex:1;min-width:140px">
+    <button onclick="carregarDemandasProgPMP()" style="padding:7px 14px;border:none;border-radius:6px;background:var(--teal);color:#fff;font-weight:700;font-size:12px;cursor:pointer">🔄</button>
+  </div>`;
+
+  if(!v.length){
+    html += `<div style="background:#fff;border-radius:10px;padding:40px;text-align:center;color:var(--text2);margin:8px 16px">Nenhuma demanda com os filtros atuais</div>`;
+    main.innerHTML = html;
+    return;
+  }
+
+  const ativas = v.filter(d=>d.status==='aberta'||d.status==='em_andamento');
+  const resolvidas = v.filter(d=>d.status==='resolvida');
+  const fechadas = v.filter(d=>d.status==='fechada');
+
+  if(ativas.length){
+    html += `<div class="section-title-tiles urgent">🔥 Em aberto · ações necessárias <span class="count">${ativas.length}</span></div>`;
+    html += `<div class="dem-tile-grid ativas">${ativas.map(renderTilePMP).join('')}</div>`;
+  }
+  if(resolvidas.length){
+    html += `<div class="section-title-tiles muted">✅ Resolvidas <span class="count">${resolvidas.length}</span></div>`;
+    html += `<div class="dem-tile-grid resolvidas">${resolvidas.map(renderTilePMP).join('')}</div>`;
+  }
+  if(fechadas.length){
+    html += `<div class="section-title-tiles muted">🗂 Arquivo · fechadas <span class="count">${fechadas.length}</span></div>`;
+    html += `<div class="dem-tile-grid fechadas">${fechadas.map(renderTilePMP).join('')}</div>`;
+  }
+  main.innerHTML = html;
+}
+
+// MODAL DE DETALHE — abre ao clicar em qualquer tile
+function abrirDetalheDemandaPMP(id){
+  const d = _demandasAllPMP.find(x=>x.id===id);
+  if(!d){ alert('Demanda não encontrada'); return; }
+
+  const fotos = d.fotos || [];
+  const fotosImg = fotos.filter(a=>a && typeof a==='object' && a.tipo!=='documento');
+  const fotosDoc = fotos.filter(a=>a && typeof a==='object' && a.tipo==='documento');
+  const isMor = (d.origem||'sindico')==='morador';
+  const det = d.detalhes || {};
+  const sub = det.subtipo_morador;
+  const c = CONDOMINIOS[d.condo_id] || {nome:d.condo_id,short:d.condo_id};
+
+  // Imagens
+  const anexosHtml = fotosImg.length ? '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:6px;margin-bottom:12px">' + fotos.map((a,i)=>{
+    if(a && a.tipo==='documento') return '';
+    if(a && a.tipo==='video'){
+      return '<div style="position:relative;background:#000;aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px">▶</div>';
+    }
+    const url = typeof a==='string'?a:a.url;
+    return `<img src="${url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px">`;
+  }).join('') + '</div>' : '';
+
+  const docsHtml = fotosDoc.length ? `<div style="margin-bottom:12px;padding:10px 12px;background:rgba(21,91,103,.06);border:1px solid var(--gray2);border-radius:6px">
+    <div style="font-size:10.5px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">📎 ${fotosDoc.length} documento(s) anexado(s)</div>
+    ${fotosDoc.map(doc=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><span>📄</span><a href="${doc.url}" download="${(doc.nome||'documento').replace(/"/g,'&quot;')}" target="_blank" style="color:var(--teal);text-decoration:none;font-weight:600">${(doc.nome||'arquivo').substring(0,50)}</a><span style="color:var(--text2);font-size:10.5px">${doc.tamanho?Math.round(doc.tamanho/1024)+' KB':''}</span></div>`).join('')}
+  </div>` : '';
+
+  // Bloco morador
+  let moradorHtml = '';
+  if(isMor){
+    const subLbl = DEM_SUB_MOR[sub] || '';
+    let extra = '';
+    if(sub==='reforma'){
+      const lista = Array.isArray(det.tipos_servico)?det.tipos_servico:(det.tipo_servico?[det.tipo_servico]:[]);
+      if(lista.length) extra += `<div style="margin-top:3px"><b>Serviços:</b> ${lista.map(t=>DEM_SERV[t]||t).join(' · ')}</div>`;
+      if(det.tem_rt) extra += `<div><b>RT:</b> ${det.rt_nome||'(s/nome)'} ${det.rt_registro?'· '+det.rt_registro:''}</div>`;
+      else extra += `<div style="color:#A87826"><b>⚠ Sem RT</b> — pode contratar ART da Diagnóstika</div>`;
+    } else if(sub==='art'){
+      if(det.art_tipo_obra) extra += `<div style="margin-top:3px"><b>Obra:</b> ${DEM_ART[det.art_tipo_obra]||det.art_tipo_obra}</div>`;
+      if(det.art_prazo) extra += `<div><b>Prazo:</b> ${DEM_PRAZO[det.art_prazo]||det.art_prazo}</div>`;
+      extra += `<div style="margin-top:4px;padding:4px 8px;background:rgba(212,162,76,.15);border-radius:4px;font-weight:700;color:#A87826">💰 Oportunidade — emitir orçamento de ART</div>`;
+    }
+    const linkWA = d.morador_telefone ? linkWhatsAppPMP(d) : '';
+    moradorHtml = `<div style="margin-bottom:12px;padding:10px 12px;background:rgba(125,60,152,.10);border-left:3px solid #7D3C98;border-radius:0 6px 6px 0;font-size:12.5px">
+      <div><b style="color:#7D3C98">🏠 MORADOR:</b> ${d.morador_nome||'—'} · ${d.morador_apto||'—'} ${d.morador_telefone?`· <a href="${linkWA}" target="_blank" style="color:#1B8A4A;font-weight:700;text-decoration:none">📱 ${d.morador_telefone}</a>`:''}</div>
+      ${subLbl?`<div style="margin-top:3px;color:#7D3C98;font-weight:700">${subLbl}</div>`:''}
+      ${extra}
+    </div>`;
+  }
+
+  const bannerHtml = d.data_programada ? `<div style="background:rgba(13,60,68,.08);border-left:3px solid #0D3C44;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
+    <span style="color:#0D3C44;font-size:11px;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;font-weight:700">📅 Programado pela Diagnóstika</span>
+    <div style="font-size:13.5px;font-weight:700;color:#0D3C44">${d.tipo_programado||'Visita'} em ${fmtBR(d.data_programada)}${d.hora_programada?' às '+d.hora_programada.substring(0,5):''}</div>
+    ${d.descricao_programada?'<div style="font-size:11.5px;color:var(--text);margin-top:4px;line-height:1.4">'+d.descricao_programada+'</div>':''}
+  </div>` : '';
+
+  const respostaHtml = d.resposta ? `<div style="background:rgba(21,91,103,.10);border-left:3px solid var(--teal);padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
+    <span style="color:var(--teal);font-size:11px;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;font-weight:700">✅ Resposta enviada</span>
+    ${d.resposta}
+    ${d.respondido_em?'<div style="font-size:10px;color:var(--text2);margin-top:5px">'+new Date(d.respondido_em).toLocaleString('pt-BR')+(d.respondido_por?' · '+d.respondido_por:'')+'</div>':''}
+  </div>` : '';
+
+  // Botões de ação
+  let acoes = `
+    <button class="dem-btn-act dem-btn-pri" onclick="responderDemandaPMP('${d.id}')">💬 ${d.resposta?'Atualizar resposta':'Responder'}</button>
+    <button class="dem-btn-act dem-btn-prog" onclick="programarDemandaPMP('${d.id}')">📅 ${d.data_programada?'Reagendar':'Programar'}</button>
+    ${d.status==='aberta'?`<button class="dem-btn-act dem-btn-start" onclick="mudarStatusDemandaPMP('${d.id}','em_andamento')">⏳ Iniciar</button>`:''}
+    ${d.status!=='resolvida'?`<button class="dem-btn-act dem-btn-ok" onclick="mudarStatusDemandaPMP('${d.id}','resolvida')">✅ Resolver</button>`:''}
+    ${d.status==='resolvida'?`<button class="dem-btn-act dem-btn-close" onclick="mudarStatusDemandaPMP('${d.id}','fechada')">🔒 Fechar</button>`:''}
+    ${d.status==='fechada'?`<button class="dem-btn-act dem-btn-start" onclick="mudarStatusDemandaPMP('${d.id}','em_andamento')">🔓 Reabrir</button>`:''}
+  `;
+
+  let badges = '';
+  if(isMor) badges += `<span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:10px;font-size:10px;font-weight:800;letter-spacing:.3px">🏠 MORADOR</span>`;
+  badges += `<span class="dt-status s-${d.status}" style="font-size:10px">${DEM_STAT[d.status]||d.status}</span>`;
+
+  document.getElementById('dem-pmp-detail-modal')?.remove();
+  const ov = document.createElement('div');
+  ov.id = 'dem-pmp-detail-modal';
+  ov.className = 'dem-modal-ov open';
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  ov.innerHTML = `
+    <div class="dem-modal">
+      <div class="dem-modal-head">
+        <div style="flex:1;min-width:0">
+          <div class="mh-proto">📋 ${d.protocolo||'—'}</div>
+          <h2>${(d.titulo||'').replace(/</g,'&lt;')}</h2>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${badges}</div>
+        </div>
+        <button class="dem-modal-x" onclick="document.getElementById('dem-pmp-detail-modal').remove()">×</button>
+      </div>
+      <div class="dem-modal-body">
+        <div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">
+          <span class="dt-pill ${condoClassPMP(d.condo_id)}">${c.nome||c.short}</span> · ${DEM_CATS[d.categoria]||d.categoria} · ${DEM_URGS[d.urgencia]||d.urgencia} · ${new Date(d.created_at).toLocaleString('pt-BR')}
+        </div>
+        ${moradorHtml}
+        ${d.descricao?`<div style="font-size:13px;color:var(--text);line-height:1.5;background:var(--gray);padding:10px 12px;border-radius:6px;margin-bottom:12px;white-space:pre-wrap">${d.descricao}</div>`:''}
+        ${anexosHtml}
+        ${docsHtml}
+        ${bannerHtml}
+        ${respostaHtml}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--gray2);margin-top:6px">
+          ${acoes}
+          ${isMor && d.morador_telefone?`<a href="${linkWhatsAppPMP(d)}" target="_blank" class="dem-btn-act dem-btn-wa">📱 WhatsApp</a>`:''}
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+function linkWhatsAppPMP(d){
+  if(!d.morador_telefone) return '#';
+  let tel = (d.morador_telefone||'').replace(/\D/g,'');
+  if(tel.length>=10 && tel.length<=11 && !tel.startsWith('55')) tel = '55'+tel;
+  const link = `https://diagnostika-engenharia.github.io/sindico/acompanhar.html?id=${d.id}`;
+  let msg = `Olá ${(d.morador_nome||'').split(' ')[0]||''}, aqui é da *Diagnóstika Engenharia*.\n\n`;
+  msg += `Recebemos seu chamado *${d.protocolo||''}*: "${d.titulo}".\n\n`;
+  if(d.data_programada){
+    const [y,m,da]=d.data_programada.split('-');
+    msg += `Já agendamos para *${da}/${m}/${y}*${d.hora_programada?' às '+d.hora_programada.substring(0,5):''}.\n\n`;
+  }
+  if(d.resposta) msg += `${d.resposta}\n\n`;
+  msg += `Acompanhe pelo link: ${link}`;
+  return `https://wa.me/${tel}?text=${encodeURIComponent(msg)}`;
+}
+
+// AÇÕES no PMP
+async function responderDemandaPMP(id){
+  const d = _demandasAllPMP.find(x=>x.id===id);
+  if(!d) return;
+  const txt = prompt(`💬 ${d.resposta?'Atualizar resposta':'Responder'} para a demanda:\n\n"${d.titulo}"\n\nSua resposta:`, d.resposta||'');
+  if(txt===null) return;
+  if(!txt.trim()){ alert('Resposta vazia'); return; }
+  try{
+    const nome = getEngenheiro() || 'Diagnóstika';
+    const {error} = await sb.from('demandas').update({resposta:txt.trim(),respondido_em:new Date().toISOString(),respondido_por:nome,updated_at:new Date().toISOString()}).eq('id',id);
+    if(error) throw error;
+    document.getElementById('dem-pmp-detail-modal')?.remove();
+    carregarDemandasProgPMP();
+    showToast?.('✓ Resposta enviada') || alert('Resposta enviada');
+  }catch(e){ alert('Erro: '+e.message); }
+}
+
+async function programarDemandaPMP(id){
+  const d = _demandasAllPMP.find(x=>x.id===id);
+  if(!d) return;
+  const data = prompt(`📅 ${d.data_programada?'Reagendar':'Programar'} a demanda:\n\n"${d.titulo}"\n\nData (formato YYYY-MM-DD):`, d.data_programada||new Date().toISOString().slice(0,10));
+  if(!data) return;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(data)){ alert('Formato inválido'); return; }
+  const hora = prompt('Hora (HH:MM, opcional):', d.hora_programada?d.hora_programada.substring(0,5):'09:00') || null;
+  const tipo = prompt('Tipo (Visita técnica / Laudo / Inspeção / etc):', d.tipo_programado||'Visita técnica') || 'Visita técnica';
+  try{
+    const nome = getEngenheiro() || 'Diagnóstika';
+    const upd = {data_programada:data, hora_programada:hora, tipo_programado:tipo, programado_em:new Date().toISOString(), programado_por:nome, updated_at:new Date().toISOString()};
+    if(d.status==='aberta') upd.status='em_andamento';
+    const {error} = await sb.from('demandas').update(upd).eq('id',id);
+    if(error) throw error;
+    document.getElementById('dem-pmp-detail-modal')?.remove();
+    carregarDemandasProgPMP();
+    showToast?.('✓ Programado') || alert('Demanda programada');
+  }catch(e){ alert('Erro: '+e.message); }
+}
+
+async function mudarStatusDemandaPMP(id, novo){
+  if(!confirm(`Alterar status para "${DEM_STAT[novo]||novo}"?`)) return;
+  try{
+    const {error} = await sb.from('demandas').update({status:novo, updated_at:new Date().toISOString()}).eq('id',id);
+    if(error) throw error;
+    document.getElementById('dem-pmp-detail-modal')?.remove();
+    carregarDemandasProgPMP();
+  }catch(e){ alert('Erro: '+e.message); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
