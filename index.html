@@ -2989,6 +2989,9 @@ async function abrirCapturaFoto(itemId){
 }
 
 // Pinch-zoom no vídeo da câmera (sem zoom da página)
+// Comportamento: pinçar abre o zoom, soltar PRESERVA o zoom. Só volta a 1× com:
+//  - double-tap deliberado (2 toques rápidos com UM dedo só), ou
+//  - botão de "reset" (1×) que aparece na tela quando zoom > 1
 let _camZoom = 1, _camPinchStart = 0, _camZoomStart = 1, _camIndTimer = null;
 function iniciarPinchZoomCamera(){
   const wrap = document.getElementById('cam-video-wrap');
@@ -2999,18 +3002,28 @@ function iniciarPinchZoomCamera(){
 
   const dist = (t1, t2) => Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY);
 
-  function show(){
+  function show(persist){
     ind.textContent = _camZoom.toFixed(1)+'×';
     ind.classList.add('show');
     clearTimeout(_camIndTimer);
-    _camIndTimer = setTimeout(()=>ind.classList.remove('show'), 900);
+    if(!persist) _camIndTimer = setTimeout(()=>ind.classList.remove('show'), 900);
   }
+
+  // Trackeia se o gesto atual envolveu pinça (2 dedos) — usado pra ignorar double-tap fake
+  // que o navegador dispara quando você solta os 2 dedos da pinça em momentos diferentes.
+  let _foiPinca = false;
+  let _ultimoTouchEndTs = 0;
 
   wrap.addEventListener('touchstart', e=>{
     if(e.touches.length===2){
       e.preventDefault();
       _camPinchStart = dist(e.touches[0], e.touches[1]);
       _camZoomStart = _camZoom;
+      _foiPinca = true;
+    } else if(e.touches.length===1){
+      // Se for o início de um toque único e o último gesto NÃO foi pinça → reseta o flag
+      // (single tap legítimo, pode contar pra double-tap)
+      if(Date.now() - _ultimoTouchEndTs > 400) _foiPinca = false;
     }
   }, {passive:false});
 
@@ -3021,22 +3034,38 @@ function iniciarPinchZoomCamera(){
       const ratio = d / _camPinchStart;
       _camZoom = Math.max(1, Math.min(5, _camZoomStart * ratio));
       vid.style.transform = 'scale('+_camZoom+')';
-      show();
+      // Mantém indicador visível durante a pinça
+      show(_camZoom > 1.05);
     }
   }, {passive:false});
 
   wrap.addEventListener('touchend', e=>{
-    if(e.touches.length<2) _camPinchStart = 0;
+    if(e.touches.length < 2) _camPinchStart = 0;
+    _ultimoTouchEndTs = Date.now();
+    // Se zoom > 1, mantém o indicador visível (lembrete de "você está com zoom")
+    if(_camZoom > 1.05){
+      clearTimeout(_camIndTimer);
+      ind.textContent = _camZoom.toFixed(1)+'×  • toque 2× p/ resetar';
+      ind.classList.add('show');
+      // Esconde só depois de 2s (não vai sumir tão cedo)
+      _camIndTimer = setTimeout(()=>ind.classList.remove('show'), 2000);
+    }
   });
 
-  // Double-tap reseta zoom
+  // Double-tap reseta zoom — MAS ignora se o gesto anterior foi pinça
   let _lastTap = 0;
   wrap.addEventListener('touchend', e=>{
+    // Pinça gera 2 touchend em sequência; ignora caso ainda esteja dentro da janela "foi pinça"
+    if(_foiPinca){
+      // Aguarda janela curta sem novos touches pra resetar o flag
+      setTimeout(()=>{ if(Date.now() - _ultimoTouchEndTs > 200) _foiPinca = false; }, 250);
+      return;
+    }
     const now = Date.now();
-    if(now - _lastTap < 300 && _camZoom !== 1){
+    if(now - _lastTap < 300 && _camZoom > 1.05){
       _camZoom = 1;
       vid.style.transform = 'scale(1)';
-      show();
+      show(false);
     }
     _lastTap = now;
   });
@@ -3045,8 +3074,14 @@ function iniciarPinchZoomCamera(){
 async function iniciarStream(){
   try{
     if(_camStream) _camStream.getTracks().forEach(t=>t.stop());
+    // Pede o máximo de resolução que o hardware oferecer (4K) — qualidade igual à câmera nativa
     _camStream=await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:{ideal:_camFacing}, width:{ideal:1920}, height:{ideal:1080} },
+      video:{
+        facingMode:{ideal:_camFacing},
+        width:{ideal:4096},
+        height:{ideal:3072},
+        advanced:[{width:{min:1920}}]
+      },
       audio:false
     });
     const v=document.getElementById('cam-video');
@@ -3090,13 +3125,18 @@ function capturarFoto(){
   const srcH = v.videoHeight / z;
   const srcX = (v.videoWidth - srcW) / 2;
   const srcY = (v.videoHeight - srcH) / 2;
-  // Limita 1600px e mantém proporção
-  const maxW = 1600;
+  // Limita 2560px (suficiente pra documentação técnica; mais que isso vira upload pesado sem ganho prático)
+  const maxW = 2560;
   const r = Math.min(1, maxW / srcW);
   c.width = Math.round(srcW * r);
   c.height = Math.round(srcH * r);
-  c.getContext('2d').drawImage(v, srcX, srcY, srcW, srcH, 0, 0, c.width, c.height);
-  const dataURL = c.toDataURL('image/jpeg', 0.82);
+  const ctx = c.getContext('2d');
+  // Smoothing alto para downscale (algoritmo nativo do browser, melhor que padrão)
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(v, srcX, srcY, srcW, srcH, 0, 0, c.width, c.height);
+  // 0.92 = qualidade próxima da câmera nativa (visualmente sem perdas) com bom equilíbrio de tamanho
+  const dataURL = c.toDataURL('image/jpeg', 0.92);
   const it = _camItemId;
   fecharCamera();
   abrirEditorFoto(it, dataURL);
