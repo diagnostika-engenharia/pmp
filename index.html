@@ -627,6 +627,60 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .sn-cond-nome{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sn-cond-badge{margin-left:auto;background:#E65100;color:#fff;font-size:9px;font-weight:800;padding:1.5px 6px;border-radius:8px;line-height:1.2;letter-spacing:.2px;flex-shrink:0}
 .sn-cond-badge.crit{background:#C00000}
+
+/* Fase Z2 — KPI bar mini + Matriz heatmap condo×prazo */
+.kpi-bar{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:10px 14px;margin:14px 16px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:18px;font-size:12.5px}
+.kpi-bar .kpi-item{display:flex;align-items:baseline;gap:6px;color:var(--text);cursor:pointer;padding:3px 4px;border-radius:5px;transition:background .15s}
+.kpi-bar .kpi-item:hover{background:rgba(0,180,172,.06)}
+.kpi-bar .kpi-item .kpi-num{font-weight:800;font-size:19px;color:var(--text);line-height:1}
+.kpi-bar .kpi-item .kpi-lbl{color:var(--text2);font-size:11.5px}
+.kpi-bar .kpi-item.warn .kpi-num{color:#E65100}
+.kpi-bar .kpi-item.danger .kpi-num{color:#C00000}
+.kpi-bar .kpi-item.info .kpi-num{color:#008B85}
+.kpi-bar .kpi-item.ok .kpi-num{color:#1B8A4A}
+.kpi-bar .kpi-sep{width:1px;height:22px;background:var(--gray2);flex-shrink:0}
+
+.mtx-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:14px 16px;margin:0 16px 12px}
+.mtx-card h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.mtx-card h3 small{font-size:11px;color:var(--text2);font-weight:500;font-style:italic;font-weight:400}
+.mtx-card .mtx-wrap{overflow-x:auto;margin-top:8px}
+.mtx-card table{width:100%;border-collapse:separate;border-spacing:3px;min-width:560px}
+.mtx-card th{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;padding:6px 4px;text-align:center;background:var(--gray);border-radius:5px}
+.mtx-card th.mtx-condo-h{text-align:left;padding-left:10px}
+.mtx-card td{padding:8px;text-align:center;border-radius:6px;font-weight:800;font-size:13px;cursor:pointer;transition:transform .12s,box-shadow .12s;color:var(--text)}
+.mtx-card td:hover{transform:scale(1.05);box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.mtx-card td.mtx-condo-c{text-align:left;font-weight:600;font-size:12px;background:transparent;padding:6px 4px 6px 8px;cursor:pointer;color:var(--text)}
+.mtx-card td.mtx-condo-c:hover{background:rgba(0,180,172,.04);transform:none}
+.mtx-card td.mtx-condo-c .mtx-nm{display:flex;align-items:center;gap:7px}
+.mtx-card td.mtx-condo-c .mtx-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block}
+.mtx-card .heat-0{background:var(--gray);color:#A8BFC2;font-weight:500}
+.mtx-card .heat-1{background:#FFF3E0;color:#A85510}
+.mtx-card .heat-2{background:#FFCCBC;color:#7C2F00}
+.mtx-card .heat-3{background:#FF8A65;color:#fff}
+.mtx-card .heat-4{background:#E64A19;color:#fff}
+.mtx-card .heat-atr{background:#FCE4E4;color:#7B0000}
+.mtx-card .heat-atr-2{background:#EF5350;color:#fff}
+.mtx-card .heat-atr-3{background:#C00000;color:#fff;animation:mtxPulse 2s infinite}
+@keyframes mtxPulse{0%,100%{box-shadow:0 0 0 0 rgba(192,0,0,.45)}50%{box-shadow:0 0 0 4px rgba(192,0,0,0)}}
+.mtx-card .heat-fut{background:#E8F5E9;color:#0F5A2A}
+.mtx-card .mtx-total{background:rgba(21,91,103,.1);color:var(--teal-dk);font-size:15px}
+.mtx-card .mtx-total-row td{background:rgba(21,91,103,.06);font-size:11.5px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.3px;padding:6px}
+
+/* Fase Z3 — Sparklines de tendência */
+.trend-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:14px 16px;margin:0 16px 14px}
+.trend-card h3{font-size:13px;font-weight:700;color:var(--text);margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.trend-card h3 small{font-size:11px;color:var(--text2);font-weight:400;font-style:italic}
+.trend-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+@media(max-width:680px){.trend-row{grid-template-columns:1fr}}
+.spark-cell{display:flex;flex-direction:column;gap:3px;padding:9px 12px;border-radius:8px;background:var(--gray)}
+.spark-cell .sp-lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+.spark-cell .sp-headline{display:flex;align-items:baseline;gap:6px}
+.spark-cell .sp-num{font-size:18px;font-weight:800;color:var(--text);line-height:1}
+.spark-cell .sp-delta{font-size:10.5px;font-weight:700}
+.spark-cell .sp-delta.up{color:#C00000}
+.spark-cell .sp-delta.dn{color:#1B8A4A}
+.spark-cell .sp-delta.flat{color:var(--text2)}
+.spark-cell svg{width:100%;height:30px;display:block;margin-top:4px}
 .sn-version{font-size:10px;color:rgba(255,255,255,.35)}
 
 /* ── Responsivo Desktop ─────────────────────────────────────────────────── */
@@ -1914,32 +1968,8 @@ function renderHome(main){
   const proximas=condosList.map(c=>({...c,prox:proxVisita(c.id)})).sort((a,b)=>a.prox<b.prox?-1:1);
 
   main.innerHTML=`
-  <div class="section-title" style="margin-top:14px">Condomínios</div>
-  <div class="condo-grid">
-    ${condosList.map(c=>{
-      const cd=CONDOMINIOS[c.id];
-      const allDates=[...getVisitDates2026(c.id)].sort();
-      const prox=allDates.find(d=>d>=hojeStr)||allDates[allDates.length-1];
-      const at=prox?atividadesDia(c.id,prox,allDates):null;
-      const labels={padrao:'Padrão',mensal:'Mensal',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'};
-      return `
-    <div class="condo-card condo-${c.cls}" style="cursor:pointer" onclick="abrirCondoDetail('${c.id}')">
-      <div class="condo-card-top"></div>
-      <div class="condo-card-body">
-        <h3><span class="emb">${cd.emblema}</span>${c.label}</h3>
-        <div class="freq">${c.freq}</div>
-        <div class="sindico">👤 Síndico(a): <b style="color:var(--text)">${cd.sindico}</b></div>
-        <div class="endereco">📍 ${cd.endereco}</div>
-        ${prox?`<div class="prox-act"><b>Próxima: ${fmtMD(prox)}</b> · ${labels[at.tipo]||'Padrão'}${at.criticos.length?' · <span style="color:#C00000;font-weight:700">⚠ '+at.criticos.length+' críticos</span>':''}</div>`:''}
-        ${(()=>{const ds=demandasDoCondo(c.id,hojeStr);return ds.length?`<div style="margin-top:6px;font-size:11px;color:#0D3C44;font-weight:700;background:rgba(13,60,68,.08);padding:5px 8px;border-radius:6px;display:inline-block">📌 ${ds.length} demanda(s) programada(s)</div>`:'';})()}
-        <div class="card-actions" onclick="event.stopPropagation()">
-          <button class="btn-visit" onclick="abrirCondoDetail('${c.id}')">📂 Abrir</button>
-          <button class="btn-pdf-condo" onclick="gerarCalendarioPDF('${c.id}')" title="Compartilhar plano com síndico(a)">📄 PDF</button>
-        </div>
-      </div>
-    </div>`}).join('')}
-  </div>
-
+  ${renderKPIBarHome()}
+  ${renderMatrixDemandasHome()}
   ${renderChamadosPendentesHome()}
 
   <div class="section-title">Próximas visitas — o que fazer</div>
@@ -1967,6 +1997,7 @@ function renderHome(main){
 
   ${renderVisitasEmAndamentoHome()}
   ${renderDemandasProgramadasHome(hojeStr)}
+  ${renderTrendCardHome()}
 
   <div style="padding:0 16px 4px;display:flex;gap:8px">
     <button onclick="navigate('agenda')" style="flex:1;padding:12px 0;border:2px solid var(--teal);border-radius:10px;background:var(--white);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -2013,6 +2044,324 @@ function renderHome(main){
     }).join('')}
   </div>` : ''}
   `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Fase Z2 — KPI bar mini + Matriz heatmap (condo × prazo) no dashboard
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Helpers de data
+function _addDays(dStr, n){
+  const d = new Date(dStr+'T00:00:00');
+  d.setDate(d.getDate()+n);
+  return d.toISOString().slice(0,10);
+}
+
+function computeHomeKPIs(){
+  const hojeStr = todayStr();
+  const condos = ['monte-carlo','morada-morumbi','portal-primavera','residencial-santa-clara','jardins-do-malta'];
+
+  // Visitas hoje — soma quantos condomínios tem visita agendada hoje
+  let visitasHoje = 0;
+  condos.forEach(id => {
+    try{ if(getVisitDates2026(id)?.has(hojeStr)) visitasHoje++; }catch(e){}
+  });
+
+  // Atrasadas: data_programada < hoje E status ≠ resolvida/fechada/deletada
+  // OU pendente sem programação por > 7 dias
+  const atrasadas = (_demandasAllPMP||[]).filter(d => {
+    if(d.deletada_em) return false;
+    if(d.status === 'resolvida' || d.status === 'fechada') return false;
+    if(d.data_programada && d.data_programada < hojeStr) return true;
+    if(d.status === 'aberta' && !d.data_programada){
+      const dias = (Date.now() - new Date(d.created_at).getTime()) / 86400000;
+      return dias > 7;
+    }
+    return false;
+  }).length;
+
+  // Em andamento (todos os condos)
+  const emAndamento = (_demandasAllPMP||[]).filter(d =>
+    d.status === 'em_andamento' && !d.deletada_em
+  ).length;
+
+  // Visitas finalizadas no mês corrente
+  const mesAtual = hojeStr.substring(0, 7); // YYYY-MM
+  let visitasMes = 0;
+  try{
+    const hist = JSON.parse(localStorage.getItem('historico')||'[]');
+    visitasMes = hist.filter(v => v.data && v.data.startsWith(mesAtual) && v.status === 'finalizada').length;
+  }catch(e){}
+
+  return { visitasHoje, atrasadas, emAndamento, visitasMes };
+}
+
+function renderKPIBarHome(){
+  const k = computeHomeKPIs();
+  return `<div class="kpi-bar">
+    <div class="kpi-item info" onclick="navigate('agenda')" title="Visitas agendadas para hoje">
+      <span class="kpi-num">${k.visitasHoje}</span><span class="kpi-lbl">📅 visitas hoje</span>
+    </div>
+    <div class="kpi-sep"></div>
+    <div class="kpi-item danger" onclick="navigate('demandas')" title="Demandas atrasadas (prazo passou) ou pendentes >7 dias">
+      <span class="kpi-num">${k.atrasadas}</span><span class="kpi-lbl">⚠ atrasadas</span>
+    </div>
+    <div class="kpi-sep"></div>
+    <div class="kpi-item warn" onclick="navigate('demandas')" title="Chamados sendo trabalhados">
+      <span class="kpi-num">${k.emAndamento}</span><span class="kpi-lbl">▶ em andamento</span>
+    </div>
+    <div class="kpi-sep"></div>
+    <div class="kpi-item ok" onclick="navigate('historico')" title="Visitas finalizadas no mês corrente">
+      <span class="kpi-num">${k.visitasMes}</span><span class="kpi-lbl">✓ visitas no mês</span>
+    </div>
+  </div>`;
+}
+
+function computeMatrixDemandas(){
+  const hojeStr = todayStr();
+  const fim7 = _addDays(hojeStr, 7);
+  const fim30 = _addDays(hojeStr, 30);
+  const condos = [
+    {id:'monte-carlo', cls:'mc', nome:'Monte Carlo'},
+    {id:'morada-morumbi', cls:'mm', nome:'Morada Morumbi'},
+    {id:'portal-primavera', cls:'pp', nome:'Portal Primavera'},
+    {id:'residencial-santa-clara', cls:'sc', nome:'Santa Clara'},
+    {id:'jardins-do-malta', cls:'jm', nome:'Jardins do Malta'}
+  ];
+
+  const rows = condos.map(c => {
+    const lista = (_demandasAllPMP||[]).filter(d =>
+      d.condo_id === c.id && d.status !== 'fechada' && !d.deletada_em
+    );
+    let atr=0, hoje_n=0, sem=0, mes=0, fut=0;
+    lista.forEach(d => {
+      const data = d.data_programada;
+      if(!data){
+        // sem programação → "futuro" (a planejar). Se aberta >7d, marca atrasada.
+        if(d.status === 'aberta'){
+          const dias = (Date.now() - new Date(d.created_at).getTime()) / 86400000;
+          if(dias > 7){ atr++; return; }
+        }
+        fut++; return;
+      }
+      if(data < hojeStr) atr++;
+      else if(data === hojeStr) hoje_n++;
+      else if(data <= fim7) sem++;
+      else if(data <= fim30) mes++;
+      else fut++;
+    });
+    return { ...c, atrasadas:atr, hoje:hoje_n, semana:sem, mes:mes, futuro:fut, total:atr+hoje_n+sem+mes+fut };
+  });
+
+  // Totais por coluna
+  const totais = rows.reduce((acc,r)=>({
+    atrasadas: acc.atrasadas + r.atrasadas,
+    hoje: acc.hoje + r.hoje,
+    semana: acc.semana + r.semana,
+    mes: acc.mes + r.mes,
+    futuro: acc.futuro + r.futuro,
+    total: acc.total + r.total
+  }),{atrasadas:0,hoje:0,semana:0,mes:0,futuro:0,total:0});
+
+  return { rows, totais };
+}
+
+function _heatCls(n, isAtr){
+  if(n === 0) return 'heat-0';
+  if(isAtr){
+    if(n === 1) return 'heat-atr';
+    if(n === 2) return 'heat-atr-2';
+    return 'heat-atr-3'; // 3+ → pulsa
+  }
+  if(n === 1) return 'heat-1';
+  if(n === 2) return 'heat-2';
+  if(n <= 4) return 'heat-3';
+  return 'heat-4';
+}
+
+function renderMatrixDemandasHome(){
+  const m = computeMatrixDemandas();
+  if(m.totais.total === 0) return ''; // se tudo zero, esconde
+
+  const cell = (n, isAtr, isFut) => {
+    if(n === 0) return `<td class="heat-0">—</td>`;
+    const cls = isFut ? 'heat-fut' : _heatCls(n, isAtr);
+    return `<td class="${cls}" title="${n} demanda(s)">${n}</td>`;
+  };
+
+  const rowsHTML = m.rows.map(r => {
+    if(r.total === 0){
+      return `<tr style="opacity:.5">
+        <td class="mtx-condo-c" onclick="abrirCondoDetail('${r.id}')"><span class="mtx-nm"><span class="mtx-dot" style="background:${r.cls==='mc'?'#155B67':r.cls==='mm'?'#00B4AC':r.cls==='pp'?'#8DB72A':r.cls==='sc'?'#7D3C98':'#D4A24C'}"></span>${esc(r.nome)}</span></td>
+        <td class="heat-0">—</td>
+        <td class="heat-0">—</td>
+        <td class="heat-0">—</td>
+        <td class="heat-0">—</td>
+        <td class="heat-0">—</td>
+        <td class="mtx-total" style="opacity:.6">0</td>
+      </tr>`;
+    }
+    const corDot = r.cls==='mc'?'#155B67':r.cls==='mm'?'#00B4AC':r.cls==='pp'?'#8DB72A':r.cls==='sc'?'#7D3C98':'#D4A24C';
+    return `<tr>
+      <td class="mtx-condo-c" onclick="abrirCondoDetail('${r.id}')" title="Abrir ${esc(r.nome)}"><span class="mtx-nm"><span class="mtx-dot" style="background:${corDot}"></span>${esc(r.nome)}</span></td>
+      ${cell(r.atrasadas, true, false)}
+      ${cell(r.hoje, false, false)}
+      ${cell(r.semana, false, false)}
+      ${cell(r.mes, false, false)}
+      ${cell(r.futuro, false, true)}
+      <td class="mtx-total">${r.total}</td>
+    </tr>`;
+  }).join('');
+
+  return `<div class="mtx-card">
+    <h3>🎯 Pressão por condomínio (demandas × prazo) <small>clique no condomínio para abrir</small></h3>
+    <div class="mtx-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th class="mtx-condo-h">Condomínio</th>
+            <th>⚠ Atrasadas</th>
+            <th>📅 Hoje</th>
+            <th>Esta semana</th>
+            <th>30 dias</th>
+            <th>Futuro</th>
+            <th style="background:rgba(21,91,103,.15);color:var(--teal-dk)">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHTML}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Fase Z3 — Sparklines de tendência (últimos 30 dias)
+// ═══════════════════════════════════════════════════════════════════════════
+function _spark(values, color){
+  if(!values || !values.length) return '';
+  const max = Math.max(1, ...values);
+  const n = values.length;
+  const pts = values.map((v,i) => {
+    const x = (i / (n-1 || 1)) * 100;
+    const y = 32 - (v / max) * 26; // padding top
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const ptsFill = pts + ` 100,32 0,32`;
+  return `<svg viewBox="0 0 100 32" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${ptsFill}" fill="${color}22" stroke="none"/>
+    <polyline points="${pts}" stroke="${color}" stroke-width="1.5" fill="none"/>
+  </svg>`;
+}
+
+function compute30DayTrends(){
+  // Buckets diários de 30 dias (0 = mais antigo, 29 = hoje)
+  const hojeMs = new Date(todayStr()+'T00:00:00').getTime();
+  const oneDay = 86400000;
+  const buckets30Criados = Array(30).fill(0);
+  const buckets30Resolvidos = Array(30).fill(0);
+  const buckets30Visitas = Array(30).fill(0);
+
+  // Chamados criados
+  (_demandasAllPMP||[]).forEach(d => {
+    if(d.deletada_em) return;
+    if(!d.created_at) return;
+    const ms = new Date(d.created_at).getTime();
+    const diff = Math.floor((hojeMs - ms) / oneDay);
+    if(diff >= 0 && diff < 30) buckets30Criados[29 - diff]++;
+  });
+
+  // Chamados resolvidos (usa respondido_em ou updated_at quando status=resolvida)
+  (_demandasAllPMP||[]).forEach(d => {
+    if(d.deletada_em) return;
+    if(d.status !== 'resolvida' && d.status !== 'fechada') return;
+    const ts = d.respondido_em || d.updated_at;
+    if(!ts) return;
+    const ms = new Date(ts).getTime();
+    const diff = Math.floor((hojeMs - ms) / oneDay);
+    if(diff >= 0 && diff < 30) buckets30Resolvidos[29 - diff]++;
+  });
+
+  // Visitas finalizadas
+  try{
+    const hist = JSON.parse(localStorage.getItem('historico')||'[]');
+    hist.forEach(v => {
+      if(v.status !== 'finalizada') return;
+      const ts = v.data || v.finalizada_em || v.created_at;
+      if(!ts) return;
+      const ms = new Date(ts+(ts.length===10?'T00:00:00':'')).getTime();
+      const diff = Math.floor((hojeMs - ms) / oneDay);
+      if(diff >= 0 && diff < 30) buckets30Visitas[29 - diff]++;
+    });
+  }catch(e){}
+
+  const totalCriados = buckets30Criados.reduce((a,b)=>a+b,0);
+  const totalResolvidos = buckets30Resolvidos.reduce((a,b)=>a+b,0);
+  const totalVisitas = buckets30Visitas.reduce((a,b)=>a+b,0);
+
+  // Delta vs 30 dias anteriores: compara primeira metade (15d) vs segunda metade (15d)
+  const delta = (arr) => {
+    const half1 = arr.slice(0,15).reduce((a,b)=>a+b,0);
+    const half2 = arr.slice(15).reduce((a,b)=>a+b,0);
+    if(half1 === 0 && half2 === 0) return null;
+    if(half1 === 0) return null;
+    const pct = ((half2 - half1) / half1) * 100;
+    return Math.round(pct);
+  };
+
+  return {
+    criados: { total: totalCriados, series: buckets30Criados, delta: delta(buckets30Criados) },
+    resolvidos: { total: totalResolvidos, series: buckets30Resolvidos, delta: delta(buckets30Resolvidos) },
+    visitas: { total: totalVisitas, series: buckets30Visitas, delta: delta(buckets30Visitas) }
+  };
+}
+
+function renderTrendCardHome(){
+  const t = compute30DayTrends();
+  if(t.criados.total + t.resolvidos.total + t.visitas.total === 0) return '';
+
+  const renderDelta = (delta, invertColors) => {
+    if(delta === null) return `<span class="sp-delta flat">—</span>`;
+    if(delta === 0) return `<span class="sp-delta flat">estável</span>`;
+    // invertColors=true: ↑ vermelho (criados subindo é ruim)
+    //                   ↓ verde
+    // invertColors=false: ↑ verde (resolvidos/visitas subindo é bom)
+    const up = delta > 0;
+    const cls = invertColors ? (up?'up':'dn') : (up?'dn':'up');
+    const arrow = up ? '↑' : '↓';
+    return `<span class="sp-delta ${cls}">${arrow} ${Math.abs(delta)}%</span>`;
+  };
+
+  return `<div class="trend-card">
+    <h3>📈 Tendência — últimos 30 dias <small>buckets diários · comparação 1ª vs 2ª quinzena</small></h3>
+    <div class="trend-row">
+      <div class="spark-cell">
+        <div class="sp-lbl">Chamados criados</div>
+        <div class="sp-headline">
+          <span class="sp-num">${t.criados.total}</span>
+          ${renderDelta(t.criados.delta, true)}
+        </div>
+        ${_spark(t.criados.series, '#E65100')}
+      </div>
+      <div class="spark-cell">
+        <div class="sp-lbl">Chamados resolvidos</div>
+        <div class="sp-headline">
+          <span class="sp-num">${t.resolvidos.total}</span>
+          ${renderDelta(t.resolvidos.delta, false)}
+        </div>
+        ${_spark(t.resolvidos.series, '#1B8A4A')}
+      </div>
+      <div class="spark-cell">
+        <div class="sp-lbl">Visitas finalizadas</div>
+        <div class="sp-headline">
+          <span class="sp-num">${t.visitas.total}</span>
+          ${renderDelta(t.visitas.delta, false)}
+        </div>
+        ${_spark(t.visitas.series, '#155B67')}
+      </div>
+    </div>
+  </div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
