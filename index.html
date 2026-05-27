@@ -309,6 +309,25 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .pri-media{background:var(--turq-lt);color:var(--turq-dk)}
 .pri-critico{background:var(--red);color:var(--white)}
 
+/* Fase 1.6 — Badges de responsável, chip de página do manual, ícone de obs e modal */
+.resp-badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;white-space:nowrap}
+.resp-condominio{background:#E3F2FD;color:#1565C0}
+.resp-empresa{background:#FFF3E0;color:#E65100}
+.resp-local{background:#ECEFF1;color:#455A64}
+.resp-sindico{background:#F3E5F5;color:#6A1B9A}
+.resp-diagnostika{background:rgba(21,91,103,.12);color:#155B67}
+.pg-chip{display:inline-flex;align-items:center;gap:2px;font-size:10.5px;color:var(--text2);background:var(--gray);padding:2px 6px;border-radius:4px;margin-left:6px;cursor:default;font-weight:500;vertical-align:middle}
+.obs-info{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;background:var(--turq);color:#fff;font-size:11px;font-weight:700;cursor:pointer;margin-left:6px;border:none;vertical-align:middle;line-height:1;font-family:inherit}
+.obs-info:hover{background:var(--turq-dk,#008B85)}
+.obs-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:16px}
+.obs-modal{background:#fff;border-radius:12px;max-width:440px;width:100%;padding:20px 22px;box-shadow:0 12px 48px rgba(0,0,0,.3);position:relative}
+.obs-modal h3{font-size:14px;color:var(--teal);margin:0 0 10px;font-weight:700;display:flex;align-items:center;gap:6px}
+.obs-modal .obs-body{font-size:13px;line-height:1.55;color:var(--text);white-space:pre-wrap}
+.obs-modal .obs-detail-row{display:flex;gap:8px;font-size:12.5px;margin-bottom:6px;color:var(--text);align-items:center;flex-wrap:wrap}
+.obs-modal .obs-detail-row b{color:var(--text2);font-weight:600;min-width:90px;font-size:11px;text-transform:uppercase;letter-spacing:.3px}
+.obs-modal .obs-close{margin-top:14px;width:100%;background:var(--teal);color:#fff;border:none;padding:10px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px}
+.obs-modal .obs-close:hover{background:var(--teal-dk,#0D3C44)}
+
 /* ── Configurações / Engenheiro ─────────────────────────────────────────── */
 .eng-banner{
   background:var(--teal-lt,#e8f4f6);
@@ -1230,41 +1249,64 @@ const CONDOMINIOS = {
       {id:'mc14', critico:false, grupo:'Áreas Comuns',             nome:'Piso das áreas comuns',       detalhe:'Solto, trincado, risco de queda', norma:'NBR 13753:1996'},
       {id:'mc15', critico:false, grupo:'Áreas Comuns',             nome:'Playground',                  detalhe:'Equipamentos, fixação, piso de impacto', norma:'NBR 16071:2012'},
     ],
+    // ─────────────────────────────────────────────────────────────────────
+    // PLANO MONTE CARLO — 28 itens. Base: Manual do Proprietário Planalto
+    // Incorporadora (53 págs). SOMENTE áreas comuns / responsabilidade do
+    // condomínio. Itens de unidade privativa NÃO entram aqui.
+    // Campos opcionais: intervalo_anos, ano_base, responsavel, pagina_manual
+    // ─────────────────────────────────────────────────────────────────────
     plano:[
-      {grupo:'Estrutura e Fundações', nome:'Inspeção visual de fachadas', periodicidade:'Quinzenal', norma:'NBR 6118:2023 / IBAPE/SP', prioridade:'Alta', obs:'Verificar fissuras, eflorescências, desplacamentos e manchas em fachadas externas — fotografar ocorrências'},
-      {grupo:'Estrutura e Fundações', nome:'Pilares e vigas aparentes', periodicidade:'Mensal', norma:'NBR 6118:2023', prioridade:'Alta', obs:'Inspecionar elementos estruturais em garagens e áreas comuns — verificar corrosão de armaduras'},
-      {grupo:'Estrutura e Fundações', nome:'Juntas de dilatação', periodicidade:'Trimestral', norma:'NBR 6118:2023', prioridade:'Média', obs:'Verificar integridade e selagem das juntas — reselar se necessário'},
-      {grupo:'Estrutura e Fundações', nome:'Recalque e trincas', periodicidade:'Mensal', norma:'NBR 6118:2023 / IBAPE/SP', prioridade:'Alta', obs:'Monitorar trincas com paquímetro ou fissurômetro — registro fotográfico e medição'},
-      {grupo:'Impermeabilização', nome:'Coberturas (lajes/telhados)', periodicidade:'Mensal', norma:'NBR 9575:2010 / NBR 9574:2008', prioridade:'Alta', obs:'Inspecionar impermeabilização, drenos e calhas — limpar entulho e verificar infiltrações'},
-      {grupo:'Impermeabilização', nome:'Subsolos e garagens', periodicidade:'Trimestral', norma:'NBR 9575:2010', prioridade:'Média', obs:'Verificar eficiência da impermeabilização — verificar manchas de umidade'},
-      {grupo:'Impermeabilização', nome:'Jardineiras e floreiras', periodicidade:'Trimestral', norma:'NBR 9575:2010', prioridade:'Média', obs:'Inspecionar impermeabilização — verificar raízes danificando impermeabilização'},
-      {grupo:'Impermeabilização', nome:'Reservatórios (caixas d\'água)', periodicidade:'Semestral', norma:'Portaria MS 888/2021', prioridade:'Alta', obs:'Inspecionar e limpar reservatórios; verificar impermeabilização interna — emitir laudo de potabilidade'},
-      {grupo:'Hidráulica e Saneamento', nome:'Rede de água fria', periodicidade:'Semestral', norma:'NBR 5626:2020', prioridade:'Média', obs:'Verificar pressão, estanqueidade e estado das tubulações — verificar registros e válvulas de retenção'},
-      {grupo:'Hidráulica e Saneamento', nome:'Rede de esgoto e drenagem', periodicidade:'Mensal', norma:'NBR 8160:1999', prioridade:'Alta', obs:'Desobstruir e inspecionar ramais e caixas de inspeção — verificar mau cheiro e refluxo'},
-      {grupo:'Hidráulica e Saneamento', nome:'Calhas e condutores pluviais', periodicidade:'Mensal', norma:'NBR 10844:1989', prioridade:'Alta', obs:'Limpar e inspecionar calhas, condutores e caixas de areia — atenção em período de chuvas'},
-      {grupo:'Hidráulica e Saneamento', nome:'Bomba de recalque', periodicidade:'Mensal', norma:'NBR 5626:2020', prioridade:'Alta', obs:'Verificar funcionamento, ruídos e vedações — testar pressostato e chave de nível'},
-      {grupo:'Hidráulica e Saneamento', nome:'Caixa d\'água — limpeza', periodicidade:'Semestral', norma:'Portaria MS 888/2021', prioridade:'Alta', obs:'Limpeza e desinfecção conforme Portaria 888/2021 — emitir certificado'},
-      {grupo:'Elétrica e SPDA', nome:'Quadros de distribuição', periodicidade:'Mensal', norma:'NBR 5410:2004', prioridade:'Alta', obs:'Verificar disjuntores, barramentos, DRs e temperatura — câmera termográfica recomendada semestralmente'},
-      {grupo:'Elétrica e SPDA', nome:'Iluminação de emergência', periodicidade:'Mensal', norma:'NBR 10898:2013', prioridade:'Alta', obs:'Testar autonomia das luminárias (mín. 1h) — substituir baterias vencidas'},
-      {grupo:'Elétrica e SPDA', nome:'SPDA (para-raios)', periodicidade:'Anual', norma:'NBR 5419:2015', prioridade:'Alta', obs:'Inspecionar cabos captores, descidas e malha de aterramento — emitir laudo após inspeção'},
-      {grupo:'Elétrica e SPDA', nome:'Aterramento geral', periodicidade:'Anual', norma:'NBR 5410:2004', prioridade:'Alta', obs:'Medir resistência do aterramento com terrômetro — recomendado ≤ 10 Ohm'},
-      {grupo:'Sistema de Incêndio', nome:'Extintores', periodicidade:'Mensal', norma:'NBR 12962:2016', prioridade:'Alta', obs:'Inspecionar pressão, lacre, carga e validade; verificar fixação — sinalizar vencimentos'},
-      {grupo:'Sistema de Incêndio', nome:'Hidrantes e mangotinhos', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta', obs:'Verificar pressão, mangueiras, esguichos e registro — testar pressão com manômetro'},
-      {grupo:'Sistema de Incêndio', nome:'Sinalização de emergência', periodicidade:'Mensal', norma:'NBR 13434:2004', prioridade:'Média', obs:'Verificar placas de rota de fuga e saídas de emergência — substituir placas danificadas'},
-      {grupo:'Sistema de Incêndio', nome:'Detector de fumaça e alarme', periodicidade:'Mensal', norma:'NBR 17240:2010', prioridade:'Alta', obs:'Testar acionamento e bateria da central de alarme — registrar teste na central'},
-      {grupo:'CFTV e Segurança', nome:'Câmeras de segurança', periodicidade:'Quinzenal', norma:'Fabricante', prioridade:'Média', obs:'Verificar imagem, angulação e armazenamento — checar gravação dos últimos 7 dias'},
-      {grupo:'CFTV e Segurança', nome:'Controle de acesso e interfone', periodicidade:'Mensal', norma:'Fabricante', prioridade:'Média', obs:'Testar leitoras, catracas, interfones e portões — verificar baterias de backup'},
-      {grupo:'Cobertura e Telhado', nome:'Telhas e cumeeiras', periodicidade:'Trimestral', norma:'NBR 7190:1997', prioridade:'Média', obs:'Verificar telhas quebradas, deslocadas e cumeeiras — após chuvas e ventos fortes'},
-      {grupo:'Cobertura e Telhado', nome:'Calha perimetral e rufos', periodicidade:'Mensal', norma:'NBR 9575:2010 / Termo Recebimento 26/09/2025', prioridade:'Alta', obs:'Limpar e verificar vedação de calhas e rufos — prevenir infiltrações. Termo recomenda inspeção mensal dos coletores'},
-      {grupo:'Cobertura e Telhado', nome:'Inspeção anual completa do sistema de cobertura', periodicidade:'Anual', norma:'NBR 5674:2012 / Termo Recebimento 26/09/2025', prioridade:'Alta', obs:'Vedações, fixações e tratamento onde necessário — referência: Termo de Recebimento e Conformidade do Telhado, Blocos A e B, assinado em 26/09/2025 (próximo: 26/09/2026)'},
-      {grupo:'Áreas Comuns', nome:'Revestimentos de piso', periodicidade:'Mensal', norma:'NBR 13753:1996', prioridade:'Alta', obs:'Verificar piso solto, trincado ou com risco de queda — interditar área com risco imediato'},
-      {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta', obs:'Verificar fixação, altura regulamentar e integridade — carga mínima de segurança'},
-      {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta', obs:'Inspecionar equipamentos, fixação e estado do piso de impacto — interditar equipamentos com risco'},
-      {grupo:'Áreas Comuns', nome:'Garagem e acessos veiculares', periodicidade:'Mensal', norma:'CBPM', prioridade:'Média', obs:'Verificar piso, sinalização, iluminação e portões — verificar drenos de piso'},
-      {grupo:'Gestão e Documentação', nome:'Relatório de visita', periodicidade:'Semanal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Elaborar relatório técnico após cada visita — enviar ao síndico(a) em até 48h'},
-      {grupo:'Gestão e Documentação', nome:'Registro fotográfico', periodicidade:'Semanal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Documentar condições de todos os sistemas — nomear arquivos com data e local'},
-      {grupo:'Gestão e Documentação', nome:'Atualização do plano', periodicidade:'Anual', norma:'NBR 5674:2012', prioridade:'Média', obs:'Revisar e atualizar este plano anualmente — incluir novos sistemas ou patologias'},
-      {grupo:'Gestão e Documentação', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta', obs:'Manter ART ativa junto ao CREA-SP — renovar antes do vencimento'},
+      // ── Hidrossanitário ──
+      {grupo:'Hidrossanitário', nome:'Reservatórios (caixa d\'água) — limpeza e desinfecção', periodicidade:'Semestral', norma:'Portaria MS 888/2021 / NBR 5626', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:40, obs:'Manual Planalto pg.40 indica anual; adotamos semestral pela Portaria MS 888/2021 e NBR 5626 (norma sanitária).'},
+
+      // ── Elétrica ──
+      {grupo:'Elétrica', nome:'Testar disjuntor DR — quadros gerais de áreas comuns', periodicidade:'Semestral', norma:'NBR 5410', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:19},
+      {grupo:'Elétrica', nome:'Quadros gerais de distribuição — reaperto de conexões', periodicidade:'Anual', norma:'NBR 5410', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:19},
+      {grupo:'Elétrica', nome:'Tomadas, interruptores e pontos de luz em áreas comuns — reaperto', periodicidade:'Bienal', intervalo_anos:2, ano_base:2026, norma:'NBR 5410', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:19},
+      {grupo:'Elétrica', nome:'Isolamento das emendas de fios (circuitos de áreas comuns)', periodicidade:'Anual', norma:'NBR 5410', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:19},
+
+      // ── SPDA ──
+      {grupo:'SPDA', nome:'SPDA — inspeção das estruturas expostas', periodicidade:'Anual', norma:'NBR 5419', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:41},
+      {grupo:'SPDA', nome:'SPDA — inspeção completa do sistema', periodicidade:'Quinquenal', intervalo_anos:5, ano_base:2026, norma:'NBR 5419', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:41},
+
+      // ── Revestimento Cerâmico ──
+      {grupo:'Revestimento Cerâmico', nome:'Rejuntes cerâmicos em áreas comuns — verificar e reconstituir', periodicidade:'Anual', norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:26},
+      {grupo:'Revestimento Cerâmico', nome:'Lavagem de fachadas e paredes externas', periodicidade:'Trienal', intervalo_anos:3, ano_base:2026, norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:26},
+
+      // ── Pintura ──
+      {grupo:'Pintura', nome:'Repintura — paredes e tetos áreas secas internas comuns (hall, escada)', periodicidade:'Trienal', intervalo_anos:3, ano_base:2026, norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:32},
+      {grupo:'Pintura', nome:'Repintura de fachadas e áreas externas', periodicidade:'Trienal', intervalo_anos:3, ano_base:2026, norma:'NBR 15575', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:32, obs:'Vinculado à garantia de fachada de 5 anos (NBR 15575).'},
+      {grupo:'Pintura', nome:'Repintura de forros — banheiros e áreas úmidas comuns', periodicidade:'Anual', norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:26},
+      {grupo:'Pintura', nome:'Revisão da pintura — áreas secas comuns', periodicidade:'Bienal', intervalo_anos:2, ano_base:2026, norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:26},
+
+      // ── Gás ──
+      {grupo:'Gás', nome:'Teste de estanqueidade da prumada/rede de gás (GLP) do prédio', periodicidade:'Anual', norma:'NBR 13523 / NBR 15526', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:41},
+
+      // ── Impermeabilização ──
+      {grupo:'Impermeabilização', nome:'Rejuntes da impermeabilização — verificar e reconstituir', periodicidade:'Anual', norma:'NBR 9575', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:24},
+      {grupo:'Impermeabilização', nome:'Juntas de dilatação — reconstituição de selantes', periodicidade:'Anual', norma:'NBR 9575', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:41},
+      {grupo:'Impermeabilização', nome:'Caixa d\'água — integridade da impermeabilização interna', periodicidade:'Quinquenal', intervalo_anos:5, ano_base:2026, norma:'NBR 9575', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:41},
+
+      // ── Cobertura ──
+      {grupo:'Cobertura', nome:'Calhas e telhas — integridade, limpar, reparar', periodicidade:'Semestral', norma:'NBR 5674 / Termo Recebimento 26/09/2025', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:38, obs:'Manual indica também inspeção SEMANAL em períodos de chuva intensa — síndico deve acionar inspeção extra nessa condição.'},
+      {grupo:'Cobertura', nome:'Estrutura dos componentes da cobertura — integridade', periodicidade:'Anual', norma:'NBR 5674 / Termo Recebimento 26/09/2025', prioridade:'Alta', responsavel:'empresa especializada', pagina_manual:41},
+
+      // ── Sistema de Incêndio ──
+      {grupo:'Sistema de Incêndio', nome:'Iluminação de emergência — teste de funcionamento (1h autonomia)', periodicidade:'Mensal', norma:'NBR 10898', prioridade:'Alta', responsavel:'condomínio', pagina_manual:37},
+      {grupo:'Sistema de Incêndio', nome:'Portas corta-fogo — regulagem das dobradiças com mola', periodicidade:'Anual', norma:'NBR 11742', prioridade:'Alta', responsavel:'condomínio', pagina_manual:36},
+      {grupo:'Sistema de Incêndio', nome:'Extintores — recarga', periodicidade:'Anual', norma:'NBR 12962', prioridade:'Alta', responsavel:'condomínio', pagina_manual:36},
+      {grupo:'Sistema de Incêndio', nome:'Hidrantes — teste de pressão das mangueiras', periodicidade:'Anual', norma:'NBR 12779 / NBR 13714', prioridade:'Alta', responsavel:'condomínio', pagina_manual:36},
+      {grupo:'Sistema de Incêndio', nome:'Extintores — teste hidrostático dos cilindros', periodicidade:'Quinquenal', intervalo_anos:5, ano_base:2026, norma:'NBR 12962', prioridade:'Alta', responsavel:'condomínio', pagina_manual:36},
+
+      // ── Forros Gesso ──
+      {grupo:'Forros Gesso', nome:'Forros gesso áreas comuns — calafetação de rufos, para-raios, antenas, elementos decorativos', periodicidade:'Trienal', intervalo_anos:3, ano_base:2026, norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:26},
+
+      // ── Gestão (do manual) ──
+      {grupo:'Gestão', nome:'Atualização do programa de manutenção', periodicidade:'Anual', norma:'NBR 5674', prioridade:'Média', responsavel:'síndico', pagina_manual:39},
+
+      // ── Gestão Diagnóstika (operacional — não é exigência da construtora) ──
+      {grupo:'Gestão Diagnóstika', nome:'Relatório de visita', periodicidade:'Semanal (cada visita)', norma:'NBR 5674', prioridade:'Alta', responsavel:'Diagnóstika'},
+      {grupo:'Gestão Diagnóstika', nome:'Registro fotográfico', periodicidade:'Semanal (cada visita)', norma:'NBR 5674', prioridade:'Alta', responsavel:'Diagnóstika'},
     ]
   },
   'morada-morumbi':{
@@ -4533,6 +4575,62 @@ function gerarPDFHistorico(id){
 // ═══════════════════════════════════════════════════════════════════════════
 // RENDER — PLANO
 // ═══════════════════════════════════════════════════════════════════════════
+// ─── Fase 1.6 — Helpers para campos novos do plano ────────────────────────
+const RESP_META={
+  'condomínio':{cls:'resp-condominio',icon:'🏢',label:'Condomínio'},
+  'condominio':{cls:'resp-condominio',icon:'🏢',label:'Condomínio'},
+  'empresa especializada':{cls:'resp-empresa',icon:'🔧',label:'Empresa especializada'},
+  'equipe local':{cls:'resp-local',icon:'👷',label:'Equipe local'},
+  'síndico':{cls:'resp-sindico',icon:'📋',label:'Síndico'},
+  'sindico':{cls:'resp-sindico',icon:'📋',label:'Síndico'},
+  'diagnóstika':{cls:'resp-diagnostika',icon:'🛠️',label:'Diagnóstika'},
+  'diagnostika':{cls:'resp-diagnostika',icon:'🛠️',label:'Diagnóstika'}
+};
+function respMeta(r){ return r ? RESP_META[(''+r).toLowerCase().trim()] : null; }
+function escAttr(s){ return (s==null?'':String(s)).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function respBadgeHTML(item, compact){
+  const m=respMeta(item&&item.responsavel); if(!m) return '';
+  return compact
+    ? `<span class="resp-badge ${m.cls}" title="${m.label}">${m.icon}</span>`
+    : `<span class="resp-badge ${m.cls}">${m.icon} ${m.label}</span>`;
+}
+function pgChipHTML(item){
+  if(!item||!item.pagina_manual) return '';
+  // TODO Fase futura: ao clicar abrir manual em /docs-condos/<condo>/manual.pdf#page=<pagina_manual>
+  return `<span class="pg-chip" title="Página ${item.pagina_manual} do Manual do Proprietário">📄 pg.${item.pagina_manual}</span>`;
+}
+function obsInfoHTML(item){
+  if(!item||!item.obs) return '';
+  return `<button class="obs-info" type="button" onclick="abrirDetalheItem(${escAttr(JSON.stringify(item))})" title="Ver observação" aria-label="Ver observação">i</button>`;
+}
+// Modal único — exibe TODOS os detalhes do item (nome, periodicidade, responsável, pg manual, obs)
+function abrirDetalheItem(item){
+  if(typeof item==='string'){ try{ item=JSON.parse(item); }catch(e){ return; } }
+  if(!item) return;
+  const m=respMeta(item.responsavel);
+  const ov=document.createElement('div');
+  ov.className='obs-overlay';
+  ov.onclick=e=>{ if(e.target===ov) fecharDetalheItem(); };
+  ov.innerHTML=`<div class="obs-modal" role="dialog" aria-modal="true">
+    <h3>ℹ️ ${esc(item.nome||'Detalhes')}</h3>
+    ${item.grupo?`<div class="obs-detail-row"><b>Grupo</b><span>${esc(item.grupo)}</span></div>`:''}
+    ${item.periodicidade?`<div class="obs-detail-row"><b>Periodicidade</b><span>${esc(item.periodicidade)}${item.intervalo_anos?` (a cada ${item.intervalo_anos} anos${item.ano_base?', base '+item.ano_base:''})`:''}</span></div>`:''}
+    ${item.norma?`<div class="obs-detail-row"><b>Norma</b><span>${esc(item.norma)}</span></div>`:''}
+    ${m?`<div class="obs-detail-row"><b>Responsável</b><span class="resp-badge ${m.cls}">${m.icon} ${m.label}</span></div>`:''}
+    ${item.pagina_manual?`<div class="obs-detail-row"><b>Manual</b><span class="pg-chip">📄 pg.${esc(item.pagina_manual)}</span></div>`:''}
+    ${item.prioridade?`<div class="obs-detail-row"><b>Prioridade</b><span>${esc(item.prioridade)}</span></div>`:''}
+    ${item.obs?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--gray2)"><b style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px">Observação</b><div class="obs-body" style="margin-top:6px">${esc(item.obs)}</div></div>`:''}
+    <button class="obs-close" type="button" onclick="fecharDetalheItem()">Fechar</button>
+  </div>`;
+  document.body.appendChild(ov);
+  document.addEventListener('keydown', _obsEsc);
+}
+function fecharDetalheItem(){
+  document.querySelectorAll('.obs-overlay').forEach(o=>o.remove());
+  document.removeEventListener('keydown', _obsEsc);
+}
+function _obsEsc(e){ if(e.key==='Escape') fecharDetalheItem(); }
+
 function renderPlano(main){
   const condo=CONDOMINIOS[planoTab];
   // Group plano items
@@ -4577,13 +4675,14 @@ function renderPlano(main){
     ${items.map(it=>`
     <div class="plano-item ${it.critico?'is-critico':''}">
       <div class="plano-item-left">
-        <strong>${it.nome}</strong>
+        <strong>${esc(it.nome)}${pgChipHTML(it)}${obsInfoHTML(it)}</strong>
         <div class="plano-item-meta">
-          <span class="meta-tag teal">📅 ${it.periodicidade}</span>
-          <span class="meta-tag">${it.norma}</span>
+          <span class="meta-tag teal">📅 ${esc(it.periodicidade)}</span>
+          ${it.norma?`<span class="meta-tag">${esc(it.norma)}</span>`:''}
+          ${respBadgeHTML(it,false)}
         </div>
       </div>
-      <div class="plano-pri ${it.prioridade==='Crítico'?'pri-critico':it.prioridade==='Alta'?'pri-alta':'pri-media'}">${it.prioridade}</div>
+      <div class="plano-pri ${it.prioridade==='Crítico'?'pri-critico':it.prioridade==='Alta'?'pri-alta':'pri-media'}">${esc(it.prioridade)}</div>
     </div>`).join('')}`;
   }).join('')}
   <div style="height:24px"></div>`;
@@ -4706,14 +4805,39 @@ function buildMonthGrid(year, month, visitSet, cor){
   </div>`;
 }
 
-function mesesAtivos(p){
-  const pl=(p||'').toLowerCase();
+// ────────────────────────────────────────────────────────────────────────
+// mesesAtivos — retorna quais meses do ano um item deve aparecer
+// Aceita string (legacy) OU objeto {periodicidade, intervalo_anos, ano_base}
+// Suporta ciclos plurianuais (Bienal=2, Trienal=3, Quinquenal=5) via:
+//   - palavra-chave na periodicidade  OU
+//   - campo explícito intervalo_anos no item (preferencial)
+// Quando ano corrente não está no ciclo (ex.: quinquenal 2026/2031/2036…),
+// o item NÃO aparece naquele ano. Sub-anuais ignoram intervalo_anos.
+// ────────────────────────────────────────────────────────────────────────
+function mesesAtivos(itemOrStr, anoAtual){
+  const item = (typeof itemOrStr === 'string') ? {periodicidade: itemOrStr} : (itemOrStr||{});
+  const pl = (item.periodicidade||'').toLowerCase();
+  const ano = anoAtual || new Date().getFullYear();
+  const anoBase = item.ano_base || 2026;
+
+  // Sub-anuais — sempre ativos, independente do ano
   if(pl.includes('seman')||pl.includes('quinzen')||pl.includes('mensal')) return[1,2,3,4,5,6,7,8,9,10,11,12];
   if(pl.includes('bimest')) return[1,3,5,7,9,11];
   if(pl.includes('trimest')) return[1,4,7,10];
   if(pl.includes('semest')) return[1,7];
-  if(pl.includes('anual')) return[1];
-  return[];
+
+  // Ciclos anuais e plurianuais
+  let intervalo = item.intervalo_anos || 0;
+  if(!intervalo){
+    if(pl.includes('anual')) intervalo = 1;
+    else if(pl.includes('bienal')) intervalo = 2;
+    else if(pl.includes('trienal')) intervalo = 3;
+    else if(pl.includes('quinquenal')) intervalo = 5;
+    else return [];
+  }
+  if(ano < anoBase) return [];
+  if(((ano - anoBase) % intervalo) !== 0) return [];
+  return [1]; // por padrão, janeiro do ano ativo
 }
 
 function buildMonthGridUnified(year, month, visitsMC, visitsMM){
@@ -4748,6 +4872,9 @@ function buildMonthGridUnified(year, month, visitsMC, visitsMM){
 let _progCache={};
 
 // Itens "inerentes" — sempre feitos em toda visita, não precisam aparecer na lista de tarefas
+// TODO: hardcode por NOME quebra se outro condomínio renomear o item. Quando auditar os
+// demais condôminios, migrar para flag explícita no item (item.inerente:true) e remover
+// este Set. Por ora funciona porque os 5 condôminios usam estes nomes padronizados.
 const ITENS_INERENTES=new Set(['Relatório de visita','Registro fotográfico','Relatório de visita quinzenal']);
 
 function programacaoAnual(condoId){
@@ -4774,14 +4901,28 @@ function programacaoAnual(condoId){
        p.includes('após impermeabilização')) return [];
     if(ITENS_INERENTES.has(item.nome)) return [];
 
-    // Periodicidade → intervalo em dias entre ocorrências
+    // Ciclos plurianuais: pula se ano corrente não está no ciclo (intervalo_anos / ano_base)
+    const anoCorr = new Date().getFullYear();
+    const anoBase = item.ano_base || 2026;
+    let intervaloAnos = item.intervalo_anos || 0;
+    if(!intervaloAnos){
+      if(p.includes('bienal')) intervaloAnos=2;
+      else if(p.includes('trienal')) intervaloAnos=3;
+      else if(p.includes('quinquenal')) intervaloAnos=5;
+    }
+    if(intervaloAnos){
+      if(anoCorr < anoBase || ((anoCorr - anoBase) % intervaloAnos) !== 0) return [];
+    }
+
+    // Periodicidade → intervalo em dias entre ocorrências (dentro do ano ativo)
     let diasAlvo=0;
     if(p.includes('semanal')) diasAlvo=7;
     else if(p.includes('quinzenal')) diasAlvo=14;
     else if(p.includes('mensal')) diasAlvo=30;
+    else if(p.includes('bimest')) diasAlvo=60;
     else if(p.includes('trimest')) diasAlvo=90;
     else if(p.includes('semest')) diasAlvo=180;
-    else if(p.includes('anual')) diasAlvo=365;
+    else if(p.includes('anual')||intervaloAnos) diasAlvo=365;
     else return [];
 
     // Janelas deslizantes — cada janela representa 1 ocorrência. Algoritmo escolhe
@@ -5117,7 +5258,7 @@ function gerarCalendarioPDF(condoId){
     const isCrit=grp.toUpperCase().includes('CRÍTICO')||grp.toUpperCase().includes('CRITICO');
     tableRows+=`<tr class="${isCrit?'cal-grp-crit':'cal-grp-row'}"><td colspan="15">${isCrit?'⚠ ':''} ${grp}</td></tr>`;
     items.forEach(it=>{
-      const meses=mesesAtivos(it.periodicidade);
+      const meses=mesesAtivos(it, 2026);
       const isCritRow=it.critico||it.prioridade==='Crítico';
       const dots=Array.from({length:12},(_,i)=>
         meses.includes(i+1)
