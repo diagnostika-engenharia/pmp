@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup v2 — Portaria com interações completas</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;
+--lime:#8DB72A;--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;
+--red:#C00000;--green:#1B8A4A;--purple:#7D3C98}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px;padding-bottom:80px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:18px;max-width:900px}
+h2{font-size:17px;margin:32px 0 6px;padding:9px 14px;border-left:4px solid var(--turq);background:linear-gradient(90deg,rgba(0,180,172,.1),transparent);border-radius:0 8px 8px 0;color:var(--teal-dk)}
+h3.sub{font-size:12.5px;color:var(--text2);font-weight:600;font-style:italic;margin:-4px 0 14px}
+.step-label{display:inline-block;background:var(--turq);color:#fff;font-size:10px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px}
+
+/* Portaria mockup base */
+.portaria{background:#1a1a1a;color:#fff;border-radius:12px;overflow:hidden;border:1px solid #333;max-width:780px;margin-bottom:20px}
+.portaria .head{background:linear-gradient(135deg,#0D3C44,#155B67);padding:12px 16px;display:flex;align-items:center;gap:10px}
+.portaria .head .logo{width:30px;height:30px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-weight:800;font-size:13px}
+.portaria .head .info{flex:1}
+.portaria .head h3{font-size:15px;font-weight:700}
+.portaria .head .sub{font-size:10.5px;opacity:.75}
+.portaria .head .right{font-size:10.5px;opacity:.85;text-align:right}
+
+.port-body{padding:14px 16px}
+.port-section{margin-bottom:14px}
+.port-section .label{font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:6px}
+
+.port-search{background:#2a2a2a;border:1px solid #444;border-radius:6px;padding:8px 12px;color:#fff;font-size:13px;width:100%;outline:none;font-family:inherit}
+.port-search:focus{border-color:var(--turq)}
+
+.port-units{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:5px}
+.port-u{background:#2a2a2a;border:1px solid #444;border-radius:6px;padding:9px 4px;text-align:center;font-size:11px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.8);position:relative}
+.port-u:hover{background:#3a3a3a;border-color:var(--turq)}
+.port-u.has-art{border-color:rgba(27,138,74,.6);background:rgba(27,138,74,.1)}
+.port-u.aguard{border-color:rgba(251,192,45,.6);background:rgba(251,192,45,.1)}
+.port-u.no-art{border-color:rgba(192,0,0,.6);background:rgba(192,0,0,.1)}
+.port-u.clandes{border-color:#C00000;background:#7B0000;color:#fff;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(192,0,0,.6)}50%{box-shadow:0 0 0 4px rgba(192,0,0,0)}}
+.port-u.selected{border-color:var(--turq);border-width:2px;background:rgba(0,180,172,.15);box-shadow:0 0 12px rgba(0,180,172,.4)}
+.port-u .ind{font-size:8px;opacity:.75;display:block;margin-top:1px;letter-spacing:.2px}
+
+.port-recent{background:#2a2a2a;border-radius:6px;padding:10px 12px;font-size:11px}
+.port-recent h4{font-size:10px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:7px}
+.port-recent .item{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #333;align-items:center;cursor:pointer}
+.port-recent .item:last-child{border:none}
+.port-recent .item:hover{background:rgba(255,255,255,.04);border-radius:4px}
+.port-recent .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.port-recent .dot.ok{background:var(--green)}
+.port-recent .dot.alert{background:var(--red)}
+.port-recent .hora{color:rgba(255,255,255,.5);font-family:'SF Mono',Menlo,monospace;font-size:10px;flex-shrink:0}
+.port-recent .desc{flex:1;color:rgba(255,255,255,.85);font-size:11px}
+.port-recent .desc b{color:#fff}
+
+/* MODAIS */
+.modal-overlay{position:relative;background:rgba(0,0,0,.65);padding:20px;border-radius:12px;min-height:300px;display:flex;align-items:center;justify-content:center}
+.modal{background:#fff;color:var(--text);border-radius:12px;padding:0;width:100%;max-width:520px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.modal.dark{background:#1a1a1a;color:#fff}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px}
+.modal.dark .modal-head{border-color:#333}
+.modal-head .ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.modal-head .ic.warn{background:rgba(192,0,0,.12);color:var(--red)}
+.modal-head .ic.ok{background:rgba(27,138,74,.12);color:var(--green)}
+.modal-head .ic.info{background:rgba(0,180,172,.12);color:var(--turq-dk)}
+.modal-head h3{font-size:15px;font-weight:700;line-height:1.2}
+.modal-head .sub{font-size:11px;color:var(--text2);margin-top:2px}
+.modal.dark .modal-head .sub{color:rgba(255,255,255,.55)}
+.modal-head .close{margin-left:auto;background:transparent;border:none;color:var(--text2);cursor:pointer;width:30px;height:30px;border-radius:50%;font-size:16px}
+.modal-head .close:hover{background:var(--gray)}
+.modal-body{padding:16px 18px}
+.modal-actions{padding:12px 18px;border-top:1px solid var(--gray2);display:flex;gap:8px;justify-content:flex-end}
+.modal.dark .modal-actions{border-color:#333;background:#222}
+.btn{background:#fff;border:1.5px solid var(--gray2);border-radius:6px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text)}
+.btn.primary{background:var(--turq);border-color:var(--turq);color:#fff}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.success{background:var(--green);border-color:var(--green);color:#fff}
+.btn:hover{box-shadow:0 2px 6px rgba(0,0,0,.1)}
+
+/* Unidade detalhe — dentro do modal */
+.ud-status{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:8px;margin-bottom:12px;font-size:12.5px}
+.ud-status.ok{background:rgba(27,138,74,.08);color:var(--green);border-left:3px solid var(--green)}
+.ud-status.warn{background:rgba(192,0,0,.06);color:var(--red);border-left:3px solid var(--red)}
+.ud-status.aguard{background:rgba(251,192,45,.12);color:#8B5A0F;border-left:3px solid #FBC02D}
+.ud-status.clean{background:rgba(0,180,172,.06);color:var(--turq-dk);border-left:3px solid var(--turq)}
+.ud-status .ic{font-size:18px}
+.ud-status b{font-weight:700;display:block}
+.ud-status small{font-size:11px;opacity:.85}
+
+.ud-fields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;font-size:12px}
+.ud-fields .field{background:var(--gray);padding:8px 10px;border-radius:6px}
+.ud-fields .field .lbl{font-size:9.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:3px}
+.ud-fields .field .val{font-weight:600;font-size:12.5px}
+
+.ud-list-h{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:700;margin:10px 0 6px}
+.ud-entry{display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed var(--gray2);font-size:11.5px;align-items:center}
+.ud-entry:last-child{border:none}
+.ud-entry .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.ud-entry .dot.ok{background:var(--green)}
+.ud-entry .dot.alert{background:var(--red)}
+.ud-entry .dot.warn{background:#FBC02D}
+.ud-entry .dt{font-family:'SF Mono',Menlo,monospace;color:var(--text2);font-size:10.5px;flex-shrink:0;min-width:80px}
+.ud-entry .desc{flex:1}
+.ud-entry .desc b{color:var(--text);font-weight:600}
+
+/* TOAST notifications */
+.toast-area{display:flex;flex-direction:column;gap:8px;padding:14px;background:linear-gradient(135deg,#F5F5F5,#FAFAFA);border-radius:10px;border:1px dashed var(--gray3)}
+.toast-area .lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:4px}
+.toast{display:flex;gap:10px;padding:11px 13px;border-radius:8px;background:#fff;box-shadow:0 4px 12px rgba(0,0,0,.12);align-items:flex-start;animation:slideIn .3s}
+.toast.alert{border-left:4px solid var(--red);background:linear-gradient(90deg,rgba(192,0,0,.06),#fff)}
+.toast.ok{border-left:4px solid var(--green);background:linear-gradient(90deg,rgba(27,138,74,.06),#fff)}
+.toast.warn{border-left:4px solid #E65100;background:linear-gradient(90deg,rgba(230,81,0,.06),#fff)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.toast .ic{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.toast.alert .ic{background:rgba(192,0,0,.15);color:var(--red)}
+.toast.ok .ic{background:rgba(27,138,74,.15);color:var(--green)}
+.toast.warn .ic{background:rgba(230,81,0,.15);color:#E65100}
+.toast .content{flex:1;font-size:12px;line-height:1.4}
+.toast .content b{display:block;color:var(--text);font-weight:600}
+.toast .content small{color:var(--text2);font-size:10.5px;display:block;margin-top:2px}
+.toast .acts{display:flex;gap:5px;margin-top:6px}
+.toast .acts button{background:transparent;border:1px solid var(--gray2);font-size:10.5px;padding:3px 8px;border-radius:5px;cursor:pointer;font-weight:600;color:var(--text)}
+.toast .acts button.primary{background:var(--turq);color:#fff;border-color:var(--turq)}
+.toast .hora{font-size:9.5px;color:var(--text2);font-family:'SF Mono',Menlo,monospace}
+
+.flow-arrow{font-size:24px;color:var(--turq);text-align:center;margin:6px 0;font-weight:700}
+
+.frame-comp{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px}
+@media(max-width:980px){.frame-comp{grid-template-columns:1fr}}
+.fc-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;padding:14px}
+.fc-card h4{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:700;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--gray2)}
+.fc-card.diag h4{color:var(--turq-dk);border-color:var(--turq)}
+.fc-card.sindico h4{color:var(--purple);border-color:var(--purple)}
+</style>
+</head>
+<body>
+
+<h1>Mockup v2 — Portaria com fluxos completos</h1>
+<p class="intro">
+Mostrando o que acontece em cada interação: clicar numa unidade abre modal de contexto · registrar entrada dispara confirmação · sucesso gera notificações em 3 dispositivos simultâneos · clandestino detectado → alerta especial.
+</p>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 1: Tela inicial — porteiro escolhe unidade -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 1 — Tela inicial · porteiro vai clicar em A·304 (com ART)</h2>
+<h3 class="sub">As cores das unidades vêm da tabela `demandas` em tempo real (Supabase Realtime)</h3>
+
+<div class="portaria">
+  <div class="head">
+    <div class="logo">D</div>
+    <div class="info">
+      <h3>🚪 Portaria — Monte Carlo</h3>
+      <div class="sub">Registro de entrada de prestadores</div>
+    </div>
+    <div class="right"><div>Porteiro: <b>José</b></div><div style="opacity:.6">14:23 · 27/05</div></div>
+  </div>
+  <div class="port-body">
+    <div class="port-section">
+      <div class="label">1. Toque na unidade onde o prestador vai entrar</div>
+      <input class="port-search" placeholder="🔍 Buscar (ex: 502, B-502...)">
+    </div>
+    <div class="port-section">
+      <div class="port-units">
+        <div class="port-u">A·101</div>
+        <div class="port-u">A·102</div>
+        <div class="port-u">A·201</div>
+        <div class="port-u">A·202</div>
+        <div class="port-u">A·301</div>
+        <div class="port-u has-art selected">A·304<span class="ind">📜 c/ART</span></div>
+        <div class="port-u">A·401</div>
+        <div class="port-u">B·101</div>
+        <div class="port-u">B·201</div>
+        <div class="port-u aguard">B·204<span class="ind">⏳ aguard</span></div>
+        <div class="port-u">B·301</div>
+        <div class="port-u no-art">B·502<span class="ind">⚠ sem ART</span></div>
+        <div class="port-u">B·503</div>
+        <div class="port-u">B·601</div>
+        <div class="port-u no-art">B·705<span class="ind">⚠ sem ART</span></div>
+        <div class="port-u clandes">A·502<span class="ind">🚨 alert</span></div>
+      </div>
+    </div>
+    <div class="port-section">
+      <div class="label">Legenda</div>
+      <div style="font-size:10.5px;color:rgba(255,255,255,.7);line-height:1.8">
+        ⚫ cinza = sem reforma · 🟢 verde = c/ART (autorizada) · 🟡 amarela = aguardando nossa ART · 🔴 vermelha = sem RT (declarada mas irregular) · 🚨 pisca = obra clandestina detectada pela portaria
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">⬇ porteiro toca em A·304 ⬇</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 2: Modal ao clicar — caso A·304 (COM ART) -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 2 — Modal de contexto ao clicar em A·304 (apto C/ART)</h2>
+<h3 class="sub">Antes de pedir os dados do prestador, sistema mostra todo o contexto da unidade</h3>
+
+<div class="modal-overlay">
+  <div class="modal dark" style="max-width:560px">
+    <div class="modal-head">
+      <div class="ic ok">🏠</div>
+      <div style="flex:1">
+        <h3>Apto A·304 — Reforma autorizada</h3>
+        <div class="sub">Marcelo & Juliana · 3º andar Bloco A</div>
+      </div>
+      <button class="close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="ud-status ok">
+        <div class="ic">✓</div>
+        <div><b>Reforma autorizada — ART nossa</b><small>Protocolo MC-2026-0007 · 14/04/2026</small></div>
+      </div>
+      <div class="ud-fields">
+        <div class="field">
+          <div class="lbl">Responsável Técnico</div>
+          <div class="val">Diagnóstika Engenharia</div>
+        </div>
+        <div class="field">
+          <div class="lbl">CREA do RT</div>
+          <div class="val">Claudemir Scaranello — 5063789-SP</div>
+        </div>
+        <div class="field">
+          <div class="lbl">Tipo de obra</div>
+          <div class="val">Pintura · Revestimentos</div>
+        </div>
+        <div class="field">
+          <div class="lbl">Complexidade</div>
+          <div class="val" style="color:var(--green)">🟢 Baixa</div>
+        </div>
+      </div>
+
+      <div class="ud-list-h">🔍 Histórico de vistorias (1)</div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">25/04/2026</span>
+        <span class="desc"><b>Vistoria inicial</b> — Aprovada · Eng. Claudemir</span>
+      </div>
+      <div class="ud-list-h">🚪 Últimas entradas registradas (semana)</div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">13:45 hoje</span>
+        <span class="desc">Pintor — empresa <b>"Cor & Cia"</b></span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">26/05 09:30</span>
+        <span class="desc">Eng. Maria Souza — vistoria intermediária</span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">25/05 08:00</span>
+        <span class="desc">Pintor — empresa <b>"Cor & Cia"</b></span>
+      </div>
+    </div>
+    <div class="modal-actions" style="background:#222">
+      <button class="btn" style="background:#333;color:#fff;border-color:#555">Cancelar</button>
+      <button class="btn primary">▶ Continuar registro</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">⬇ porteiro escolhe B·502 (SEM ART) ⬇</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 3: Modal ao clicar em B·502 (SEM ART) -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 3 — Modal ao clicar em B·502 (apto SEM ART)</h2>
+<h3 class="sub">Mostra o histórico de notificações já feitas ao morador, status irregular destacado</h3>
+
+<div class="modal-overlay">
+  <div class="modal dark" style="max-width:560px">
+    <div class="modal-head">
+      <div class="ic warn">⚠</div>
+      <div style="flex:1">
+        <h3>Apto B·502 — REFORMA SEM RT</h3>
+        <div class="sub">Carlos Mendes · 5º andar Bloco B · Cozinha</div>
+      </div>
+      <button class="close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="ud-status warn">
+        <div class="ic">⚠</div>
+        <div><b>Situação irregular — sem Responsável Técnico</b><small>Morador declarou reforma mas NÃO apresentou ART. Protocolo MM-2026-0023 · há 8 dias</small></div>
+      </div>
+      <div class="ud-fields">
+        <div class="field">
+          <div class="lbl">Tipo declarado</div>
+          <div class="val">Gás · Hidráulica</div>
+        </div>
+        <div class="field">
+          <div class="lbl">Complexidade</div>
+          <div class="val" style="color:var(--red)">🔴 ALTA — exige RT obrigatório (NBR 16280)</div>
+        </div>
+        <div class="field" style="grid-column:span 2;background:rgba(192,0,0,.12)">
+          <div class="lbl" style="color:var(--red)">⚠ Risco</div>
+          <div class="val">Obra de gás sem RT — risco de explosão/incêndio. Comunicar formalmente o morador.</div>
+        </div>
+      </div>
+
+      <div class="ud-list-h">📞 Notificações já enviadas</div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">25/05 10:00</span>
+        <span class="desc">Síndica enviou advertência formal via WhatsApp</span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot warn"></span>
+        <span class="dt">22/05 14:30</span>
+        <span class="desc">Diagnóstika ofereceu emissão de ART — sem resposta</span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot alert"></span>
+        <span class="dt">19/05 09:00</span>
+        <span class="desc">Sistema gerou alerta automático — apto declarou reforma sem RT</span>
+      </div>
+
+      <div class="ud-list-h">🚪 Últimas entradas</div>
+      <div class="ud-entry">
+        <span class="dot alert"></span>
+        <span class="dt">26/05 08:30</span>
+        <span class="desc">Encanador (sem identificação)</span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot alert"></span>
+        <span class="dt">24/05 09:15</span>
+        <span class="desc">Pedreiro — "Construções Silva"</span>
+      </div>
+    </div>
+    <div class="modal-actions" style="background:#222">
+      <button class="btn" style="background:#333;color:#fff;border-color:#555">Cancelar</button>
+      <button class="btn danger">▶ Registrar mesmo assim (com alerta)</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">⬇ porteiro confirma registro de entrada em B·502 ⬇</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 4: Confirmação de registro -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 4 — Tela de confirmação após preencher dados</h2>
+<h3 class="sub">Resumo do que vai ser registrado e quem vai ser notificado</h3>
+
+<div class="modal-overlay">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="ic info">⏱</div>
+      <div style="flex:1">
+        <h3>Confirmar registro de entrada</h3>
+        <div class="sub">Verifique os dados antes de gravar</div>
+      </div>
+      <button class="close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="ud-status warn">
+        <div class="ic">⚠</div>
+        <div><b>Esta ação dispara notificações automáticas</b><small>Diagnóstika e Síndica receberão alerta porque o apto não tem ART</small></div>
+      </div>
+      <div class="ud-fields" style="grid-template-columns:1fr">
+        <div class="field"><div class="lbl">Unidade</div><div class="val">B·502 (Carlos Mendes — Bloco B, 5º andar)</div></div>
+        <div class="field"><div class="lbl">Prestador</div><div class="val">Carlos Mendes — Encanador autônomo</div></div>
+        <div class="field"><div class="lbl">Tipo de serviço</div><div class="val">Hidráulica</div></div>
+        <div class="field"><div class="lbl">Horário</div><div class="val">14:23 — quarta-feira, 27/05/2026</div></div>
+        <div class="field"><div class="lbl">Registrado por</div><div class="val">Porteiro José</div></div>
+      </div>
+      <div style="font-size:11.5px;color:var(--text2);line-height:1.6;background:rgba(0,180,172,.05);padding:10px 12px;border-radius:6px;margin-top:8px;border-left:3px solid var(--turq)">
+        <b>Notificações que serão enviadas:</b><br>
+        🏗 Painel Diagnóstika (alerta vermelho)<br>
+        📱 Portal da Síndica Ana Paula (notificação push)<br>
+        📋 Log permanente para auditoria
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn">← Voltar</button>
+      <button class="btn primary">✓ Confirmar e registrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow-arrow">⬇ confirma · sistema grava e dispara realtime ⬇</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 5: Sucesso (na portaria) -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 5 — Sucesso na portaria + notificações em tempo real</h2>
+<h3 class="sub">À esquerda: porteiro vê confirmação. À direita: Diagnóstika e Síndica recebem toast simultâneo.</h3>
+
+<div class="frame-comp">
+
+  <!-- Sucesso portaria -->
+  <div>
+    <div class="step-label">📍 Portaria (José)</div>
+    <div class="modal-overlay" style="background:rgba(27,138,74,.18);min-height:auto">
+      <div class="modal dark" style="max-width:100%">
+        <div class="modal-head" style="background:linear-gradient(135deg,rgba(27,138,74,.3),transparent)">
+          <div class="ic ok" style="background:rgba(27,138,74,.25);color:#A5E6B1">✓</div>
+          <div style="flex:1">
+            <h3>Registrado com sucesso</h3>
+            <div class="sub">Carlos Mendes · B·502 · 14:23</div>
+          </div>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:12.5px;line-height:1.6">
+            ✓ Entrada registrada no sistema<br>
+            ✓ Diagnóstika notificada (alerta vermelho)<br>
+            ✓ Síndica notificada (alerta vermelho)<br>
+            ✓ Log de auditoria gravado
+          </p>
+          <div style="background:rgba(255,255,255,.05);padding:10px 12px;border-radius:6px;margin-top:10px;font-size:11.5px">
+            <b>Próximas ações sugeridas pelo sistema:</b><br>
+            • Pedir ao prestador documento de identidade<br>
+            • Em caso de incidente, registrar com foto via app
+          </div>
+        </div>
+        <div class="modal-actions" style="background:#222">
+          <button class="btn primary" style="width:100%">▶ OK — voltar à tela de registros</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificações nos 2 portais -->
+  <div>
+    <div class="step-label">📍 Diagnóstika + Síndica (toast realtime)</div>
+
+    <div class="toast-area">
+      <div class="lbl">🏗 Painel Técnico Diagnóstika — Rogério ouvindo Supabase Realtime</div>
+
+      <div class="toast alert">
+        <div class="ic">🚨</div>
+        <div class="content">
+          <b>Prestador em apto SEM ART — B·502</b>
+          <small>Carlos Mendes (encanador) entrou agora. Apto declarou reforma há 8 dias sem apresentar RT.</small>
+          <div class="acts">
+            <button class="primary">Programar vistoria</button>
+            <button>Ligar p/ síndica</button>
+            <button>Ver chamado</button>
+          </div>
+        </div>
+        <div class="hora">agora</div>
+      </div>
+
+      <div class="lbl" style="margin-top:14px">📱 Portal Síndica — Ana Paula recebendo notificação push</div>
+
+      <div class="toast alert">
+        <div class="ic">🔔</div>
+        <div class="content">
+          <b>Prestador em apto sem ART — B·502</b>
+          <small>Portaria registrou entrada agora. Diagnóstika foi acionada automaticamente. Recomendamos comunicar formalmente o morador.</small>
+          <div class="acts">
+            <button class="primary">Enviar advertência</button>
+            <button>Ver detalhes</button>
+          </div>
+        </div>
+        <div class="hora">agora</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 6: Obra clandestina detectada -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2 style="color:var(--red);border-color:var(--red);background:rgba(192,0,0,.06)">🎬 CENA 6 — Caso EXTREMO: porteiro registra prestador em apto SEM REFORMA DECLARADA</h2>
+<h3 class="sub">Sistema infere obra clandestina automaticamente e gera alerta diferenciado</h3>
+
+<div class="modal-overlay" style="background:rgba(192,0,0,.18)">
+  <div class="modal" style="max-width:560px;border:3px solid var(--red)">
+    <div class="modal-head" style="background:linear-gradient(135deg,rgba(192,0,0,.12),transparent)">
+      <div class="ic warn" style="background:var(--red);color:#fff">🚨</div>
+      <div style="flex:1">
+        <h3 style="color:var(--red)">OBRA CLANDESTINA DETECTADA</h3>
+        <div class="sub">Apto A·502 — nenhuma reforma comunicada à administração</div>
+      </div>
+      <button class="close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="ud-status warn">
+        <div class="ic">🚨</div>
+        <div><b>Apto A·502 não tem comunicação de reforma</b><small>Mas porteiro acaba de registrar entrada de pedreiro — pode ser obra não declarada (ilegal segundo regulamento)</small></div>
+      </div>
+
+      <div class="ud-list-h">📋 O que o sistema fará automaticamente</div>
+      <div style="font-size:12px;line-height:1.7">
+        ✅ <b>Registrar entrada</b> normalmente (porteiro fez sua parte)<br>
+        ✅ <b>Marcar apto como "obra clandestina suspeita"</b> (quadradinho vai piscar 🚨)<br>
+        ✅ <b>Notificar Síndica</b> com gravidade ALTA — recomenda comunicação imediata ao morador<br>
+        ✅ <b>Notificar Diagnóstika</b> — programar visita de inspeção para confirmar<br>
+        ✅ <b>Iniciar processo</b> — exigir documentação ou interrupção da obra
+      </div>
+
+      <div class="ud-list-h">⚠ Próximos passos sugeridos</div>
+      <div style="font-size:12px;line-height:1.7;background:rgba(251,192,45,.1);padding:10px 12px;border-radius:6px;border-left:3px solid #FBC02D">
+        1. <b>Síndica</b> abre processo no condomínio (notificação formal ao morador)<br>
+        2. <b>Diagnóstika</b> agenda vistoria emergencial em 24-48h<br>
+        3. <b>Morador</b> precisa apresentar RT + ART em até 5 dias úteis<br>
+        4. Caso não regularize → interrupção da obra (decisão do síndico/assembleia)
+      </div>
+    </div>
+    <div class="modal-actions" style="border-top-color:rgba(192,0,0,.2)">
+      <button class="btn">Lembrar mais tarde</button>
+      <button class="btn danger">▶ Confirmar registro + alerta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 7: Click no histórico -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 7 — Click numa entrada do histórico</h2>
+<h3 class="sub">Porteiro clica numa entrada anterior pra ver detalhes do que aconteceu</h3>
+
+<div class="modal-overlay">
+  <div class="modal dark" style="max-width:500px">
+    <div class="modal-head">
+      <div class="ic warn">🚪</div>
+      <div style="flex:1">
+        <h3>Entrada de 09:15 — B·705</h3>
+        <div class="sub">Há 5h · registrado por porteiro José</div>
+      </div>
+      <button class="close">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="ud-status warn"><div class="ic">⚠</div><div><b>Entrada em apto sem ART</b><small>Alerta foi enviado a Diagnóstika e Síndica</small></div></div>
+      <div class="ud-fields" style="grid-template-columns:1fr">
+        <div class="field"><div class="lbl">Prestador</div><div class="val">Pedreiro — sem identificação</div></div>
+        <div class="field"><div class="lbl">Empresa</div><div class="val">(não informada)</div></div>
+        <div class="field"><div class="lbl">Tipo de serviço</div><div class="val">Rebaixamento de gesso</div></div>
+        <div class="field"><div class="lbl">Status atual</div><div class="val" style="color:#FBC02D">⏳ Pendente — apto ainda sem RT 5h depois</div></div>
+      </div>
+      <div class="ud-list-h">📞 Acompanhamento</div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">09:16</span>
+        <span class="desc">Alerta enviado a Diagnóstika + Síndica</span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot ok"></span>
+        <span class="dt">10:30</span>
+        <span class="desc">Síndica enviou advertência via WhatsApp</span>
+      </div>
+      <div class="ud-entry">
+        <span class="dot warn"></span>
+        <span class="dt">14:00</span>
+        <span class="desc">Morador ainda não respondeu</span>
+      </div>
+    </div>
+    <div class="modal-actions" style="background:#222">
+      <button class="btn" style="background:#333;color:#fff;border-color:#555">Fechar</button>
+      <button class="btn primary">Ver chamado MM-2026-0024</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- CENA 8: Busca por nome de prestador -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2>🎬 CENA 8 — Auto-sugestão ao digitar nome do prestador</h2>
+<h3 class="sub">Sistema sugere prestadores já cadastrados (entraram antes)</h3>
+
+<div class="portaria">
+  <div class="head">
+    <div class="logo">D</div>
+    <div class="info"><h3>🚪 Portaria — Monte Carlo</h3><div class="sub">Registro de entrada de prestadores</div></div>
+    <div class="right"><div>Porteiro: <b>José</b></div></div>
+  </div>
+  <div class="port-body">
+    <div class="port-section">
+      <div class="label">2. Dados do prestador (entrada em B·502)</div>
+    </div>
+    <div style="background:#2a2a2a;border-radius:8px;padding:14px">
+      <div style="font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:4px">Nome do prestador</div>
+      <input class="port-search" value="Carlos M" style="margin-bottom:6px">
+
+      <!-- DROPDOWN sugestões -->
+      <div style="background:#1a1a1a;border:1px solid var(--turq);border-radius:6px;overflow:hidden;margin-top:-3px">
+        <div style="padding:8px 14px;font-size:10.5px;color:var(--turq);text-transform:uppercase;letter-spacing:.4px;font-weight:700;background:rgba(0,180,172,.1)">📋 Prestadores que já entraram aqui</div>
+
+        <div style="padding:9px 14px;cursor:pointer;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div style="font-size:12.5px;color:#fff;font-weight:600">Carlos Mendes</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.55)">Encanador autônomo · 3 entradas (B·502)</div>
+          </div>
+          <span style="background:rgba(192,0,0,.18);color:#FFB4B4;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.3px">⚠ HISTÓRICO ALERTA</span>
+        </div>
+
+        <div style="padding:9px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.02)">
+          <div>
+            <div style="font-size:12.5px;color:#fff;font-weight:600">Carlos Mendonça</div>
+            <div style="font-size:10.5px;color:rgba(255,255,255,.55)">Pedreiro · "Construções Silva" · 7 entradas</div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:10.5px;color:rgba(255,255,255,.45);margin-top:8px;font-style:italic">Não encontrou? Continue digitando para cadastrar novo.</div>
+    </div>
+  </div>
+</div>
+
+<div style="background:#E3F2FD;border-left:4px solid #1565C0;padding:14px 18px;border-radius:0 10px 10px 0;margin-top:24px;font-size:12.5px">
+  <b style="color:#0D47A1">📌 Resumo das interações implementadas</b>
+  <ul style="margin:8px 0 0 20px;line-height:1.8">
+    <li><b>CENA 1</b> — Tela inicial com unidades coloridas (status real do banco)</li>
+    <li><b>CENA 2</b> — Modal de contexto ao clicar em apto C/ART (verde) — histórico de vistorias, entradas recentes, RT</li>
+    <li><b>CENA 3</b> — Modal ao clicar em apto SEM ART (vermelho) — risco, notificações já enviadas, entradas suspeitas</li>
+    <li><b>CENA 4</b> — Tela de confirmação — resumo + aviso de notificações que serão disparadas</li>
+    <li><b>CENA 5</b> — Sucesso na portaria + toasts simultâneos em Diagnóstika e Síndica</li>
+    <li><b>CENA 6</b> — Caso especial: obra clandestina inferida automaticamente (sem reforma declarada + prestador chegando)</li>
+    <li><b>CENA 7</b> — Click numa entrada do histórico para ver acompanhamento</li>
+    <li><b>CENA 8</b> — Auto-sugestão de prestador já conhecido + flag de histórico de alerta</li>
+  </ul>
+</div>
+
+<script src="__annot.js"></script>
+</body>
+</html>

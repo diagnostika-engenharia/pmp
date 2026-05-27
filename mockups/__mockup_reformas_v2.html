@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — 2 propostas alternativas para Reformas</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;
+--lime:#8DB72A;--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;
+--gray3:#A8BFC2;--gray4:#5A7A7E;--red:#C00000;--green:#1B8A4A;--purple:#7D3C98;
+--baixa:#1B8A4A;--media:#E65100;--alta:#C00000;
+--state-sol:#FB8C00;--state-art:#FBC02D;--state-obra:#7B1FA2;--state-vis:#1565C0;--state-conc:#1B8A4A}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:18px;max-width:900px}
+h2{font-size:17px;margin:26px 0 10px;padding:9px 14px;border-left:4px solid;border-radius:0 8px 8px 0}
+h2.opt-2{color:#7B1FA2;border-color:#7B1FA2;background:rgba(123,31,162,.08)}
+h2.opt-3{color:#1565C0;border-color:#1565C0;background:rgba(21,101,192,.08)}
+h3.sub{font-size:12.5px;color:var(--text2);font-weight:600;margin:6px 0 12px;font-style:italic}
+
+.frame{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);max-width:1300px;border:1px solid var(--gray2);margin-bottom:8px;padding:16px}
+
+/* ───────────── OPÇÃO 2 — KANBAN DO FLUXO ───────────── */
+.kanban-row{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;overflow-x:auto}
+@media(max-width:1100px){.kanban-row{grid-template-columns:repeat(3,1fr)}}
+.kanban-col{background:var(--gray);border-radius:8px;padding:10px;min-height:400px;display:flex;flex-direction:column}
+.kanban-col h4{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;gap:6px;padding-bottom:8px;border-bottom:2px solid;flex-shrink:0}
+.kanban-col h4 .count{margin-left:auto;background:rgba(0,0,0,.08);padding:1px 7px;border-radius:8px;font-size:10px}
+.kanban-col.sol h4{color:var(--state-sol);border-color:var(--state-sol)}
+.kanban-col.art h4{color:var(--state-art);border-color:var(--state-art)}
+.kanban-col.obra h4{color:var(--state-obra);border-color:var(--state-obra)}
+.kanban-col.vis h4{color:var(--state-vis);border-color:var(--state-vis)}
+.kanban-col.conc h4{color:var(--state-conc);border-color:var(--state-conc)}
+
+.k-card{background:#fff;border-radius:7px;padding:10px;margin-bottom:8px;cursor:grab;border-left:3px solid;box-shadow:0 1px 3px rgba(0,0,0,.05);transition:transform .12s,box-shadow .12s;font-size:12px}
+.k-card:hover{transform:translateY(-2px);box-shadow:0 4px 10px rgba(0,0,0,.1)}
+.k-card.compl-baixa{border-left-color:var(--baixa)}
+.k-card.compl-media{border-left-color:var(--media)}
+.k-card.compl-alta{border-left-color:var(--alta)}
+.k-card .apto{font-weight:800;color:var(--text);font-family:'SF Mono',Menlo,monospace;font-size:13px;letter-spacing:.3px}
+.k-card .desc{color:var(--text2);font-size:11px;margin:3px 0 6px;line-height:1.4}
+.k-card .meta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;font-size:9.5px}
+.k-card .compl-chip{padding:2px 6px;border-radius:4px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px}
+.k-card .compl-chip.baixa{background:var(--baixa)}
+.k-card .compl-chip.media{background:var(--media)}
+.k-card .compl-chip.alta{background:var(--alta)}
+.k-card .auth-chip{padding:2px 6px;border-radius:4px;font-weight:700}
+.k-card .auth-chip.ok{background:rgba(27,138,74,.15);color:var(--green)}
+.k-card .auth-chip.warn{background:rgba(192,0,0,.12);color:var(--red)}
+.k-card .dt{margin-left:auto;color:var(--text2);font-size:9.5px;font-style:italic}
+
+.kanban-col.empty .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--text2);font-size:11px;opacity:.6;font-style:italic;padding:20px;text-align:center}
+
+/* ───────────── OPÇÃO 3 — TIMELINE GANTT ───────────── */
+.gantt{background:#fff;border:1px solid var(--gray2);border-radius:10px;overflow:hidden}
+.gantt-hdr{display:grid;grid-template-columns:180px repeat(12,1fr);background:var(--gray);font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;font-weight:800;color:var(--text2)}
+.gantt-hdr > div{padding:8px 4px;text-align:center;border-right:1px solid var(--gray2)}
+.gantt-hdr > div:first-child{text-align:left;padding-left:12px}
+.gantt-hdr .gh-current{background:rgba(0,180,172,.18);color:var(--turq-dk)}
+
+.gantt-row{display:grid;grid-template-columns:180px repeat(12,1fr);border-top:1px solid var(--gray2);position:relative;min-height:50px;align-items:center}
+.gantt-row:hover{background:rgba(21,91,103,.02)}
+.gantt-row .gr-label{padding:8px 12px;font-size:12px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--gray2)}
+.gantt-row .gr-label .apto{font-weight:800;font-family:'SF Mono',Menlo,monospace}
+.gantt-row .gr-label .sm{font-size:10px;color:var(--text2)}
+.gantt-row .gr-cell{border-right:1px solid var(--gray2);height:100%}
+
+.gantt-bar{position:absolute;height:24px;border-radius:5px;display:flex;align-items:center;padding:0 8px;font-size:10.5px;font-weight:700;color:#fff;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.15);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;z-index:2}
+.gantt-bar:hover{filter:brightness(1.1)}
+.gantt-bar.baixa{background:linear-gradient(90deg,#2BA862,var(--baixa))}
+.gantt-bar.media{background:linear-gradient(90deg,#FB8C00,var(--media))}
+.gantt-bar.alta{background:linear-gradient(90deg,#E63333,var(--alta))}
+.gantt-bar.semrt{background:repeating-linear-gradient(45deg,#C00000,#C00000 8px,#8B0000 8px,#8B0000 16px);color:#fff;border:2px solid #7B0000}
+
+.gantt-marker{position:absolute;width:14px;height:14px;background:#fff;border:2px solid var(--teal);border-radius:50%;top:50%;margin-top:-7px;z-index:3;font-size:9px;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--teal)}
+.gantt-today{position:absolute;top:0;bottom:0;width:2px;background:#E65100;z-index:1;border-radius:1px}
+.gantt-today::before{content:'HOJE';position:absolute;top:-18px;left:50%;transform:translateX(-50%);background:#E65100;color:#fff;font-size:8px;font-weight:800;padding:1px 5px;border-radius:3px;letter-spacing:.3px}
+
+.gantt-summary{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--gray);font-size:11px;color:var(--text2);border-bottom:1px solid var(--gray2)}
+.gantt-summary .legend{display:flex;gap:14px;flex-wrap:wrap}
+.gantt-summary .ll{display:flex;align-items:center;gap:5px}
+.gantt-summary .sw{width:14px;height:10px;border-radius:3px}
+
+.gantt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px;background:var(--gray);border-bottom:1px solid var(--gray2)}
+.gantt-stat{background:#fff;border-radius:6px;padding:9px 12px;display:flex;align-items:center;gap:8px}
+.gantt-stat .num{font-size:18px;font-weight:800;line-height:1}
+.gantt-stat .lbl{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:600}
+.gantt-stat.warn .num{color:var(--media)}
+.gantt-stat.danger .num{color:var(--red)}
+.gantt-stat.ok .num{color:var(--green)}
+.gantt-stat.info .num{color:var(--turq-dk)}
+
+/* Note */
+.note{background:#FFF8E1;border-left:4px solid #FBC02D;padding:10px 14px;font-size:12.5px;margin:14px 0;border-radius:0 8px 8px 0}
+.note b{color:#8B5A0F}
+.note.ok{background:#E8F5E9;border-color:var(--green)}
+.note.ok b{color:#0F5A2A}
+.note.info{background:#E3F2FD;border-color:#1565C0}
+.note.info b{color:#0D47A1}
+
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;font-size:12px}
+.pros-cons div{padding:10px;border-radius:8px}
+.pros{background:#E8F5E9;border-left:3px solid var(--green)}
+.cons{background:#FFEBEE;border-left:3px solid var(--red)}
+.pros b{color:#0F5A2A}
+.cons b{color:var(--red)}
+.pros ul,.cons ul{margin:4px 0 0 18px}
+</style>
+</head>
+<body>
+
+<h1>Mais 2 propostas — Visualização de reformas</h1>
+<p class="intro">
+A proposta 1 (lista + barra + mapa) já foi mostrada. Aqui vão 2 alternativas com filosofias diferentes:
+<b>Proposta 2 (Kanban)</b> foca no FLUXO/processo, <b>Proposta 3 (Timeline)</b> foca no TEMPO/duração.
+</p>
+
+<!-- ───────────── PROPOSTA 2 ───────────── -->
+<h2 class="opt-2">🗂 PROPOSTA 2 — Kanban de fluxo (estilo Trello/Jira)</h2>
+<h3 class="sub">Foco: em qual ETAPA do processo cada reforma está. Permite arrastar entre colunas pra avançar status.</h3>
+
+<div class="frame">
+  <div class="kanban-row">
+
+    <!-- COLUNA 1: SOLICITADA -->
+    <div class="kanban-col sol">
+      <h4>📥 Solicitada <span class="count">2</span></h4>
+      <div class="k-card compl-baixa">
+        <div class="apto">A · 304</div>
+        <div class="desc">Pintura · Revestimentos<br><i>"Quero refazer pintura sala/quartos"</i></div>
+        <div class="meta">
+          <span class="compl-chip baixa">🟢 baixa</span>
+          <span class="auth-chip warn">aguardando análise</span>
+          <span class="dt">2 dias</span>
+        </div>
+      </div>
+      <div class="k-card compl-media">
+        <div class="apto">B · 408</div>
+        <div class="desc">Ar-condicionado · Rebaixamento</div>
+        <div class="meta">
+          <span class="compl-chip media">🟡 média</span>
+          <span class="auth-chip warn">aguardando análise</span>
+          <span class="dt">ontem</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA 2: ART EM EMISSÃO (Diagnóstika) -->
+    <div class="kanban-col art">
+      <h4>📜 ART Diagnóstika <span class="count">1</span></h4>
+      <div class="k-card compl-alta">
+        <div class="apto">A · 201</div>
+        <div class="desc">Hidráulica (banheiro completo)<br><i>Solicitou nossa ART</i></div>
+        <div class="meta">
+          <span class="compl-chip alta">🔴 alta</span>
+          <span class="auth-chip ok">orçamento enviado</span>
+          <span class="dt">5 dias</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA 3: EM OBRA -->
+    <div class="kanban-col obra">
+      <h4>🔨 Em obra <span class="count">2</span></h4>
+      <div class="k-card compl-alta">
+        <div class="apto">A · 101</div>
+        <div class="desc">Hidráulica · Elétrica · Revest.<br><i>Banheiro completo</i></div>
+        <div class="meta">
+          <span class="compl-chip alta">🔴 alta</span>
+          <span class="auth-chip ok">✓ Eng. Maria · CREA 5063789</span>
+          <span class="dt">15 dias em obra</span>
+        </div>
+      </div>
+      <div class="k-card compl-alta" style="background:rgba(192,0,0,.04)">
+        <div class="apto">B · 502</div>
+        <div class="desc">Gás · Hidráulica · Cozinha<br><i>Declarado mas SEM ART</i></div>
+        <div class="meta">
+          <span class="compl-chip alta">🔴 alta</span>
+          <span class="auth-chip warn">⚠ Sem RT</span>
+          <span class="dt">notificado 3 dias</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA 4: VISTORIA FINAL -->
+    <div class="kanban-col vis">
+      <h4>🔍 Vistoria final <span class="count">1</span></h4>
+      <div class="k-card compl-alta">
+        <div class="apto">A · 504</div>
+        <div class="desc">Reforma completa<br><i>Aguardando nossa vistoria de conclusão</i></div>
+        <div class="meta">
+          <span class="compl-chip alta">🔴 alta</span>
+          <span class="auth-chip ok">✓ Eng. João Salles</span>
+          <span class="dt">agendar</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA 5: CONCLUÍDA -->
+    <div class="kanban-col conc">
+      <h4>✅ Concluída (2026) <span class="count">3</span></h4>
+      <div class="k-card compl-baixa" style="opacity:.7">
+        <div class="apto">B · 301</div>
+        <div class="desc">Pintura<br><i>Vistoriado e aprovado</i></div>
+        <div class="meta">
+          <span class="compl-chip baixa">🟢 baixa</span>
+          <span class="dt">jan/2026</span>
+        </div>
+      </div>
+      <div class="k-card compl-media" style="opacity:.7">
+        <div class="apto">A · 102</div>
+        <div class="desc">AC + Rebaixamento</div>
+        <div class="meta">
+          <span class="compl-chip media">🟡 média</span>
+          <span class="dt">fev/2026</span>
+        </div>
+      </div>
+      <div class="k-card compl-alta" style="opacity:.7">
+        <div class="apto">A · 405</div>
+        <div class="desc">Reforma completa</div>
+        <div class="meta">
+          <span class="compl-chip alta">🔴 alta</span>
+          <span class="dt">abr/2026</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><b>✓ Pontos fortes:</b>
+      <ul>
+        <li>Visualização clara de FLUXO — vê onde cada reforma está travada</li>
+        <li>Arrastar entre colunas avança status (interação intuitiva)</li>
+        <li>Detecta GARGALOS — coluna lotada = problema</li>
+        <li>Mostra produtividade — concluídas se acumulam</li>
+        <li>"Sem RT" destacado mesmo em fluxo (linha vermelha)</li>
+        <li>Padrão Trello/Jira — usuário moderno conhece</li>
+      </ul>
+    </div>
+    <div class="cons"><b>✗ Pontos fracos:</b>
+      <ul>
+        <li>Mobile: 5 colunas viram 3, ainda complicado em tela pequena</li>
+        <li>Não mostra duração — só estado</li>
+        <li>Cards podem ficar com muito conteúdo se descrição grande</li>
+        <li>Precisa scroll horizontal em algumas resoluções</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ───────────── PROPOSTA 3 ───────────── -->
+<h2 class="opt-3">📊 PROPOSTA 3 — Timeline / Gantt simplificado</h2>
+<h3 class="sub">Foco: DURAÇÃO de cada reforma ao longo do ano. Mostra conflitos temporais e prazos.</h3>
+
+<div class="frame">
+  <div class="gantt">
+
+    <!-- Resumo -->
+    <div class="gantt-stats">
+      <div class="gantt-stat info">
+        <div><div class="num">4</div><div class="lbl">Em andamento</div></div>
+      </div>
+      <div class="gantt-stat warn">
+        <div><div class="num">2</div><div class="lbl">Estouro de prazo</div></div>
+      </div>
+      <div class="gantt-stat danger">
+        <div><div class="num">2</div><div class="lbl">Sem RT</div></div>
+      </div>
+      <div class="gantt-stat ok">
+        <div><div class="num">3</div><div class="lbl">Concluídas (2026)</div></div>
+      </div>
+    </div>
+
+    <!-- Cabeçalho meses -->
+    <div class="gantt-hdr">
+      <div>UNIDADE / OBRA</div>
+      <div>Jan</div>
+      <div>Fev</div>
+      <div>Mar</div>
+      <div>Abr</div>
+      <div class="gh-current">Mai*</div>
+      <div>Jun</div>
+      <div>Jul</div>
+      <div>Ago</div>
+      <div>Set</div>
+      <div>Out</div>
+      <div>Nov</div>
+      <div>Dez</div>
+    </div>
+
+    <!-- Marker do "hoje" — coluna 5 (Mai) -->
+    <!-- vou simular linha "HOJE" inserindo verticalmente -->
+
+    <!-- Linha 1 — A-101 em obra (Abr–Jun) -->
+    <div class="gantt-row">
+      <div class="gr-label">
+        <span class="apto">A · 101</span>
+        <span class="sm">Hidráulica + Elétrica · banheiro</span>
+      </div>
+      <div class="gr-cell"></div><!--jan-->
+      <div class="gr-cell"></div><!--fev-->
+      <div class="gr-cell"></div><!--mar-->
+      <div class="gr-cell"></div><!--abr-->
+      <div class="gr-cell"></div><!--mai-->
+      <div class="gr-cell"></div><!--jun-->
+      <div class="gr-cell"></div><!--jul-->
+      <div class="gr-cell"></div><!--ago-->
+      <div class="gr-cell"></div><!--set-->
+      <div class="gr-cell"></div><!--out-->
+      <div class="gr-cell"></div><!--nov-->
+      <div class="gr-cell"></div><!--dez-->
+      <div class="gantt-bar alta" style="left:calc(180px + (100% - 180px) * 0.25);width:calc((100% - 180px) * 0.20);top:50%;transform:translateY(-50%)" title="A-101 · Abr a Jun · Alta complexidade">
+        🔴 A-101 · Hidr+Elét
+      </div>
+      <div class="gantt-marker" style="left:calc(180px + (100% - 180px) * 0.292)" title="Marco: ART emitida">A</div>
+    </div>
+
+    <!-- Linha 2 — A-201 (Mai–Jul, ART nossa) -->
+    <div class="gantt-row">
+      <div class="gr-label">
+        <span class="apto">A · 201</span>
+        <span class="sm">Hidráulica · ART nossa</span>
+      </div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gantt-bar alta" style="left:calc(180px + (100% - 180px) * 0.333);width:calc((100% - 180px) * 0.25);top:50%;transform:translateY(-50%)" title="A-201 · Mai a Jul">
+        🔴 A-201 · Hidráulica
+      </div>
+    </div>
+
+    <!-- Linha 3 — A-304 Pintura (Mai, baixa) -->
+    <div class="gantt-row">
+      <div class="gr-label">
+        <span class="apto">A · 304</span>
+        <span class="sm">Pintura + Revestimento</span>
+      </div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gantt-bar baixa" style="left:calc(180px + (100% - 180px) * 0.333);width:calc((100% - 180px) * 0.0833);top:50%;transform:translateY(-50%)" title="A-304 · Mai · Baixa">
+        🟢 A-304
+      </div>
+    </div>
+
+    <!-- Linha 4 — B-502 SEM RT (problema) -->
+    <div class="gantt-row" style="background:rgba(192,0,0,.04)">
+      <div class="gr-label">
+        <span class="apto" style="color:#C00000">B · 502 ⚠</span>
+        <span class="sm" style="color:#C00000">Gás+Hidr · SEM RT (irregular)</span>
+      </div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gantt-bar semrt" style="left:calc(180px + (100% - 180px) * 0.375);width:calc((100% - 180px) * 0.0833);top:50%;transform:translateY(-50%)" title="B-502 · SEM RT · prazo indefinido">
+        ⚠ B-502 · sem RT
+      </div>
+    </div>
+
+    <!-- Linha 5 — A-504 Vistoria final (Mai) -->
+    <div class="gantt-row">
+      <div class="gr-label">
+        <span class="apto">A · 504</span>
+        <span class="sm">Reforma completa · vistoria final</span>
+      </div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gantt-bar alta" style="left:calc(180px + (100% - 180px) * 0.083);width:calc((100% - 180px) * 0.292);top:50%;transform:translateY(-50%);opacity:.55" title="A-504 · Fev a Mai · Concluída em vistoria">
+        🔴 A-504 (vistoria final)
+      </div>
+      <div class="gantt-marker" style="left:calc(180px + (100% - 180px) * 0.375);background:var(--green);border-color:var(--green);color:#fff" title="Marco: Vistoria agendada">V</div>
+    </div>
+
+    <!-- Linhas concluídas (opacity reduzida) -->
+    <div class="gantt-row" style="opacity:.6">
+      <div class="gr-label">
+        <span class="apto">B · 301</span>
+        <span class="sm">Pintura · CONCLUÍDA</span>
+      </div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gantt-bar baixa" style="left:calc(180px + (100% - 180px) * 0);width:calc((100% - 180px) * 0.0833);top:50%;transform:translateY(-50%)" title="B-301 · Jan · Concluída">
+        ✓ B-301
+      </div>
+    </div>
+
+    <div class="gantt-row" style="opacity:.6">
+      <div class="gr-label">
+        <span class="apto">A · 102</span>
+        <span class="sm">AC + Rebaix. · CONCLUÍDA</span>
+      </div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div><div class="gr-cell"></div>
+      <div class="gantt-bar media" style="left:calc(180px + (100% - 180px) * 0.0833);width:calc((100% - 180px) * 0.0833);top:50%;transform:translateY(-50%)" title="A-102 · Fev · Concluída">
+        ✓ A-102
+      </div>
+    </div>
+
+    <div class="gantt-summary">
+      <div class="legend">
+        <div class="ll"><span class="sw" style="background:linear-gradient(90deg,#2BA862,var(--baixa))"></span>Baixa</div>
+        <div class="ll"><span class="sw" style="background:linear-gradient(90deg,#FB8C00,var(--media))"></span>Média</div>
+        <div class="ll"><span class="sw" style="background:linear-gradient(90deg,#E63333,var(--alta))"></span>Alta</div>
+        <div class="ll"><span class="sw" style="background:repeating-linear-gradient(45deg,#C00000,#C00000 4px,#8B0000 4px,#8B0000 8px)"></span>Sem RT</div>
+      </div>
+      <div>* Mês corrente destacado · Marcos: <b style="color:var(--teal)">A</b>=ART emitida · <b style="color:var(--green)">V</b>=Vistoria final</div>
+    </div>
+
+  </div>
+
+  <div class="pros-cons">
+    <div class="pros"><b>✓ Pontos fortes:</b>
+      <ul>
+        <li>Vê CONFLITOS — várias reformas concorrentes no mesmo período/bloco</li>
+        <li>Vê DURAÇÃO real (quanto está se arrastando, quanto previsto)</li>
+        <li>Marcos visuais (ART emitida, vistoria) chamam atenção</li>
+        <li>Bom pra planejamento de visitas técnicas — vai ao prédio quando há obra ativa</li>
+        <li>"Estouro de prazo" detectável visualmente (barra ultrapassa marker)</li>
+        <li>Padrão MS Project / Asana — gestor sênior conhece</li>
+      </ul>
+    </div>
+    <div class="cons"><b>✗ Pontos fracos:</b>
+      <ul>
+        <li>Precisa de DATA INÍCIO e DATA FIM previsto — hoje não temos esse campo</li>
+        <li>Implementar a barra horizontal proporcional é mais complexo (CSS)</li>
+        <li>Mobile: timeline horizontal sofre — precisa scroll horizontal</li>
+        <li>Reformas "sem prazo" (indefinidas) viram pontos, não barras</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Resumo comparativo -->
+<h2 style="color:var(--teal-dk);border-color:var(--turq);background:linear-gradient(90deg,rgba(0,180,172,.1),transparent)">📋 Resumo das 3 propostas</h2>
+
+<table style="width:100%;border-collapse:collapse;font-size:12.5px;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06)">
+  <thead>
+    <tr style="background:var(--gray)">
+      <th style="padding:10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);width:14%">Critério</th>
+      <th style="padding:10px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);width:28%">📊 Lista + Mapa (já mostrada)</th>
+      <th style="padding:10px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);width:28%">🗂 Kanban</th>
+      <th style="padding:10px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);width:28%">📊 Timeline/Gantt</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td style="padding:10px;font-weight:700">Foco principal</td><td style="padding:10px">Estado por unidade</td><td style="padding:10px">Estado no fluxo</td><td style="padding:10px">Tempo e duração</td></tr>
+    <tr style="background:#FAFCFC"><td style="padding:10px;font-weight:700">Detecta concentração espacial</td><td style="padding:10px">✓ via mapa</td><td style="padding:10px">✗</td><td style="padding:10px">parcial</td></tr>
+    <tr><td style="padding:10px;font-weight:700">Detecta gargalo no processo</td><td style="padding:10px">✗</td><td style="padding:10px">✓ excelente</td><td style="padding:10px">parcial</td></tr>
+    <tr style="background:#FAFCFC"><td style="padding:10px;font-weight:700">Detecta estouro de prazo</td><td style="padding:10px">✗</td><td style="padding:10px">✗</td><td style="padding:10px">✓ excelente</td></tr>
+    <tr><td style="padding:10px;font-weight:700">Detecta conflitos temporais</td><td style="padding:10px">✗</td><td style="padding:10px">✗</td><td style="padding:10px">✓ excelente</td></tr>
+    <tr style="background:#FAFCFC"><td style="padding:10px;font-weight:700">Mobile friendly</td><td style="padding:10px">✓ ótima</td><td style="padding:10px">média (5 cols)</td><td style="padding:10px">ruim (scroll horiz)</td></tr>
+    <tr><td style="padding:10px;font-weight:700">Dados que precisam</td><td style="padding:10px">já temos</td><td style="padding:10px">já temos</td><td style="padding:10px"><b style="color:var(--red)">data_inicio + data_fim previsto</b></td></tr>
+    <tr style="background:#FAFCFC"><td style="padding:10px;font-weight:700">Complexidade de implementação</td><td style="padding:10px">baixa</td><td style="padding:10px">média (drag&drop)</td><td style="padding:10px">média-alta</td></tr>
+    <tr><td style="padding:10px;font-weight:700">Sem RT destacado</td><td style="padding:10px">linha vermelha</td><td style="padding:10px">card vermelho</td><td style="padding:10px">barra pontilhada</td></tr>
+  </tbody>
+</table>
+
+<div class="note ok" style="margin-top:18px">
+  <b>💡 Recomendação prática:</b><br>
+  Sugiro implementar a <b>Proposta 1 (Lista + Mapa)</b> como BASE — usa só dados que já temos e cobre 80% das necessidades. Depois, adicionar a <b>Proposta 3 (Timeline)</b> como "view alternativa" pra quem quer enxergar tempo (precisa adicionar campos de data — pode ser fase 2).
+  <br><br>
+  Kanban (Proposta 2) é poderoso mas vira mais "ferramenta de gestão de processo" do que de "controle de obras" — não vejo encaixe natural se a equipe é pequena (5 condomínios, ~10 reformas/ano).
+</div>
+
+<script src="__annot.js"></script>
+</body>
+</html>

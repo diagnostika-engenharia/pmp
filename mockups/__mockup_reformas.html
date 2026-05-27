@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Reformas no detalhe do condomínio</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;
+--lime:#8DB72A;--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;
+--gray3:#A8BFC2;--gray4:#5A7A7E;--red:#C00000;--green:#1B8A4A;--purple:#7D3C98;
+--baixa:#1B8A4A;--media:#E65100;--alta:#C00000}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:18px;max-width:900px}
+h2{font-size:17px;margin:24px 0 10px;padding:9px 14px;border-left:4px solid var(--turq);background:linear-gradient(90deg,rgba(0,180,172,.1),transparent);border-radius:0 8px 8px 0;color:var(--teal-dk)}
+
+.frame{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);max-width:1200px;border:1px solid var(--gray2);margin-bottom:8px}
+
+/* Header compacto (vem do mockup anterior) */
+.cd-hdr{background:linear-gradient(135deg,var(--teal-dk),var(--teal));padding:14px 18px;color:#fff;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.cd-hdr .ico{width:42px;height:42px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#FBC02D}
+.cd-hdr h3{font-size:17px;font-weight:700;line-height:1.2}
+.cd-hdr .sub{font-size:11.5px;opacity:.85;margin-top:2px}
+.cd-hdr .badges{margin-left:auto;display:flex;gap:8px}
+.cd-hdr .badges .b{background:rgba(255,255,255,.16);border-radius:7px;padding:5px 11px;font-size:11.5px;display:flex;align-items:baseline;gap:5px}
+.cd-hdr .badges .b b{font-size:15px;font-weight:800}
+
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--gray2);background:#F8FAFB;padding:0 14px}
+.tabs .tab{padding:11px 16px;font-size:13px;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;cursor:pointer;display:flex;align-items:center;gap:6px}
+.tabs .tab.active{color:var(--teal);border-bottom-color:var(--turq);background:#fff}
+.tabs .tab:hover:not(.active){background:rgba(0,180,172,.04);color:var(--text)}
+.tabs .tab .count{background:#E65100;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px;line-height:1.2}
+
+.tab-body{padding:14px 18px}
+
+/* SUMÁRIO REFORMAS */
+.r-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+@media(max-width:880px){.r-summary{grid-template-columns:repeat(2,1fr)}}
+.r-stat{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+.r-stat .ico{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.r-stat .ico.total{background:rgba(21,91,103,.1);color:var(--teal)}
+.r-stat .ico.ok{background:rgba(27,138,74,.12);color:var(--green)}
+.r-stat .ico.warn{background:rgba(230,81,0,.12);color:#E65100}
+.r-stat .ico.danger{background:rgba(192,0,0,.12);color:var(--red)}
+.r-stat .num{font-size:22px;font-weight:800;color:var(--text);line-height:1}
+.r-stat .lbl{font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:600;margin-top:3px}
+
+/* COMPLEXIDADE — barra empilhada */
+.compl-card{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:14px;margin-bottom:14px}
+.compl-card h4{font-size:12px;color:var(--text);font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.compl-card h4 small{font-size:10.5px;color:var(--text2);font-weight:500;font-style:italic}
+.compl-bar{display:flex;height:26px;border-radius:6px;overflow:hidden;background:var(--gray);box-shadow:inset 0 1px 2px rgba(0,0,0,.06)}
+.compl-bar .seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:11px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.3);cursor:pointer;transition:opacity .15s}
+.compl-bar .seg:hover{opacity:.85}
+.compl-bar .seg.baixa{background:linear-gradient(180deg,#2BA862,#1B8A4A)}
+.compl-bar .seg.media{background:linear-gradient(180deg,#FB8C00,#E65100)}
+.compl-bar .seg.alta{background:linear-gradient(180deg,#E63333,#C00000)}
+.compl-legend{display:flex;gap:14px;font-size:11px;color:var(--text2);margin-top:8px;justify-content:flex-end;flex-wrap:wrap}
+.compl-legend .ll{display:flex;align-items:center;gap:5px}
+.compl-legend .sw{width:10px;height:10px;border-radius:3px}
+
+/* LISTA DE REFORMAS POR UNIDADE */
+.r-list-card{background:#fff;border:1px solid var(--gray2);border-radius:8px;overflow:hidden}
+.r-list-card .lh{display:grid;grid-template-columns:90px 1fr 130px 110px 90px;gap:10px;padding:8px 12px;background:var(--gray);font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:700}
+.r-list-card .row{display:grid;grid-template-columns:90px 1fr 130px 110px 90px;gap:10px;padding:10px 12px;border-top:1px solid var(--gray2);font-size:12.5px;cursor:pointer;align-items:center}
+.r-list-card .row:hover{background:rgba(21,91,103,.03)}
+.r-list-card .apto{font-weight:700;color:var(--text);font-family:'SF Mono',Menlo,monospace}
+.r-list-card .servs{color:var(--text);line-height:1.4}
+.r-list-card .servs small{color:var(--text2);font-size:10.5px;display:block;margin-top:1px}
+.r-list-card .auth{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
+.r-list-card .auth.ok{color:var(--green)}
+.r-list-card .auth.aguardando{color:#E65100}
+.r-list-card .auth.semrt{color:var(--red)}
+.r-list-card .compl-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:5px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#fff;justify-self:start}
+.r-list-card .compl-badge.baixa{background:var(--baixa)}
+.r-list-card .compl-badge.media{background:var(--media)}
+.r-list-card .compl-badge.alta{background:var(--alta)}
+.r-list-card .acao{display:flex;gap:4px;justify-content:flex-end}
+.r-list-card .acao button{background:#fff;border:1px solid var(--gray2);border-radius:5px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:600;color:var(--text2)}
+.r-list-card .acao button:hover{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+/* MAPA visual — opcional */
+.mapa-card{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:14px;margin-bottom:14px}
+.mapa-card h4{font-size:12px;color:var(--text);font-weight:700;margin-bottom:8px}
+.bloco-row{display:flex;gap:10px;margin-bottom:8px;align-items:center}
+.bloco-row .b-lbl{font-size:11px;font-weight:700;color:var(--text2);min-width:40px}
+.unit-grid{display:flex;gap:3px;flex-wrap:wrap;flex:1}
+.unit{width:28px;height:28px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;border:1px solid var(--gray2);background:#fff;color:var(--text2);cursor:pointer;transition:transform .12s}
+.unit:hover{transform:scale(1.15);box-shadow:0 2px 6px rgba(0,0,0,.15);z-index:2}
+.unit.ref-baixa{background:var(--baixa);color:#fff;border-color:var(--baixa)}
+.unit.ref-media{background:var(--media);color:#fff;border-color:var(--media)}
+.unit.ref-alta{background:var(--alta);color:#fff;border-color:var(--alta)}
+.unit.ref-semrt{background:#fff;color:var(--red);border:2px dashed var(--red);font-weight:800}
+
+/* Opções */
+.opt-tabs{display:flex;gap:6px;margin-bottom:14px}
+.opt-tabs .ot{padding:6px 12px;background:#fff;border:1px solid var(--gray2);border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;color:var(--text2)}
+.opt-tabs .ot.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+
+.note{background:#FFF8E1;border-left:4px solid #FBC02D;padding:10px 14px;font-size:12.5px;margin:14px 0;border-radius:0 8px 8px 0}
+.note b{color:#8B5A0F}
+</style>
+</head>
+<body>
+
+<h1>Mockup — Aba "Reformas" no detalhe do condomínio</h1>
+<p class="intro">
+Proposta: dentro do detalhe do condomínio, adicionar abas (Visão Geral · <b>Reformas</b> · Plano · Chamados · Visitas).
+A aba Reformas mostra unidades em obra, status de autorização, complexidade pela NBR 16280 e mapa visual.
+</p>
+
+<div class="frame">
+  <!-- Header reutilizado do mockup anterior -->
+  <div class="cd-hdr">
+    <div class="ico">🏛</div>
+    <div>
+      <h3>Condomínio Monte Carlo</h3>
+      <div class="sub">👤 Ana Paula Ferreira Cruz · 📅 Toda quarta · Paulínia/SP</div>
+    </div>
+    <div class="badges">
+      <div class="b"><b>4</b><span>reformas ativas</span></div>
+      <div class="b"><b>2</b><span>sem RT</span></div>
+    </div>
+  </div>
+
+  <!-- ABAS — Reformas selecionada -->
+  <div class="tabs">
+    <div class="tab">📋 Visão Geral</div>
+    <div class="tab active">🏗 Reformas <span class="count">4</span></div>
+    <div class="tab">💬 Chamados <span class="count">1</span></div>
+    <div class="tab">📅 Visitas</div>
+    <div class="tab">📚 Documentos</div>
+  </div>
+
+  <div class="tab-body">
+
+    <!-- SUMÁRIO -->
+    <div class="r-summary">
+      <div class="r-stat">
+        <div class="ico total">🏗</div>
+        <div><div class="num">4</div><div class="lbl">Reformas ativas</div></div>
+      </div>
+      <div class="r-stat">
+        <div class="ico ok">✓</div>
+        <div><div class="num">2</div><div class="lbl">Autorizadas (com RT)</div></div>
+      </div>
+      <div class="r-stat">
+        <div class="ico warn">⏳</div>
+        <div><div class="num">0</div><div class="lbl">Aguardando ART</div></div>
+      </div>
+      <div class="r-stat">
+        <div class="ico danger">⚠</div>
+        <div><div class="num">2</div><div class="lbl">Sem RT (risco)</div></div>
+      </div>
+    </div>
+
+    <!-- BARRA DE COMPLEXIDADE -->
+    <div class="compl-card">
+      <h4>Distribuição por complexidade <small>NBR 16280 — categorização automática pelos serviços</small></h4>
+      <div class="compl-bar">
+        <div class="seg baixa" style="flex:1" title="1 reforma de baixa complexidade">1 baixa</div>
+        <div class="seg media" style="flex:1" title="1 reforma de média complexidade">1 média</div>
+        <div class="seg alta" style="flex:2" title="2 reformas de alta complexidade">2 alta</div>
+      </div>
+      <div class="compl-legend">
+        <div class="ll"><span class="sw" style="background:var(--baixa)"></span>Baixa — pintura, revestimento, bancada</div>
+        <div class="ll"><span class="sw" style="background:var(--media)"></span>Média — AC, rebaixamento</div>
+        <div class="ll"><span class="sw" style="background:var(--alta)"></span>Alta — hidráulica, elétrica, gás (sistemas)</div>
+      </div>
+    </div>
+
+    <!-- OPÇÃO: alternar entre lista e mapa -->
+    <div class="opt-tabs">
+      <div class="ot active">📋 Lista</div>
+      <div class="ot">🗺 Mapa por bloco</div>
+    </div>
+
+    <!-- LISTA -->
+    <div class="r-list-card">
+      <div class="lh">
+        <div>Unidade</div>
+        <div>Serviços</div>
+        <div>Autorização</div>
+        <div>Complexidade</div>
+        <div></div>
+      </div>
+
+      <div class="row">
+        <div class="apto">A · 101</div>
+        <div class="servs">
+          Hidráulica · Elétrica · Revestimentos
+          <small>📌 Reforma completa de banheiro</small>
+        </div>
+        <div class="auth ok">✓ Eng. Maria Souza<br><span style="font-weight:500;color:var(--text2);font-size:10px">CREA 5063789 · ART 2026/4521</span></div>
+        <div><span class="compl-badge alta">🔴 alta</span></div>
+        <div class="acao"><button>Vistoria</button></div>
+      </div>
+
+      <div class="row">
+        <div class="apto">A · 304</div>
+        <div class="servs">
+          Pintura · Revestimentos
+          <small>📌 Sala e quartos</small>
+        </div>
+        <div class="auth ok">✓ Diagnóstika<br><span style="font-weight:500;color:var(--text2);font-size:10px">ART nossa · MC-2026-0007</span></div>
+        <div><span class="compl-badge baixa">🟢 baixa</span></div>
+        <div class="acao"><button>Vistoria</button></div>
+      </div>
+
+      <div class="row" style="background:rgba(192,0,0,.04)">
+        <div class="apto">B · 502</div>
+        <div class="servs">
+          Gás · Hidráulica
+          <small>📌 Cozinha — declarado mas sem ART</small>
+        </div>
+        <div class="auth semrt">⚠ Sem RT<br><span style="font-weight:500;color:var(--text2);font-size:10px">Notificado · aguardando</span></div>
+        <div><span class="compl-badge alta">🔴 alta</span></div>
+        <div class="acao"><button>Notificar</button></div>
+      </div>
+
+      <div class="row" style="background:rgba(192,0,0,.04)">
+        <div class="apto">B · 705</div>
+        <div class="servs">
+          Rebaixamento · AC
+          <small>📌 Sala — declarado mas sem ART</small>
+        </div>
+        <div class="auth semrt">⚠ Sem RT<br><span style="font-weight:500;color:var(--text2);font-size:10px">Pendente contato</span></div>
+        <div><span class="compl-badge media">🟡 média</span></div>
+        <div class="acao"><button>Notificar</button></div>
+      </div>
+
+    </div>
+
+    <!-- MAPA VISUAL (alternativa) -->
+    <div class="mapa-card" style="margin-top:16px">
+      <h4>🗺 Mapa de unidades com reforma (Bloco A + B)</h4>
+      <div class="bloco-row">
+        <div class="b-lbl">Bloco A</div>
+        <div class="unit-grid">
+          <div class="unit">101 <span style="display:none">A</span></div>
+          <div class="unit ref-alta" title="A-101 · Hidráulica + Elétrica · Alta complexidade">101</div>
+          <div class="unit">102</div>
+          <div class="unit">103</div>
+          <div class="unit">201</div>
+          <div class="unit">202</div>
+          <div class="unit">203</div>
+          <div class="unit">301</div>
+          <div class="unit">302</div>
+          <div class="unit">303</div>
+          <div class="unit ref-baixa" title="A-304 · Pintura · Baixa complexidade">304</div>
+        </div>
+      </div>
+      <div class="bloco-row">
+        <div class="b-lbl">Bloco B</div>
+        <div class="unit-grid">
+          <div class="unit">101</div>
+          <div class="unit">102</div>
+          <div class="unit">201</div>
+          <div class="unit">202</div>
+          <div class="unit">301</div>
+          <div class="unit">401</div>
+          <div class="unit ref-semrt" title="B-502 · Gás + Hidráulica · SEM RT — situação irregular">502</div>
+          <div class="unit">503</div>
+          <div class="unit">601</div>
+          <div class="unit">602</div>
+          <div class="unit">603</div>
+          <div class="unit ref-semrt" title="B-705 · Rebaixamento · SEM RT">705</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:14px;font-size:10.5px;color:var(--text2);margin-top:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:5px"><div class="unit ref-baixa" style="width:14px;height:14px;font-size:0"></div>Baixa</div>
+        <div style="display:flex;align-items:center;gap:5px"><div class="unit ref-media" style="width:14px;height:14px;font-size:0"></div>Média</div>
+        <div style="display:flex;align-items:center;gap:5px"><div class="unit ref-alta" style="width:14px;height:14px;font-size:0"></div>Alta</div>
+        <div style="display:flex;align-items:center;gap:5px"><div class="unit ref-semrt" style="width:14px;height:14px;font-size:0"></div>Sem RT</div>
+        <div style="display:flex;align-items:center;gap:5px"><div class="unit" style="width:14px;height:14px;font-size:0"></div>Sem reforma</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="note">
+  <b>⚠ Dado necessário pra mapa funcionar:</b><br>
+  Pra montar mapa de blocos preciso saber a planta de cada condomínio — número de blocos e unidades por bloco. Hoje só temos string "Bloco A + B" no Monte Carlo. Se quiser mapa visual, precisamos cadastrar quantas unidades cada bloco tem (uma vez só, no setup do condomínio). Senão o mapa é simulação.
+</div>
+
+<div class="note" style="background:#E3F2FD;border-color:#1565C0">
+  <b style="color:#0D47A1">Critério de complexidade (auto):</b><br>
+  <ul style="margin:6px 0 0 18px">
+    <li><b>🟢 Baixa</b> = pintura, revestimento, bancada, contrapiso, tela de proteção</li>
+    <li><b>🟡 Média</b> = ar-condicionado, rebaixamento, outros</li>
+    <li><b>🔴 Alta</b> = hidráulica, elétrica, gás, OU reforma completa (afeta sistemas críticos do prédio — NBR 16280 exige RT obrigatório)</li>
+  </ul>
+  Engenheiro pode override manualmente após Vistoria PMP no campo <code>complexidade_override</code> da demanda.
+</div>
+
+<script src="__annot.js"></script>
+</body>
+</html>

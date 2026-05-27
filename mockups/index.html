@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mockups Diagnóstika — Índice</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:linear-gradient(135deg,#0D3C44,#155B67 50%,#00B4AC);min-height:100vh;color:#1A2E31;padding:20px 16px}
+.wrap{max-width:980px;margin:0 auto}
+.header{text-align:center;color:#fff;margin-bottom:24px;padding:14px}
+.header h1{font-size:26px;font-weight:700;margin-bottom:6px}
+.header p{font-size:14px;opacity:.9;line-height:1.5;max-width:600px;margin:0 auto}
+.header .logo{display:inline-block;background:#fff;padding:8px 16px;border-radius:10px;color:#155B67;font-weight:800;letter-spacing:.5px;margin-bottom:14px;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.tools-note{background:rgba(255,255,255,.95);border-radius:12px;padding:14px 18px;margin-bottom:18px;font-size:13px;color:#1A2E31;line-height:1.6;border-left:4px solid #FBC02D}
+.tools-note b{color:#155B67}
+.tools-note .keys{display:inline-block;background:#F0F4F5;padding:1px 8px;border-radius:4px;font-family:'SF Mono',Menlo,monospace;font-size:11px;font-weight:700;color:#155B67}
+.section{background:rgba(255,255,255,.98);border-radius:14px;padding:20px;margin-bottom:18px;box-shadow:0 6px 24px rgba(0,0,0,.15)}
+.section h2{font-size:16px;color:#0D3C44;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid #00B4AC;display:flex;align-items:center;gap:8px}
+.section h2 .num{background:#00B4AC;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:8px;letter-spacing:.5px;text-transform:uppercase}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.card{background:#fff;border:1.5px solid #E0EAEC;border-radius:10px;padding:14px;text-decoration:none;color:#1A2E31;display:block;transition:all .15s;cursor:pointer}
+.card:hover{border-color:#00B4AC;box-shadow:0 6px 16px rgba(0,180,172,.18);transform:translateY(-2px)}
+.card .icon{font-size:28px;margin-bottom:8px;display:block}
+.card h3{font-size:14px;font-weight:700;margin-bottom:6px;color:#0D3C44;line-height:1.3}
+.card p{font-size:12px;color:#4A6568;line-height:1.5}
+.card .tag{display:inline-block;background:#F0F4F5;color:#5A7A7E;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px;text-transform:uppercase;margin-top:8px}
+.card .tag.new{background:#1B8A4A;color:#fff}
+.card .tag.discuss{background:#FBC02D;color:#3B2A0A}
+.footer{text-align:center;color:#fff;opacity:.85;font-size:12px;padding:16px;margin-top:8px}
+.footer a{color:#fff;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="logo">DIAGNÓSTIKA</div>
+    <h1>📐 Mockups de Design</h1>
+    <p>Versões em discussão para o sistema Diagnóstika. Cada mockup tem ferramenta de anotação embutida — desenhe e adicione comentários direto na tela.</p>
+  </div>
+
+  <div class="tools-note">
+    🖊 <b>Ferramenta de anotação:</b> em todos os mockups há uma toolbar preta no <b>canto inferior direito</b> com caneta + caixa de texto.
+    Atalhos: <span class="keys">D</span> ativa caneta · <span class="keys">T</span> adiciona caixa de texto · <span class="keys">Ctrl+Z</span> desfaz · <span class="keys">ESC</span> sai do modo.
+    Clique no <b>💾</b> pra salvar uma imagem PNG do mockup anotado.
+  </div>
+
+  <div class="section">
+    <h2><span class="num">Tela</span>Detalhe do condomínio · Reformas</h2>
+    <div class="cards">
+      <a class="card" href="__mockup_condo_detail.html">
+        <span class="icon">🏛</span>
+        <h3>Redesign do detalhe do condomínio</h3>
+        <p>Header compacto, action bar única, layout 2 colunas, eliminando duplicações que existem na tela atual.</p>
+        <span class="tag">refactor</span>
+      </a>
+      <a class="card" href="__mockup_reformas.html">
+        <span class="icon">🏗</span>
+        <h3>Aba "Reformas" — v1 (lista + mapa)</h3>
+        <p>Sistema de abas (Visão Geral · Reformas · Chamados · Visitas). Lista de unidades em obra + mapa visual por bloco.</p>
+        <span class="tag">v1</span>
+      </a>
+      <a class="card" href="__mockup_reformas_v2.html">
+        <span class="icon">🗂</span>
+        <h3>Reformas — v2 (Kanban + Timeline)</h3>
+        <p>Duas alternativas: Kanban estilo Trello (fluxo) e Timeline tipo Gantt (tempo/conflitos).</p>
+        <span class="tag">v2 · alternativas</span>
+      </a>
+      <a class="card" href="__mockup_reformas_v3.html">
+        <span class="icon">📊</span>
+        <h3>Reformas — v3 (aproveitamento total)</h3>
+        <p>Lista + 4 cards laterais (Mapa, RTs frequentes, Alertas, Próximas vistorias). Topo compacto com sumário + complexidade lado a lado.</p>
+        <span class="tag new">recomendado</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2><span class="num">Tela</span>Portaria · Registro de entradas</h2>
+    <div class="cards">
+      <a class="card" href="__mockup_portaria.html">
+        <span class="icon">🚪</span>
+        <h3>Portaria — fluxo principal</h3>
+        <p>Tela inicial da portaria + histórico de vistorias por unidade + notificações em tempo real para Diagnóstika e Síndica.</p>
+        <span class="tag">conceito base</span>
+      </a>
+      <a class="card" href="__mockup_portaria_v2.html">
+        <span class="icon">🎬</span>
+        <h3>Portaria v2 — 8 cenas de interação</h3>
+        <p>Todos os modais e popups: contexto da unidade, confirmação, sucesso, obra clandestina, auto-sugestão de prestador, etc.</p>
+        <span class="tag new">interações completas</span>
+      </a>
+      <a class="card" href="__mockup_portaria_sem_aprov.html">
+        <span class="icon">🚨</span>
+        <h3>Prestador SEM autorização prévia</h3>
+        <p>Fluxo crítico: prestador chega sem ART nem comunicação. 7 cenas: porteiro escala → síndica recebe push → decide → resposta volta. Inclui escalonamento automático em 4 níveis.</p>
+        <span class="tag discuss">discussão ativa</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="footer">
+    Diagnóstika Engenharia · 2026 · mockups internos · <a href="../">voltar ao app</a>
+  </div>
+
+</div>
+</body>
+</html>

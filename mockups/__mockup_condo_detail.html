@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Detalhe do condomínio (redesign)</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;--lime:#8DB72A;
+--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;--gray3:#A8BFC2;--gray4:#5A7A7E;
+--red:#C00000;--green:#1B8A4A;--purple:#7D3C98}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:20px}
+h2{font-size:18px;margin:28px 0 10px;padding:8px 14px;border-radius:0 8px 8px 0;border-left:4px solid}
+h2.bad{color:var(--red);border-color:var(--red);background:rgba(192,0,0,.06)}
+h2.ok{color:var(--green);border-color:var(--green);background:rgba(27,138,74,.07)}
+
+.frame{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);max-width:1280px;border:1px solid var(--gray2);margin-bottom:8px}
+
+/* ─── ATUAL ─── */
+.atual-bg{background:linear-gradient(135deg,var(--teal-dk),var(--teal),var(--turq));padding:18px 20px;color:#fff;position:relative}
+.atual-bg .h-bar{display:flex;align-items:center;gap:14px}
+.atual-bg .h-bar .ico{width:44px;height:44px;background:rgba(0,0,0,.25);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#FBC02D}
+.atual-bg h3{font-size:18px;font-weight:700}
+.atual-bg .sub{font-size:12.5px;opacity:.9;margin-top:3px}
+
+.atual-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;background:#F4F8F9}
+.atual-stats .s{background:#fff;border-radius:8px;padding:18px;text-align:center}
+.atual-stats .s .num{font-size:24px;font-weight:800;color:var(--green)}
+.atual-stats .s .lbl{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2)}
+
+.atual-prox{margin:0 16px 12px;padding:14px;background:rgba(21,91,103,.06);border-left:4px solid var(--teal);border-radius:0 8px 8px 0}
+.atual-prox .l{font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.atual-prox h4{font-size:14px;color:var(--text);margin-bottom:4px}
+.atual-prox .extras{font-size:11px;color:var(--text2)}
+.atual-prox .dem-box{background:rgba(13,60,68,.07);border-left:2px solid #0D3C44;padding:6px 10px;border-radius:0 5px 5px 0;margin-top:8px;font-size:11.5px}
+
+.atual-card{margin:0 16px 12px}
+.atual-card .h{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:6px}
+.atual-card .body{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:12px}
+.atual-card .tile{display:flex;gap:10px;align-items:center;padding:8px;border-radius:6px;background:rgba(0,180,172,.06);font-size:12px;margin-top:6px;border-left:3px solid #00B4AC}
+.atual-card .tile .date{background:#00B4AC;color:#fff;padding:4px 7px;border-radius:5px;font-size:10px;font-weight:800}
+
+.atual-actions{padding:0 16px 14px}
+.atual-actions h4{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px}
+.atual-actions .row1{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.atual-actions .bg-card{padding:24px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;cursor:pointer}
+.atual-actions .bg-card .ico{font-size:24px;margin-bottom:4px}
+.atual-actions .bg-card.pmp{background:linear-gradient(135deg,var(--turq-dk),var(--teal-dk))}
+.atual-actions .bg-card.ref{background:linear-gradient(135deg,#7D3C98,#5B0F87)}
+.atual-actions .bg-card .sub{font-size:11px;font-weight:500;opacity:.85;margin-top:2px}
+.atual-actions .agendac{background:linear-gradient(135deg,#1B8A4A,#0F5A2A);color:#fff;padding:14px;border-radius:10px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font-weight:700;font-size:14px;margin-bottom:10px}
+.atual-actions .agendac .sub{font-size:11px;opacity:.85;margin-top:2px}
+.atual-actions .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.atual-actions .btn3{background:#fff;border:1.5px solid var(--gray2);border-radius:8px;padding:14px;text-align:center;font-size:12px;font-weight:700;cursor:pointer}
+
+/* DESTAQUES de problema */
+.dup{position:relative}
+.dup::after{content:'⚠ DUPLICADO 3X';position:absolute;top:-9px;right:6px;background:#C00000;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;z-index:2;letter-spacing:.3px}
+.bigwaste{position:relative}
+.bigwaste::after{content:'✗ ESPAÇO VAZIO';position:absolute;top:50%;right:6px;background:#C00000;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;z-index:2;letter-spacing:.3px;transform:translateY(-50%)}
+.overload{position:relative}
+.overload::after{content:'✗ 5 CTAs DESORGANIZADAS';position:absolute;top:-9px;right:6px;background:#C00000;color:#fff;font-size:9px;font-weight:800;padding:2px 5px;border-radius:4px;z-index:2;letter-spacing:.3px}
+
+/* ─── PROPOSTA ─── */
+.novo-hdr{
+  background:linear-gradient(135deg,var(--teal-dk),var(--teal));
+  padding:14px 18px;color:#fff;display:flex;align-items:center;gap:12px;flex-wrap:wrap
+}
+.novo-hdr .ico{width:42px;height:42px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#FBC02D;flex-shrink:0}
+.novo-hdr .info{flex:1;min-width:260px}
+.novo-hdr h3{font-size:17px;font-weight:700;line-height:1.2}
+.novo-hdr .sub{font-size:11.5px;opacity:.85;margin-top:2px;line-height:1.4}
+.novo-hdr .stats{display:flex;gap:10px;flex-wrap:wrap}
+.novo-hdr .badge{background:rgba(255,255,255,.16);border-radius:8px;padding:6px 12px;font-size:11.5px;display:flex;align-items:baseline;gap:5px}
+.novo-hdr .badge b{font-size:16px;font-weight:800}
+.novo-hdr .badge .lbl{opacity:.85}
+.novo-hdr .badge.ok b{color:#A5E6B1}
+.novo-hdr .badge.danger b{color:#FFB4B4}
+
+.novo-acts{padding:10px 18px;background:#F0F4F5;display:flex;gap:8px;flex-wrap:wrap;border-bottom:1px solid var(--gray2)}
+.novo-acts button{background:#fff;border:1.5px solid var(--gray2);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.novo-acts button.primary{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+.novo-acts button.reforma{background:#fff;border-color:#7D3C98;color:#7D3C98}
+.novo-acts button:hover{box-shadow:0 2px 6px rgba(0,0,0,.08)}
+
+.novo-body{display:grid;grid-template-columns:2fr 1fr;gap:12px;padding:14px 18px}
+@media(max-width:880px){.novo-body{grid-template-columns:1fr}}
+
+.col h4{font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin:14px 0 6px}
+.col h4:first-child{margin-top:0}
+.col .card-c{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:10px 12px;margin-bottom:8px}
+
+.prox-card{background:linear-gradient(135deg,rgba(21,91,103,.08),rgba(0,180,172,.06));border:1px solid rgba(21,91,103,.18);border-left:3px solid var(--teal);border-radius:8px;padding:12px 14px;margin-bottom:8px}
+.prox-card .lbl{font-size:10px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.prox-card h5{font-size:14px;color:var(--text);font-weight:700;margin-bottom:3px}
+.prox-card .meta{font-size:11.5px;color:var(--text2)}
+.prox-card .extras{font-size:11px;color:var(--text2);margin-top:6px;line-height:1.5}
+
+.tile{display:flex;gap:9px;padding:8px 10px;border:1px solid var(--gray2);border-radius:6px;background:#fff;margin-bottom:5px;align-items:flex-start;cursor:pointer;font-size:12px}
+.tile:hover{background:rgba(21,91,103,.03)}
+.tile .pill{font-size:8.5px;font-weight:800;padding:2px 5px;border-radius:4px;font-family:'SF Mono',Menlo,monospace;color:#fff;flex-shrink:0}
+.tile .pill.proto{background:#155B67}
+.tile .pill.pendente{background:#E65100}
+.tile .pill.andamento{background:#00B4AC}
+.tile .pill.resolvida{background:#1B8A4A}
+.tile .info{flex:1}
+.tile .info b{display:block;color:var(--text);font-weight:600;line-height:1.3}
+.tile .info .m{color:var(--text2);font-size:10.5px;margin-top:1px}
+
+.link-list{font-size:12px}
+.link-list a{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:6px;color:var(--text);text-decoration:none;cursor:pointer}
+.link-list a:hover{background:rgba(21,91,103,.05)}
+.link-list a .ico{width:22px;text-align:center;font-size:14px}
+.link-list a .ch{margin-left:auto;color:var(--text2);font-size:11px}
+
+.note{background:#FFF8E1;border-left:4px solid #FBC02D;padding:10px 14px;font-size:12.5px;margin:14px 0;border-radius:0 8px 8px 0}
+.note b{color:#8B5A0F}
+
+.diff-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.diff-tbl th,.diff-tbl td{padding:8px 10px;border:1px solid var(--gray2);text-align:left}
+.diff-tbl th{background:var(--gray);font-weight:700;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px}
+.diff-tbl tr.bad td:first-child{color:var(--red);font-weight:600}
+.diff-tbl tr.ok td:first-child{color:var(--green);font-weight:600}
+</style>
+</head>
+<body>
+
+<h1>Detalhe do condomínio — redesign</h1>
+<p class="intro">Comparativo: tela atual vs proposta. Foco em eliminar duplicações, criar hierarquia e usar a largura disponível em desktop.</p>
+
+<!-- ATUAL -->
+<h2 class="bad">❌ COMO ESTÁ HOJE</h2>
+
+<div class="frame">
+  <div class="atual-bg">
+    <div class="h-bar">
+      <div class="ico">🏛</div>
+      <div>
+        <h3>Condomínio Monte Carlo</h3>
+        <div class="sub">👤 Ana Paula Ferreira Cruz · 📍 Rua Armando Antônio D'Ottaviano, nº 175, Paulínia/SP</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="atual-stats bigwaste">
+    <div class="s"><div class="num">6</div><div class="lbl">Visitas realizadas</div></div>
+    <div class="s"><div class="num">0</div><div class="lbl">NCs acumuladas</div></div>
+    <div class="s"><div class="num">32</div><div class="lbl">Visitas no ano</div></div>
+  </div>
+
+  <div class="atual-prox dup">
+    <div class="l">📅 Próxima visita</div>
+    <h4>27/05 — Anual</h4>
+    <div class="extras">Itens extras: Iluminação · Hidrantes</div>
+    <div class="dem-box">📌 1 demanda(s) programada(s) p/ este dia<br><b>Visita técnica:</b> Medidas da Piscina · MC-2026-0001</div>
+  </div>
+
+  <div class="atual-card dup">
+    <div class="h">💬 Chamados (1)</div>
+    <div class="body">
+      <div style="color:#008B85;font-size:10px;font-weight:800;text-transform:uppercase;margin-bottom:4px">▶ Em andamento (1)</div>
+      <div class="tile">
+        <span class="date">26/05</span>
+        <div><b>MC-2026-0001 — Medidas da Piscina</b><div style="font-size:10px;color:var(--text2)">Levantamento de medidas para placa de aviso</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="atual-card dup">
+    <div class="h">📌 Demandas Programadas (1)</div>
+    <div class="body">
+      <div class="tile">
+        <span class="date">27/05<br><span style="font-size:8px">09:00</span></span>
+        <div><b>MC-2026-0001 — Visita técnica: Medidas da Piscina</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="atual-actions overload">
+    <h4>📋 Ações</h4>
+    <div class="row1">
+      <div class="bg-card pmp">
+        <div class="ico">🔧</div>
+        <div>Vistoria PMP</div>
+        <div class="sub">Manutenção Preventiva</div>
+      </div>
+      <div class="bg-card ref">
+        <div class="ico">🏗</div>
+        <div>Vistoria de Reforma</div>
+        <div class="sub">NBR 16280 · com fotos+IA</div>
+      </div>
+    </div>
+    <div class="agendac">
+      <div>📅 Agenda Completa do Síndico(a)</div>
+      <div class="sub">PDF profissional · cronograma + custos + eventos</div>
+    </div>
+    <div class="row3">
+      <div class="btn3">📅 Agenda Geral</div>
+      <div class="btn3">⏱ Histórico</div>
+      <div class="btn3">📋 Plano Resumido</div>
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>Problemas:</b>
+  <ul style="margin:6px 0 0 18px">
+    <li>Mesmo chamado <b>MC-2026-0001</b> aparece em 3 cards diferentes</li>
+    <li>3 cards de estatística ocupam linha inteira com espaço vazio (em desktop)</li>
+    <li>5 ações desorganizadas (2 cards grandes + 1 botão verde gigante + 3 botões)</li>
+    <li>Tudo em coluna única — desktop sobra 60-70% horizontal vazio</li>
+    <li>"Plano Resumido" vs item "Plano" no menu = confuso</li>
+  </ul>
+</div>
+
+<!-- PROPOSTA -->
+<h2 class="ok">✓ PROPOSTA</h2>
+
+<div class="frame">
+  <!-- Header compacto -->
+  <div class="novo-hdr">
+    <div class="ico">🏛</div>
+    <div class="info">
+      <h3>Condomínio Monte Carlo</h3>
+      <div class="sub">👤 Ana Paula Ferreira Cruz · 📅 Toda quarta-feira (início 27/05/2026)<br>📍 Rua Armando Antônio D'Ottaviano, 175 — Paulínia/SP</div>
+    </div>
+    <div class="stats">
+      <div class="badge ok"><b>6</b><span class="lbl">realizadas</span></div>
+      <div class="badge"><b>0</b><span class="lbl">NCs</span></div>
+      <div class="badge"><b>32</b><span class="lbl">no ano</span></div>
+    </div>
+  </div>
+
+  <!-- Action bar -->
+  <div class="novo-acts">
+    <button class="primary">▶ Iniciar visita hoje</button>
+    <button>🔧 Vistoria PMP</button>
+    <button class="reforma">🏗 Vistoria Reforma</button>
+    <button>📄 PDF Síndico</button>
+    <button>📅 PDF Engenheiro</button>
+  </div>
+
+  <!-- 2 colunas -->
+  <div class="novo-body">
+
+    <!-- Coluna principal -->
+    <div class="col">
+      <h4>📅 Próxima visita</h4>
+      <div class="prox-card">
+        <div class="lbl">Hoje · 27/05/2026</div>
+        <h5>Visita Anual</h5>
+        <div class="meta">Itens extras: Iluminação de emergência · Hidrantes (teste de pressão)</div>
+        <div class="extras">⚠ Inclui 1 demanda programada — ver coluna direita</div>
+      </div>
+
+      <h4>💬 Chamados ativos (1)</h4>
+      <div class="tile">
+        <span class="pill proto">MC-0001</span>
+        <span class="pill andamento">▶ andamento</span>
+        <div class="info">
+          <b>Visita técnica: Medidas da Piscina</b>
+          <div class="m">Levantamento para placa de aviso · agendado p/ 27/05 09:00</div>
+        </div>
+      </div>
+
+      <h4>📆 Próximas visitas</h4>
+      <div class="tile">
+        <span style="font-size:11px;font-weight:700;color:var(--text2);min-width:42px">03/06</span>
+        <div class="info"><b>Inspeção Mensal</b><div class="m">2 itens extras + checklist padrão</div></div>
+      </div>
+      <div class="tile">
+        <span style="font-size:11px;font-weight:700;color:var(--text2);min-width:42px">10/06</span>
+        <div class="info"><b>Inspeção Padrão</b><div class="m">Checklist + 1 item rotativo</div></div>
+      </div>
+      <div class="tile">
+        <span style="font-size:11px;font-weight:700;color:var(--text2);min-width:42px">17/06</span>
+        <div class="info"><b>Inspeção Padrão</b><div class="m">Checklist padrão</div></div>
+      </div>
+
+    </div>
+
+    <!-- Coluna secundária -->
+    <div class="col">
+
+      <h4>📋 Atalhos</h4>
+      <div class="card-c link-list">
+        <a><span class="ico">📅</span>Ver agenda completa<span class="ch">›</span></a>
+        <a><span class="ico">⏱</span>Histórico de visitas (6)<span class="ch">›</span></a>
+        <a><span class="ico">📋</span>Plano de manutenção<span class="ch">›</span></a>
+        <a><span class="ico">📚</span>Documentos<span class="ch">›</span></a>
+      </div>
+
+      <h4>🗓 Eventos agendados (1)</h4>
+      <div class="tile">
+        <span style="font-size:10px;font-weight:700;color:#A87826;background:#FFF8E1;border:1px solid #FBC02D;padding:2px 5px;border-radius:4px">09/06</span>
+        <div class="info"><b>Ensaio de Estanqueidade — Piscina</b><div class="m">Início do ensaio</div></div>
+      </div>
+
+      <h4>ℹ️ Informações do condomínio</h4>
+      <div class="card-c" style="font-size:12px;line-height:1.7">
+        <div><b>Blocos:</b> A + B</div>
+        <div><b>Termo de recebimento:</b> 26/09/2025</div>
+        <div><b>Cidade:</b> Paulínia/SP · CEP 13.140-153</div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<div class="note" style="background:#E8F5E9;border-color:#1B8A4A">
+  <b style="color:#0F5A2A">Melhorias:</b>
+  <ul style="margin:6px 0 0 18px">
+    <li>Chamado <b>MC-2026-0001</b> aparece em <b>1 lugar só</b> (lista de chamados ativos). Demais cards mencionam por referência cruzada.</li>
+    <li>Estatísticas viraram <b>badges compactos no header</b> — ocupam ~30px no total em vez de ~120px</li>
+    <li>Ações em <b>uma única barra horizontal</b> com hierarquia: Iniciar visita = primary, Vistoria PMP = secundário, Reforma = roxo (cor da reforma), PDFs = neutros</li>
+    <li><b>Layout 2 colunas</b> em desktop (2:1) — aproveita largura</li>
+    <li><b>Atalhos consolidados</b> num único card de links — sem redundância com menu lateral</li>
+    <li><b>Próximas visitas</b> contextualizadas na coluna principal (sem precisar ir pra agenda)</li>
+  </ul>
+</div>
+
+<h2 style="font-size:14px;color:var(--text);background:transparent;border:none;padding:0;margin-top:20px">📊 Comparativo de seções</h2>
+
+<table class="diff-tbl">
+  <thead>
+    <tr><th>Elemento</th><th>Hoje</th><th>Proposta</th><th>Por quê</th></tr>
+  </thead>
+  <tbody>
+    <tr class="bad"><td>Stats 6/0/32</td><td>3 cards 80px cada (~120px total)</td><td>3 badges no header (~30px)</td><td>Não é dado operacional, é contexto</td></tr>
+    <tr class="bad"><td>Próxima visita</td><td>Card com box de demanda embutido</td><td>Card limpo + referência cruzada</td><td>Remove duplicação</td></tr>
+    <tr class="bad"><td>Chamados</td><td>Card próprio</td><td>Lista compacta na coluna principal</td><td>Reduz altura, mantém destaque</td></tr>
+    <tr class="bad"><td>Demandas programadas</td><td>Card próprio (duplica chamado)</td><td>Removido — mesma info já no chamado</td><td>Elimina redundância</td></tr>
+    <tr class="ok"><td>Próximas visitas</td><td>Não existe (só na agenda)</td><td>Lista das próximas 3 datas</td><td>Engenheiro vê sem sair da tela</td></tr>
+    <tr class="ok"><td>Ações</td><td>5 elementos espalhados</td><td>Action bar única com 5 botões + 1 primary</td><td>Hierarquia clara</td></tr>
+    <tr class="ok"><td>Atalhos secundários</td><td>3 botões grandes na home</td><td>Lista de links compacta</td><td>Não competem com ação principal</td></tr>
+    <tr class="ok"><td>Eventos</td><td>Lista solta no fim</td><td>Card na coluna direita</td><td>Contexto secundário</td></tr>
+    <tr class="ok"><td>Info do condomínio</td><td>Espalhada no header gradiente</td><td>Card discreto na coluna direita</td><td>Referência, não destaque</td></tr>
+  </tbody>
+</table>
+
+<script src="__annot.js"></script>
+</body>
+</html>

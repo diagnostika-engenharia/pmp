@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Prestador chega SEM autorização prévia</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;
+--lime:#8DB72A;--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;
+--red:#C00000;--green:#1B8A4A;--purple:#7D3C98;--amber:#E65100;--gold:#FBC02D}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px;padding-bottom:90px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:20px;max-width:1000px}
+.intro b{color:var(--text)}
+h2{font-size:17px;margin:28px 0 6px;padding:10px 16px;border-left:4px solid var(--turq);background:linear-gradient(90deg,rgba(0,180,172,.12),transparent);border-radius:0 8px 8px 0;color:var(--teal-dk);display:flex;align-items:center;gap:10px}
+h2 .num{background:var(--turq);color:#fff;font-size:11px;font-weight:800;padding:3px 9px;border-radius:10px;letter-spacing:.5px;text-transform:uppercase}
+h3.sub{font-size:12.5px;color:var(--text2);font-weight:600;font-style:italic;margin:-4px 0 14px}
+
+/* Portaria */
+.portaria{background:#1a1a1a;color:#fff;border-radius:12px;overflow:hidden;border:1px solid #333;max-width:780px;margin-bottom:20px}
+.portaria .head{background:linear-gradient(135deg,#0D3C44,#155B67);padding:11px 16px;display:flex;align-items:center;gap:10px}
+.portaria .head .logo{width:30px;height:30px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-weight:800;font-size:13px}
+.portaria .head h3{font-size:14px;font-weight:700}
+.portaria .head .sub{font-size:10px;opacity:.7}
+.portaria .head .right{margin-left:auto;font-size:10px;opacity:.85;text-align:right}
+.port-body{padding:14px 16px}
+
+/* MODAIS */
+.modal-wrap{background:rgba(0,0,0,.7);padding:20px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+.modal{background:#fff;color:var(--text);border-radius:12px;width:100%;max-width:600px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.modal.dark{background:#1a1a1a;color:#fff}
+.modal.alert-border{border:3px solid var(--red)}
+.modal.warn-border{border:3px solid var(--gold)}
+.modal-head{padding:14px 18px;border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:10px}
+.modal.dark .modal-head{border-color:#333}
+.modal-head .ic{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.modal-head .ic.warn{background:rgba(192,0,0,.12);color:var(--red)}
+.modal-head .ic.gold{background:rgba(251,192,45,.18);color:#A8740B}
+.modal-head .ic.ok{background:rgba(27,138,74,.12);color:var(--green)}
+.modal-head .ic.info{background:rgba(0,180,172,.12);color:var(--turq-dk)}
+.modal-head h3{font-size:16px;font-weight:700;line-height:1.2}
+.modal-head .sub{font-size:11.5px;color:var(--text2);margin-top:3px}
+.modal.dark .modal-head .sub{color:rgba(255,255,255,.55)}
+.modal-head .close{margin-left:auto;background:transparent;border:none;color:var(--text2);cursor:pointer;width:30px;height:30px;border-radius:50%;font-size:16px}
+.modal-body{padding:16px 18px}
+.modal-actions{padding:12px 18px;border-top:1px solid var(--gray2);display:flex;gap:8px;flex-wrap:wrap}
+.modal.dark .modal-actions{border-color:#333;background:#222}
+
+.btn{background:#fff;border:1.5px solid var(--gray2);border-radius:6px;padding:9px 14px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;color:var(--text);display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--turq);border-color:var(--turq);color:#fff}
+.btn.danger{background:var(--red);border-color:var(--red);color:#fff}
+.btn.warn{background:var(--gold);border-color:var(--gold);color:#3B2A0A}
+.btn.success{background:var(--green);border-color:var(--green);color:#fff}
+.btn.dark{background:#2a2a2a;border-color:#444;color:#fff}
+.btn:hover{box-shadow:0 2px 6px rgba(0,0,0,.15)}
+
+/* ACTION CARDS — quando porteiro escolhe o que fazer */
+.action-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}
+.action-card{padding:12px 14px;background:#fff;border:1.5px solid var(--gray2);border-radius:8px;cursor:pointer;text-align:left;display:flex;gap:10px;align-items:flex-start}
+.action-card:hover{background:rgba(0,180,172,.04);border-color:var(--turq);transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.08)}
+.action-card .ic{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
+.action-card.contact .ic{background:rgba(13,60,68,.1);color:var(--teal-dk)}
+.action-card.notify .ic{background:rgba(125,60,152,.12);color:var(--purple)}
+.action-card.tech .ic{background:rgba(0,180,172,.12);color:var(--turq-dk)}
+.action-card.reject .ic{background:rgba(192,0,0,.12);color:var(--red)}
+.action-card.allow .ic{background:rgba(230,81,0,.12);color:var(--amber)}
+.action-card .text{flex:1;font-size:12.5px;line-height:1.3}
+.action-card .text b{display:block;color:var(--text);font-weight:700;margin-bottom:3px}
+.action-card .text small{color:var(--text2);font-size:11px}
+.action-card.dark{background:#2a2a2a;border-color:#444;color:#fff}
+.action-card.dark:hover{background:#333}
+.action-card.dark .text b{color:#fff}
+.action-card.dark .text small{color:rgba(255,255,255,.6)}
+
+/* ALERT BOXES */
+.alert-box{padding:14px 16px;border-radius:8px;font-size:13px;line-height:1.5;display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.alert-box .ic{font-size:20px;flex-shrink:0}
+.alert-box.red{background:rgba(192,0,0,.08);border-left:4px solid var(--red);color:var(--text)}
+.alert-box.red b{color:var(--red)}
+.alert-box.gold{background:rgba(251,192,45,.12);border-left:4px solid var(--gold);color:var(--text)}
+.alert-box.gold b{color:#A8740B}
+.alert-box.green{background:rgba(27,138,74,.08);border-left:4px solid var(--green);color:var(--text)}
+.alert-box.green b{color:var(--green)}
+.alert-box.info{background:rgba(0,180,172,.08);border-left:4px solid var(--turq);color:var(--text)}
+.alert-box.info b{color:var(--turq-dk)}
+
+/* FLOW arrow */
+.flow{font-size:24px;color:var(--turq);text-align:center;margin:8px 0;font-weight:700}
+.flow-txt{font-size:11px;color:var(--text2);text-align:center;font-style:italic;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
+
+/* TIMER */
+.timer{display:inline-flex;align-items:center;gap:6px;background:rgba(230,81,0,.1);color:var(--amber);padding:4px 10px;border-radius:14px;font-size:11.5px;font-weight:700;font-family:'SF Mono',Menlo,monospace}
+
+/* SÍNDICA PUSH NOTIFICATION (mobile-like) */
+.phone-mock{background:#000;border-radius:24px;padding:8px;max-width:340px;margin:0 auto;box-shadow:0 12px 40px rgba(0,0,0,.4)}
+.phone-screen{background:linear-gradient(180deg,#5DB9C5,#155B67);border-radius:18px;padding:30px 12px 18px;color:#fff;font-family:-apple-system,sans-serif;position:relative;overflow:hidden}
+.phone-screen::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:60px;height:5px;background:#000;border-radius:5px}
+.phone-time{font-size:11px;text-align:center;opacity:.7;margin-bottom:14px;letter-spacing:.5px}
+.push-notif{background:rgba(255,255,255,.92);color:var(--text);border-radius:12px;padding:11px 14px;margin-bottom:8px;backdrop-filter:blur(10px)}
+.push-notif .app-row{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:5px}
+.push-notif .app-row .app-ic{width:16px;height:16px;background:var(--teal);color:#fff;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+.push-notif .app-row b{flex:1}
+.push-notif .app-row .when{opacity:.6;font-weight:500;text-transform:none}
+.push-notif h4{font-size:13.5px;font-weight:700;margin-bottom:3px;line-height:1.25}
+.push-notif p{font-size:12px;color:var(--text2);line-height:1.4}
+.push-notif.alert{background:#fff;box-shadow:0 4px 16px rgba(192,0,0,.3);border-left:3px solid var(--red)}
+.push-notif.alert h4{color:var(--red)}
+.push-actions{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(0,0,0,.08)}
+.push-actions button{flex:1;background:transparent;border:none;padding:5px;font-size:11px;font-weight:700;cursor:pointer;color:var(--turq-dk);border-radius:6px;font-family:inherit}
+.push-actions button.danger{color:var(--red)}
+.push-actions button:hover{background:rgba(0,0,0,.05)}
+
+/* Diagnóstika painel notif */
+.diag-notif-panel{background:#fff;border:1px solid var(--gray2);border-radius:10px;overflow:hidden}
+.diag-notif-panel h4{background:linear-gradient(180deg,#0D3C44,var(--teal));color:#fff;padding:10px 14px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:8px}
+.diag-notif-content{padding:14px}
+
+.log-entry{display:flex;gap:10px;padding:9px 0;border-bottom:1px dashed var(--gray2);font-size:12px;align-items:center}
+.log-entry:last-child{border:none}
+.log-entry .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.log-entry .dot.in{background:var(--amber)}
+.log-entry .dot.allow{background:var(--green)}
+.log-entry .dot.deny{background:var(--red)}
+.log-entry .dot.pending{background:var(--gold)}
+.log-entry .dt{font-family:'SF Mono',Menlo,monospace;font-size:10.5px;color:var(--text2);min-width:70px}
+.log-entry .by{flex:1;color:var(--text)}
+.log-entry .by b{color:var(--text);font-weight:600}
+.log-entry .by small{color:var(--text2);display:block;font-size:10.5px}
+
+/* Step label */
+.cena-label{display:inline-block;background:linear-gradient(135deg,var(--turq),var(--turq-dk));color:#fff;font-size:11px;font-weight:800;padding:4px 10px;border-radius:10px;letter-spacing:.5px;text-transform:uppercase;margin-bottom:8px}
+
+/* Compare 2col */
+.cols-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:980px){.cols-2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<h1>Mockup — Prestador chega na portaria SEM autorização prévia</h1>
+<p class="intro">
+Caso mais comum em condomínios. <b>O porteiro NÃO tem autoridade pra liberar/barrar.</b> A decisão é da síndica (autoridade administrativa) ou da Diagnóstika (autoridade técnica) — e precisa acontecer em tempo real. Sistema vira o canal de comunicação + documentação.
+</p>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">1</span>Porteiro tenta registrar — mas sistema detecta apto SEM reforma</h2>
+<h3 class="sub">Apto B·502 declarou reforma há 8 dias mas sem RT. Apto A·502 nunca declarou — completo desconhecido.</h3>
+
+<div class="modal-wrap">
+  <div class="modal dark alert-border" style="max-width:580px">
+    <div class="modal-head">
+      <div class="ic warn" style="background:rgba(192,0,0,.22);color:#FFB4B4">🚫</div>
+      <div style="flex:1">
+        <h3 style="color:#FFB4B4">Entrada NÃO PODE ser registrada automaticamente</h3>
+        <div class="sub">Apto A·502 — nenhuma reforma declarada · prestador sem credenciais</div>
+      </div>
+      <button class="close" style="color:rgba(255,255,255,.5)">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="alert-box red" style="background:rgba(192,0,0,.12);color:#FFB4B4">
+        <div class="ic">🚨</div>
+        <div>
+          <b>Prestador alegou que vai trabalhar em A·502</b><br>
+          Mas: apto não tem comunicação de reforma · não tem RT cadastrado · prestador não tem documento de credencial.
+          <br><br><b>Você (porteiro) NÃO pode autorizar essa entrada sozinho.</b> A decisão é da síndica ou da Diagnóstika.
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px">O que fazer agora — escolha uma ação:</div>
+
+      <div class="action-card-grid">
+        <div class="action-card dark contact">
+          <div class="ic">📞</div>
+          <div class="text">
+            <b>Ligar para o morador</b>
+            <small>Confirmar se o prestador é mesmo dele. Sistema disca o telefone cadastrado.</small>
+          </div>
+        </div>
+        <div class="action-card dark notify">
+          <div class="ic">🔔</div>
+          <div class="text">
+            <b>Pedir autorização à síndica</b>
+            <small>Push urgente p/ Ana Paula decidir em tempo real (autorizar/barrar)</small>
+          </div>
+        </div>
+        <div class="action-card dark tech">
+          <div class="ic">🏗</div>
+          <div class="text">
+            <b>Solicitar parecer Diagnóstika</b>
+            <small>Equipe técnica avalia risco e responde com orientação</small>
+          </div>
+        </div>
+        <div class="action-card dark reject">
+          <div class="ic">🚫</div>
+          <div class="text">
+            <b>Recusar entrada (regulamento)</b>
+            <small>Comunicar prestador que sem autorização prévia não entra</small>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:10px;padding:10px 12px;background:rgba(255,255,255,.05);border-radius:6px;font-size:11px;color:rgba(255,255,255,.7);line-height:1.5">
+        💡 <b style="color:#fff">Procedimento padrão Diagnóstika:</b> tentar contato com morador primeiro · se sem resposta, pedir parecer da síndica · em caso de obra (não mudança), envolver Diagnóstika sempre.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow">⬇</div>
+<div class="flow-txt">porteiro escolhe "pedir autorização à síndica" + envia foto do prestador</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">2</span>Porteiro envia solicitação com contexto</h2>
+<h3 class="sub">Formulário simples: foto + descrição. Sistema pré-preenche o que sabe (apto, hora).</h3>
+
+<div class="modal-wrap">
+  <div class="modal dark" style="max-width:560px">
+    <div class="modal-head">
+      <div class="ic info" style="background:rgba(125,60,152,.22);color:#E1BEE7">🔔</div>
+      <div style="flex:1">
+        <h3>Pedir autorização à síndica · Ana Paula</h3>
+        <div class="sub">Push urgente + telefone toca + SMS de backup</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;font-size:12px">
+        <div style="background:#2a2a2a;padding:9px 11px;border-radius:6px">
+          <div style="font-size:9.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:3px">Apto destino</div>
+          <div style="font-weight:700">A·502 · Sandro Oliveira</div>
+        </div>
+        <div style="background:#2a2a2a;padding:9px 11px;border-radius:6px">
+          <div style="font-size:9.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:3px">Hora chegada</div>
+          <div style="font-weight:700">14:25 · 27/05</div>
+        </div>
+      </div>
+
+      <div style="font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:5px">Nome do prestador</div>
+      <input style="background:#2a2a2a;border:1px solid #444;border-radius:6px;padding:9px 12px;color:#fff;font-size:13px;width:100%;outline:none;margin-bottom:10px;font-family:inherit" value="João Costa" placeholder="Como ele se identificou">
+
+      <div style="font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:5px">Tipo de serviço alegado</div>
+      <select style="background:#2a2a2a;border:1px solid #444;border-radius:6px;padding:9px 12px;color:#fff;font-size:13px;width:100%;outline:none;margin-bottom:10px;font-family:inherit">
+        <option>Reforma — pintura/revestimento</option>
+        <option selected>Reforma — hidráulica</option>
+        <option>Reforma — elétrica</option>
+        <option>Mudança</option>
+        <option>Conserto simples (não obra)</option>
+        <option>Outros</option>
+      </select>
+
+      <div style="font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:5px">Foto do prestador (recomendado)</div>
+      <div style="background:#2a2a2a;border:2px dashed #555;border-radius:8px;padding:24px;text-align:center;margin-bottom:10px;cursor:pointer">
+        <div style="font-size:30px;opacity:.4;margin-bottom:4px">📸</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.6)">Tocar para capturar foto via webcam ou celular</div>
+        <div style="font-size:10.5px;color:rgba(255,255,255,.45);margin-top:2px">recomendado para auditoria</div>
+      </div>
+
+      <div style="font-size:10.5px;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-bottom:5px">Observação (opcional)</div>
+      <textarea style="background:#2a2a2a;border:1px solid #444;border-radius:6px;padding:9px 12px;color:#fff;font-size:13px;width:100%;outline:none;font-family:inherit;resize:vertical;min-height:60px" placeholder="ex: ele disse que mora há 2 anos no apto, mas não tem registro. Trouxe ferramenta de hidráulica."></textarea>
+    </div>
+    <div class="modal-actions" style="background:#222">
+      <button class="btn dark">Cancelar</button>
+      <button class="btn warn" style="flex:1">🔔 Enviar push urgente à síndica + Diagnóstika</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow">⬇</div>
+<div class="flow-txt">push é disparado · síndica recebe no celular (em casa, no trabalho, em qualquer lugar)</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">3</span>Síndica recebe push no celular (mesmo fora do condomínio)</h2>
+<h3 class="sub">Notificação rica com foto, contexto, e 2 botões de decisão direto na lock screen.</h3>
+
+<div style="background:linear-gradient(135deg,#5DB9C5,#155B67);padding:30px;border-radius:14px;display:flex;justify-content:center">
+  <div class="phone-mock">
+    <div class="phone-screen">
+      <div class="phone-time">14:26 · quarta-feira, 27/05</div>
+
+      <div class="push-notif alert">
+        <div class="app-row">
+          <div class="app-ic">D</div>
+          <b>DIAGNÓSTIKA · Portal Síndica</b>
+          <span class="when">agora</span>
+        </div>
+        <h4>🚨 Portaria pede autorização urgente</h4>
+        <p><b>Apto A·502</b> — prestador <b>João Costa</b> chegou alegando reforma de hidráulica.<br><br>⚠ Apto não tem reforma declarada nem RT. Porteiro pediu sua decisão.</p>
+        <div class="push-actions">
+          <button class="danger">✗ BARRAR</button>
+          <button>📞 LIGAR PORTEIRO</button>
+          <button>✓ AUTORIZAR 1×</button>
+        </div>
+      </div>
+
+      <div class="push-notif" style="background:rgba(255,255,255,.85)">
+        <div class="app-row" style="opacity:.6">
+          <div class="app-ic">D</div>
+          <b>DIAGNÓSTIKA · Painel</b>
+          <span class="when">agora</span>
+        </div>
+        <h4 style="font-size:12.5px">🏗 Diagnóstika foi acionada em paralelo</h4>
+        <p style="font-size:11.5px">Equipe técnica vai analisar e enviar parecer também.</p>
+      </div>
+
+      <div style="text-align:center;margin-top:16px;color:rgba(255,255,255,.6);font-size:11px">Toque para abrir e ver detalhes</div>
+    </div>
+  </div>
+</div>
+
+<div class="flow">⬇</div>
+<div class="flow-txt">síndica clica "ver detalhes" no push e abre tela de decisão</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">4</span>Tela de decisão da síndica (no portal mobile dela)</h2>
+<h3 class="sub">Foto do prestador + contexto completo + 3 opções claras com responsabilização registrada</h3>
+
+<div class="modal-wrap">
+  <div class="modal warn-border" style="max-width:560px">
+    <div class="modal-head" style="background:linear-gradient(135deg,rgba(251,192,45,.15),transparent)">
+      <div class="ic gold">⏱</div>
+      <div style="flex:1">
+        <h3>Decidir entrada em A·502</h3>
+        <div class="sub">Solicitação da portaria — recebida há 1min</div>
+      </div>
+      <div class="timer">⏱ 1:32</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:var(--gray);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;gap:12px;align-items:center">
+        <div style="width:60px;height:60px;background:#888;border-radius:8px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px">👤</div>
+        <div style="flex:1;font-size:12.5px;line-height:1.5">
+          <div style="font-weight:700;color:var(--text);font-size:14px">João Costa</div>
+          <div style="color:var(--text2)">Alegou reforma de hidráulica em <b>A·502</b><br>Carrega ferramenta de hidráulica</div>
+        </div>
+      </div>
+
+      <div class="alert-box gold">
+        <div class="ic">⚠</div>
+        <div>
+          <b>Situação irregular</b><br>
+          Apto A·502 (Sandro Oliveira) <b>não comunicou nenhuma reforma à administração</b>. Se autorizar, isso vira evento administrativo registrado. Se barrar, prestador é orientado a sair e o morador é notificado.
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px">Suas opções:</div>
+
+      <div class="action-card-grid">
+        <div class="action-card allow" style="grid-column:span 2">
+          <div class="ic">✓</div>
+          <div class="text">
+            <b>Autorizar entrada (sob minha responsabilidade)</b>
+            <small>Registra autorização nominal sua. Morador será notificado que precisa regularizar até amanhã. Diagnóstika faz vistoria emergencial.</small>
+          </div>
+        </div>
+        <div class="action-card reject" style="grid-column:span 2">
+          <div class="ic">🚫</div>
+          <div class="text">
+            <b>Barrar entrada (regulamento)</b>
+            <small>Porteiro orienta o prestador a sair. Registra sua decisão. Morador será notificado e precisará regularizar antes de qualquer obra.</small>
+          </div>
+        </div>
+        <div class="action-card contact" style="grid-column:span 2">
+          <div class="ic">📞</div>
+          <div class="text">
+            <b>Ligar para o porteiro antes de decidir</b>
+            <small>Aciona telefone da portaria — você fala direto com José para pedir mais detalhes</small>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <div style="font-size:11px;color:var(--text2);flex:1">
+        <b>⏱ Sem resposta em 5min:</b> sistema sugere ao porteiro recusar entrada por precaução
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="flow">⬇</div>
+<div class="flow-txt">síndica clica "Autorizar 1× sob minha responsabilidade"</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">5</span>Resposta volta pra portaria EM SEGUNDOS via Realtime</h2>
+<h3 class="sub">José recebe instrução clara + identifica quem autorizou + protocolo automático de pós-autorização</h3>
+
+<div class="modal-wrap" style="background:rgba(27,138,74,.18)">
+  <div class="modal dark" style="border:3px solid var(--green);max-width:580px">
+    <div class="modal-head" style="background:linear-gradient(135deg,rgba(27,138,74,.3),transparent)">
+      <div class="ic ok" style="background:rgba(27,138,74,.25);color:#A5E6B1">✓</div>
+      <div style="flex:1">
+        <h3 style="color:#A5E6B1">AUTORIZADO pela síndica · 1 entrada</h3>
+        <div class="sub">Ana Paula Ferreira Cruz · 14:27 (resposta em 2min)</div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div class="alert-box green" style="background:rgba(27,138,74,.15);color:#A5E6B1">
+        <div class="ic">✓</div>
+        <div>
+          <b style="color:#A5E6B1">Pode liberar a entrada do prestador João Costa</b><br>
+          A síndica autorizou sob responsabilidade dela e a Diagnóstika foi acionada para vistoria emergencial.
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:8px">Você (porteiro) deve agora:</div>
+
+      <div style="font-size:13px;line-height:1.8;background:rgba(255,255,255,.05);padding:12px 14px;border-radius:6px">
+        <div>1. ✓ Pedir documento de identidade do prestador (RG)</div>
+        <div>2. ✓ Tirar foto de quem entrou (já feito na solicitação)</div>
+        <div>3. ✓ Registrar horário de saída quando ele for embora</div>
+        <div>4. ⚠ <b>Não autorizar 2ª entrada</b> sem nova decisão da síndica</div>
+      </div>
+
+      <div style="background:rgba(0,180,172,.08);border-left:3px solid var(--turq);padding:10px 12px;border-radius:0 6px 6px 0;margin-top:10px;font-size:11.5px;color:#A5E6E0">
+        <b>Acompanhamento</b><br>
+        • Síndica notificou o morador (Sandro Oliveira) por WhatsApp<br>
+        • Diagnóstika agendou vistoria para amanhã 09:00<br>
+        • Morador tem 5 dias úteis pra regularizar (apresentar RT/ART)
+      </div>
+    </div>
+    <div class="modal-actions" style="background:#222">
+      <button class="btn success" style="flex:1">▶ Liberar entrada agora</button>
+    </div>
+  </div>
+</div>
+
+<div class="flow">⬇</div>
+<div class="flow-txt">porteiro libera + sistema atualiza estados e Diagnóstika fica sabendo</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">6</span>Diagnóstika acompanha e responde com plano de ação</h2>
+<h3 class="sub">Painel técnico recebe o caso completo + sugestão automática de próximos passos</h3>
+
+<div class="diag-notif-panel" style="max-width:780px">
+  <h4>🏗 PAINEL TÉCNICO DIAGNÓSTIKA · Rogério</h4>
+  <div class="diag-notif-content">
+    <div class="alert-box red">
+      <div class="ic">🚨</div>
+      <div>
+        <b>Caso crítico — A·502 · Monte Carlo</b><br>
+        Síndica autorizou entrada de prestador SEM reforma declarada. Recomenda-se ação técnica IMEDIATA.
+      </div>
+    </div>
+
+    <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin:14px 0 8px">📋 Timeline do caso</div>
+    <div class="log-entry">
+      <span class="dot in"></span>
+      <span class="dt">14:25</span>
+      <span class="by"><b>Porteiro José</b> registrou prestador chegando<small>Apto A·502 sem reforma declarada — pediu autorização</small></span>
+    </div>
+    <div class="log-entry">
+      <span class="dot pending"></span>
+      <span class="dt">14:26</span>
+      <span class="by"><b>Push enviado</b> para síndica Ana Paula</span>
+    </div>
+    <div class="log-entry">
+      <span class="dot allow"></span>
+      <span class="dt">14:27</span>
+      <span class="by"><b>Síndica autorizou</b> sob responsabilidade dela<small>"Pode liberar 1× entrada hoje. Morador será notificado."</small></span>
+    </div>
+    <div class="log-entry">
+      <span class="dot allow"></span>
+      <span class="dt">14:27</span>
+      <span class="by"><b>Porteiro liberou</b> João Costa<small>Documento RG conferido · foto registrada</small></span>
+    </div>
+    <div class="log-entry">
+      <span class="dot pending"></span>
+      <span class="dt">agora</span>
+      <span class="by"><b>VOCÊ tem que decidir</b> próximos passos<small>Apto sem RT executando obra de hidráulica = risco alto</small></span>
+    </div>
+
+    <div style="font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin:14px 0 8px">🎯 Ações sugeridas (uma por uma)</div>
+
+    <div class="action-card-grid">
+      <div class="action-card tech">
+        <div class="ic">📅</div>
+        <div class="text">
+          <b>Agendar vistoria emergencial</b>
+          <small>Amanhã 09:00 (auto-sugerido)</small>
+        </div>
+      </div>
+      <div class="action-card notify">
+        <div class="ic">📧</div>
+        <div class="text">
+          <b>Enviar e-mail formal ao morador</b>
+          <small>Modelo: notificação NBR 16280</small>
+        </div>
+      </div>
+      <div class="action-card contact">
+        <div class="ic">📞</div>
+        <div class="text">
+          <b>Ligar para a síndica</b>
+          <small>Discutir estratégia de comunicação</small>
+        </div>
+      </div>
+      <div class="action-card allow">
+        <div class="ic">📜</div>
+        <div class="text">
+          <b>Oferecer emissão de ART</b>
+          <small>Orçamento automático já pronto</small>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="flow">⬇</div>
+<div class="flow-txt">tudo fica registrado · próximas 24h definem se vira regularização ou processo</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<h2><span class="num">7</span>Casos especiais — o que acontece se síndica não responder?</h2>
+<h3 class="sub">Sistema tem 3 níveis de escalonamento automático antes de "travar" a entrada</h3>
+
+<div class="cols-2">
+
+  <div>
+    <div class="cena-label">⏱ 0-2 min</div>
+    <div class="modal" style="border:1.5px solid var(--gold);max-width:none">
+      <div class="modal-head" style="background:rgba(251,192,45,.08)">
+        <div class="ic gold">⏱</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px">Aguardando síndica</h3>
+          <div class="sub">Push enviado · sem leitura ainda</div>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:14px 18px">
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          Status: <b>esperando resposta</b><br>
+          Sistema enviará SMS de backup em 2min se não houver leitura.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="cena-label">⏱ 2-5 min</div>
+    <div class="modal" style="border:1.5px solid var(--amber);max-width:none">
+      <div class="modal-head" style="background:rgba(230,81,0,.08)">
+        <div class="ic" style="background:rgba(230,81,0,.18);color:var(--amber)">⏰</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px">Escalonando — tentativa 2</h3>
+          <div class="sub">SMS + ligação automática</div>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:14px 18px">
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          SMS enviado. Telefone da síndica está tocando.<br>
+          Se em 3min não houver resposta, Diagnóstika assume decisão técnica.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="cena-label">⏱ 5-10 min</div>
+    <div class="modal" style="border:1.5px solid var(--red);max-width:none">
+      <div class="modal-head" style="background:rgba(192,0,0,.08)">
+        <div class="ic warn">🏗</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px">Diagnóstika assume</h3>
+          <div class="sub">Síndica não respondeu — equipe técnica decide</div>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:14px 18px">
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          Rogério ou Claudemir decide tecnicamente (autorizar ou barrar).<br>
+          Decisão fica como "responsabilidade Diagnóstika" no log — síndica ainda assina depois.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="cena-label">⏱ +10 min sem resposta</div>
+    <div class="modal" style="border:1.5px solid #333;max-width:none">
+      <div class="modal-head" style="background:rgba(0,0,0,.06)">
+        <div class="ic" style="background:#333;color:#fff">🚫</div>
+        <div style="flex:1">
+          <h3 style="font-size:13px">DEFAULT: recusar</h3>
+          <div class="sub">Sem autorização = sem entrada</div>
+        </div>
+      </div>
+      <div class="modal-body" style="padding:14px 18px">
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          Sistema instrui porteiro a recusar entrada conforme regulamento.<br>
+          Prestador orientado a voltar amanhã com documentação.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div style="background:#E8F5E9;border-left:4px solid var(--green);padding:16px 20px;border-radius:0 10px 10px 0;margin-top:30px;font-size:13px;line-height:1.7">
+  <b style="color:#0F5A2A;font-size:14px">🎯 Resumo do fluxo</b>
+  <ul style="margin:10px 0 0 22px">
+    <li><b>Porteiro NUNCA decide sozinho</b> — sempre solicita autoridade superior</li>
+    <li><b>Síndica é a autoridade administrativa final</b> — autoriza ou barra com 1 toque</li>
+    <li><b>Diagnóstika é a autoridade técnica</b> — recomendação de risco + suporte</li>
+    <li><b>Escalonamento automático</b> em 4 níveis (push → SMS → ligação → Diagnóstika → recusa default)</li>
+    <li><b>TUDO fica registrado</b> — quem autorizou, quando, em que circunstâncias → auditoria + defesa jurídica</li>
+    <li><b>Realtime &lt;2s</b> via Supabase entre portaria, síndica e Diagnóstika</li>
+    <li><b>Sem internet?</b> Sistema cai pra protocolo offline — porteiro só registra, sincroniza depois</li>
+  </ul>
+</div>
+
+<script src="__annot.js"></script>
+</body>
+</html>

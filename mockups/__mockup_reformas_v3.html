@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup v3 — Reformas com melhor aproveitamento de espaço</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;
+--lime:#8DB72A;--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;
+--gray3:#A8BFC2;--gray4:#5A7A7E;--red:#C00000;--green:#1B8A4A;--purple:#7D3C98;
+--baixa:#1B8A4A;--media:#E65100;--alta:#C00000}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:18px;max-width:900px}
+
+.frame{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);max-width:1500px;border:1px solid var(--gray2);margin-bottom:8px}
+
+.cd-hdr{background:linear-gradient(135deg,var(--teal-dk),var(--teal));padding:14px 18px;color:#fff;display:flex;align-items:center;gap:12px}
+.cd-hdr .ico{width:42px;height:42px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;color:#FBC02D}
+.cd-hdr h3{font-size:17px;font-weight:700}
+.cd-hdr .sub{font-size:11.5px;opacity:.85;margin-top:2px}
+.cd-hdr .badges{margin-left:auto;display:flex;gap:8px}
+.cd-hdr .badges .b{background:rgba(255,255,255,.16);border-radius:7px;padding:5px 11px;font-size:11.5px}
+.cd-hdr .badges .b b{font-size:15px;font-weight:800}
+
+.tabs{display:flex;border-bottom:1px solid var(--gray2);background:#F8FAFB;padding:0 14px}
+.tabs .tab{padding:11px 16px;font-size:13px;font-weight:600;color:var(--text2);border-bottom:3px solid transparent;cursor:pointer;display:flex;align-items:center;gap:6px}
+.tabs .tab.active{color:var(--teal);border-bottom-color:var(--turq);background:#fff}
+.tabs .tab .count{background:#E65100;color:#fff;font-size:9px;font-weight:800;padding:1px 5px;border-radius:8px}
+
+/* ─── TOPO COMPACTO — sumário + complexidade lado-a-lado ─── */
+.top-row{display:grid;grid-template-columns:1fr 1.4fr;gap:14px;padding:14px 18px;border-bottom:1px solid var(--gray2)}
+@media(max-width:880px){.top-row{grid-template-columns:1fr}}
+
+.summary-mini{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.s-mini{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:9px 11px;display:flex;align-items:center;gap:8px}
+.s-mini .ico{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.s-mini .ico.total{background:rgba(21,91,103,.1);color:var(--teal)}
+.s-mini .ico.ok{background:rgba(27,138,74,.12);color:var(--green)}
+.s-mini .ico.warn{background:rgba(230,81,0,.12);color:#E65100}
+.s-mini .ico.danger{background:rgba(192,0,0,.12);color:var(--red)}
+.s-mini .num{font-size:18px;font-weight:800;line-height:1}
+.s-mini .lbl{font-size:9.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700;line-height:1.2;margin-top:2px}
+
+.compl-side{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:11px 14px}
+.compl-side h4{font-size:11px;color:var(--text);font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between}
+.compl-side h4 small{font-size:10px;color:var(--text2);font-weight:500;font-style:italic}
+.compl-bar{display:flex;height:22px;border-radius:5px;overflow:hidden;background:var(--gray)}
+.compl-bar .seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800}
+.compl-bar .seg.baixa{background:linear-gradient(180deg,#2BA862,var(--baixa))}
+.compl-bar .seg.media{background:linear-gradient(180deg,#FB8C00,var(--media))}
+.compl-bar .seg.alta{background:linear-gradient(180deg,#E63333,var(--alta))}
+.compl-legend{display:flex;gap:12px;font-size:10px;color:var(--text2);margin-top:6px;flex-wrap:wrap}
+.compl-legend .ll{display:flex;align-items:center;gap:4px}
+.compl-legend .sw{width:9px;height:9px;border-radius:2px}
+
+/* ─── CORPO 2 COLUNAS — lista + mapa lado-a-lado ─── */
+.body-row{display:grid;grid-template-columns:1.6fr 1fr;gap:14px;padding:14px 18px}
+@media(max-width:1100px){.body-row{grid-template-columns:1fr}}
+
+/* TOOLBAR */
+.toolbar{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.toolbar .search{flex:1;min-width:160px;position:relative}
+.toolbar .search input{width:100%;padding:7px 10px 7px 30px;border:1px solid var(--gray2);border-radius:6px;font-size:12px;font-family:inherit;outline:none}
+.toolbar .search input:focus{border-color:var(--turq)}
+.toolbar .search::before{content:'🔍';position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.5}
+.toolbar .filter{background:#fff;border:1px solid var(--gray2);border-radius:6px;padding:6px 11px;font-size:11.5px;cursor:pointer;color:var(--text2);font-weight:600;display:flex;align-items:center;gap:4px;font-family:inherit}
+.toolbar .filter.active{background:var(--teal);color:#fff;border-color:var(--teal)}
+.toolbar .filter .ct{margin-left:3px;background:rgba(0,0,0,.12);padding:1px 5px;border-radius:8px;font-size:9px;font-weight:800}
+.toolbar .filter.active .ct{background:rgba(255,255,255,.25)}
+
+/* LISTA */
+.r-list{background:#fff;border:1px solid var(--gray2);border-radius:8px;overflow:hidden}
+.r-list .lh{display:grid;grid-template-columns:60px 1fr 130px 90px 70px;gap:8px;padding:8px 12px;background:var(--gray);font-size:9.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2);font-weight:700}
+.r-list .row{display:grid;grid-template-columns:60px 1fr 130px 90px 70px;gap:8px;padding:10px 12px;border-top:1px solid var(--gray2);font-size:12px;cursor:pointer;align-items:center}
+.r-list .row:hover{background:rgba(21,91,103,.03)}
+.r-list .row.semrt{background:rgba(192,0,0,.04)}
+.r-list .row.semrt:hover{background:rgba(192,0,0,.07)}
+.r-list .apto{font-weight:800;color:var(--text);font-family:'SF Mono',Menlo,monospace;font-size:13px}
+.r-list .servs{color:var(--text);line-height:1.3;font-size:11.5px}
+.r-list .servs small{color:var(--text2);font-size:10px;display:block;margin-top:1px}
+.r-list .auth{display:flex;flex-direction:column;font-size:10.5px;line-height:1.3;font-weight:600}
+.r-list .auth.ok{color:var(--green)}
+.r-list .auth.semrt{color:var(--red)}
+.r-list .auth small{font-weight:500;color:var(--text2);font-size:9.5px;margin-top:1px}
+.r-list .compl-badge{display:inline-flex;justify-content:center;padding:3px 6px;border-radius:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;color:#fff;width:fit-content}
+.r-list .compl-badge.baixa{background:var(--baixa)}
+.r-list .compl-badge.media{background:var(--media)}
+.r-list .compl-badge.alta{background:var(--alta)}
+.r-list .acao{display:flex;justify-content:flex-end}
+.r-list .acao button{background:transparent;border:1px solid var(--teal);color:var(--teal);border-radius:5px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.r-list .acao button.warn{border-color:var(--red);color:var(--red)}
+.r-list .acao button:hover{background:var(--teal);color:#fff}
+.r-list .acao button.warn:hover{background:var(--red);color:#fff}
+
+/* COLUNA DIREITA — múltiplos cards */
+.right-col{display:flex;flex-direction:column;gap:12px}
+
+.right-card{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:12px 14px}
+.right-card h4{font-size:11px;color:var(--text);font-weight:700;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.right-card h4 small{font-size:10px;color:var(--text2);font-weight:500;font-style:italic}
+
+/* MAPA por bloco */
+.bloco-row{display:flex;gap:6px;margin-bottom:8px;align-items:center}
+.bloco-row .b-lbl{font-size:10.5px;font-weight:700;color:var(--text2);min-width:38px}
+.unit-grid{display:flex;gap:3px;flex-wrap:wrap;flex:1}
+.unit{width:24px;height:24px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;border:1px solid var(--gray2);background:#fff;color:var(--text2);cursor:pointer;transition:transform .1s}
+.unit:hover{transform:scale(1.2);z-index:2;box-shadow:0 2px 6px rgba(0,0,0,.15)}
+.unit.ref-baixa{background:var(--baixa);color:#fff;border-color:var(--baixa)}
+.unit.ref-media{background:var(--media);color:#fff;border-color:var(--media)}
+.unit.ref-alta{background:var(--alta);color:#fff;border-color:var(--alta)}
+.unit.ref-semrt{background:#fff;color:var(--red);border:2px dashed var(--red);font-weight:800}
+.mapa-legenda{display:flex;gap:10px;font-size:9.5px;color:var(--text2);margin-top:8px;flex-wrap:wrap}
+.mapa-legenda .leg{display:flex;align-items:center;gap:3px}
+.mapa-legenda .sw{width:11px;height:11px;border-radius:3px}
+
+/* RTs frequentes */
+.rt-list{font-size:11.5px;display:flex;flex-direction:column;gap:6px}
+.rt-list .rt-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--gray2)}
+.rt-list .rt-item:last-child{border:none}
+.rt-list .rt-avatar{width:28px;height:28px;border-radius:50%;background:rgba(0,180,172,.15);color:var(--turq-dk);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0}
+.rt-list .rt-info{flex:1;line-height:1.3}
+.rt-list .rt-info b{font-weight:600;color:var(--text)}
+.rt-list .rt-info small{color:var(--text2);font-size:10px;display:block}
+.rt-list .rt-ct{background:var(--gray);color:var(--text);font-size:11px;padding:2px 6px;border-radius:5px;font-weight:800}
+
+/* ALERTAS */
+.alert-card{background:rgba(192,0,0,.04);border:1px solid rgba(192,0,0,.15);border-left:3px solid var(--red);border-radius:8px;padding:11px 14px}
+.alert-card h4{color:var(--red);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.alert-card ul{font-size:11.5px;line-height:1.6;margin-left:16px;color:var(--text)}
+.alert-card b{color:var(--red)}
+
+/* PRÓXIMAS VISTORIAS */
+.vis-item{display:flex;gap:8px;padding:7px 0;border-bottom:1px dashed var(--gray2);align-items:center;font-size:11.5px}
+.vis-item:last-child{border:none}
+.vis-item .dt{font-weight:800;color:var(--text);font-family:'SF Mono',Menlo,monospace;font-size:11px;background:var(--turq-lt,#CCF0EE);padding:3px 6px;border-radius:4px;min-width:48px;text-align:center;color:var(--turq-dk)}
+.vis-item .desc{flex:1;line-height:1.3}
+.vis-item .desc b{color:var(--text);font-weight:600}
+.vis-item .desc small{color:var(--text2);font-size:10px;display:block}
+
+/* note */
+.note{background:#E8F5E9;border-left:4px solid var(--green);padding:10px 14px;font-size:12.5px;margin:14px 0;border-radius:0 8px 8px 0}
+.note b{color:#0F5A2A}
+.note ul{margin:6px 0 0 18px}
+</style>
+</head>
+<body>
+
+<h1>Mockup v3 — Reformas com aproveitamento total de espaço</h1>
+<p class="intro">
+Sua observação: lado direito vazio. Refeito com layout 2 colunas (Lista 1.6 : Direita 1.0), adicionando 4 cards laterais úteis (Mapa, RTs frequentes, Alertas, Próximas vistorias).
+Topo: sumário + barra de complexidade lado-a-lado em vez de empilhados.
+</p>
+
+<div class="frame">
+  <div class="cd-hdr">
+    <div class="ico">🏛</div>
+    <div>
+      <h3>Condomínio Monte Carlo</h3>
+      <div class="sub">👤 Ana Paula Ferreira Cruz · 📅 Toda quarta · Paulínia/SP</div>
+    </div>
+    <div class="badges">
+      <div class="b"><b>4</b> reformas</div>
+      <div class="b" style="background:rgba(192,0,0,.25)"><b>2</b> sem RT</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab">📋 Visão Geral</div>
+    <div class="tab active">🏗 Reformas <span class="count">4</span></div>
+    <div class="tab">💬 Chamados <span class="count">1</span></div>
+    <div class="tab">📅 Visitas</div>
+    <div class="tab">📚 Documentos</div>
+  </div>
+
+  <!-- ── TOPO COMPACTO — sumário + complexidade lado-a-lado ── -->
+  <div class="top-row">
+    <div class="summary-mini">
+      <div class="s-mini">
+        <div class="ico total">🏗</div>
+        <div><div class="num">4</div><div class="lbl">Ativas</div></div>
+      </div>
+      <div class="s-mini">
+        <div class="ico ok">✓</div>
+        <div><div class="num">2</div><div class="lbl">com RT</div></div>
+      </div>
+      <div class="s-mini">
+        <div class="ico warn">⏳</div>
+        <div><div class="num">0</div><div class="lbl">Aguard.</div></div>
+      </div>
+      <div class="s-mini">
+        <div class="ico danger">⚠</div>
+        <div><div class="num">2</div><div class="lbl">SEM RT</div></div>
+      </div>
+    </div>
+
+    <div class="compl-side">
+      <h4>Distribuição por complexidade <small>NBR 16280</small></h4>
+      <div class="compl-bar">
+        <div class="seg baixa" style="flex:1">1</div>
+        <div class="seg media" style="flex:1">1</div>
+        <div class="seg alta" style="flex:2">2</div>
+      </div>
+      <div class="compl-legend">
+        <div class="ll"><span class="sw" style="background:var(--baixa)"></span>Baixa — pintura, revestimento</div>
+        <div class="ll"><span class="sw" style="background:var(--media)"></span>Média — AC, rebaixamento</div>
+        <div class="ll"><span class="sw" style="background:var(--alta)"></span>Alta — hidráulica, elétrica, gás</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CORPO 2 COLUNAS ── -->
+  <div class="body-row">
+
+    <!-- COLUNA ESQUERDA — TOOLBAR + LISTA -->
+    <div>
+      <div class="toolbar">
+        <div class="search"><input placeholder="Buscar unidade, RT, serviço..."/></div>
+        <button class="filter active">Todas<span class="ct">4</span></button>
+        <button class="filter">Com RT<span class="ct">2</span></button>
+        <button class="filter">Sem RT<span class="ct">2</span></button>
+        <button class="filter">Alta<span class="ct">2</span></button>
+        <button class="filter">+ Concluídas</button>
+      </div>
+
+      <div class="r-list">
+        <div class="lh">
+          <div>Unidade</div>
+          <div>Serviços</div>
+          <div>Autorização</div>
+          <div>Complex.</div>
+          <div></div>
+        </div>
+
+        <div class="row">
+          <div class="apto">A·101</div>
+          <div class="servs">Hidráulica · Elétrica · Revest.<small>📌 Reforma completa de banheiro</small></div>
+          <div class="auth ok">✓ Eng. Maria Souza<small>CREA 5063789 · ART 2026/4521</small></div>
+          <div><span class="compl-badge alta">alta</span></div>
+          <div class="acao"><button>Vistoria</button></div>
+        </div>
+
+        <div class="row">
+          <div class="apto">A·304</div>
+          <div class="servs">Pintura · Revest.<small>📌 Sala e quartos</small></div>
+          <div class="auth ok">✓ Diagnóstika<small>ART nossa · MC-2026-0007</small></div>
+          <div><span class="compl-badge baixa">baixa</span></div>
+          <div class="acao"><button>Vistoria</button></div>
+        </div>
+
+        <div class="row semrt">
+          <div class="apto">B·502</div>
+          <div class="servs">Gás · Hidráulica<small>📌 Cozinha — declarado mas sem ART</small></div>
+          <div class="auth semrt">⚠ Sem RT<small>Notificado · aguardando</small></div>
+          <div><span class="compl-badge alta">alta</span></div>
+          <div class="acao"><button class="warn">Notificar</button></div>
+        </div>
+
+        <div class="row semrt">
+          <div class="apto">B·705</div>
+          <div class="servs">Rebaixamento · AC<small>📌 Sala — declarado mas sem ART</small></div>
+          <div class="auth semrt">⚠ Sem RT<small>Pendente contato</small></div>
+          <div><span class="compl-badge media">média</span></div>
+          <div class="acao"><button class="warn">Notificar</button></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA — 4 cards laterais -->
+    <div class="right-col">
+
+      <!-- MAPA por bloco -->
+      <div class="right-card">
+        <h4>🗺 Mapa de unidades <small>clique p/ ver detalhe</small></h4>
+        <div class="bloco-row">
+          <div class="b-lbl">Bloco A</div>
+          <div class="unit-grid">
+            <div class="unit">101</div>
+            <div class="unit ref-alta" title="A-101 · alta">101</div>
+            <div class="unit">102</div>
+            <div class="unit">103</div>
+            <div class="unit">201</div>
+            <div class="unit">202</div>
+            <div class="unit">203</div>
+            <div class="unit">301</div>
+            <div class="unit">302</div>
+            <div class="unit">303</div>
+            <div class="unit ref-baixa" title="A-304 · baixa">304</div>
+          </div>
+        </div>
+        <div class="bloco-row">
+          <div class="b-lbl">Bloco B</div>
+          <div class="unit-grid">
+            <div class="unit">101</div><div class="unit">102</div><div class="unit">201</div><div class="unit">202</div>
+            <div class="unit">301</div><div class="unit">401</div>
+            <div class="unit ref-semrt" title="B-502 · sem RT">502</div>
+            <div class="unit">503</div><div class="unit">601</div><div class="unit">602</div><div class="unit">603</div>
+            <div class="unit ref-semrt" title="B-705 · sem RT">705</div>
+          </div>
+        </div>
+        <div class="mapa-legenda">
+          <div class="leg"><span class="sw" style="background:var(--baixa)"></span>Baixa</div>
+          <div class="leg"><span class="sw" style="background:var(--media)"></span>Média</div>
+          <div class="leg"><span class="sw" style="background:var(--alta)"></span>Alta</div>
+          <div class="leg"><span class="sw" style="border:2px dashed var(--red);background:#fff"></span>Sem RT</div>
+        </div>
+      </div>
+
+      <!-- RTs frequentes -->
+      <div class="right-card">
+        <h4>👷 RTs frequentes <small>2026</small></h4>
+        <div class="rt-list">
+          <div class="rt-item">
+            <div class="rt-avatar">MS</div>
+            <div class="rt-info"><b>Eng. Maria Souza</b><small>CREA 5063789-SP · 2 reformas</small></div>
+            <div class="rt-ct">2</div>
+          </div>
+          <div class="rt-item">
+            <div class="rt-avatar">JS</div>
+            <div class="rt-info"><b>Eng. João Salles</b><small>CREA 4451200-SP · 1 reforma</small></div>
+            <div class="rt-ct">1</div>
+          </div>
+          <div class="rt-item">
+            <div class="rt-avatar" style="background:rgba(21,91,103,.15);color:var(--teal)">DK</div>
+            <div class="rt-info"><b>Diagnóstika</b><small>nossas ARTs emitidas · 1</small></div>
+            <div class="rt-ct">1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ALERTAS -->
+      <div class="alert-card">
+        <h4>⚠ Alertas (2)</h4>
+        <ul>
+          <li><b>B-502</b> mexendo em gás + hidráulica há 3 dias sem RT — risco alto.</li>
+          <li><b>B-705</b> notificada há 5 dias sem resposta — escalonar p/ síndico.</li>
+        </ul>
+      </div>
+
+      <!-- PRÓXIMAS VISTORIAS -->
+      <div class="right-card">
+        <h4>🔍 Próximas vistorias</h4>
+        <div class="vis-item">
+          <div class="dt">29/05</div>
+          <div class="desc"><b>A·101</b><small>Vistoria intermediária · banheiro</small></div>
+        </div>
+        <div class="vis-item">
+          <div class="dt">05/06</div>
+          <div class="desc"><b>A·304</b><small>Vistoria final · pintura</small></div>
+        </div>
+        <div class="vis-item">
+          <div class="dt">—</div>
+          <div class="desc"><b>B·502</b><small>Agendar visita de regularização</small></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="note">
+  <b>✓ O que mudou da v1 → v3:</b>
+  <ul>
+    <li><b>Sumário + Complexidade lado a lado</b> (não mais empilhados verticalmente) — economiza ~80px</li>
+    <li><b>Lista + 4 cards laterais em 2 colunas</b> (1.6:1) — sem espaço vazio</li>
+    <li><b>Toolbar com busca + filtros chip</b> — onde antes só tinha botão Lista/Mapa solto</li>
+    <li><b>Cards laterais</b> que não existiam:
+      <ul style="margin-top:4px">
+        <li>🗺 Mapa por bloco (sempre visível, não mais toggle)</li>
+        <li>👷 RTs frequentes — saber quem trabalha mais no condomínio (insights de RT recorrente)</li>
+        <li>⚠ Alertas — situações de risco textualmente explicadas</li>
+        <li>🔍 Próximas vistorias — calendário de retorno</li>
+      </ul>
+    </li>
+    <li><b>Coluna "Complexidade" mais estreita</b> (badge curto) — libera espaço pra outras colunas</li>
+    <li><b>Action buttons consistentes</b> — borda colorida transparente, hover preenche</li>
+  </ul>
+</div>
+
+<script src="__annot.js"></script>
+</body>
+</html>

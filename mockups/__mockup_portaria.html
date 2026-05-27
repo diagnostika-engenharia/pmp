@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Mockup — Portaria + Histórico de Vistorias</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--teal:#155B67;--teal-dk:#0D3C44;--turq:#00B4AC;--turq-dk:#008B85;
+--lime:#8DB72A;--text:#1A2E31;--text2:#4A6568;--gray:#F0F4F5;--gray2:#E0EAEC;
+--gray3:#A8BFC2;--gray4:#5A7A7E;--red:#C00000;--green:#1B8A4A;--purple:#7D3C98;
+--baixa:#1B8A4A;--media:#E65100;--alta:#C00000}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#F4F8F9;color:var(--text);font-size:14px;line-height:1.5;padding:18px}
+h1{font-size:22px;color:var(--teal-dk);margin-bottom:6px}
+.intro{font-size:13px;color:var(--text2);margin-bottom:18px;max-width:920px}
+h2{font-size:17px;margin:30px 0 10px;padding:9px 14px;border-left:4px solid;border-radius:0 8px 8px 0}
+h2.t1{color:var(--teal);border-color:var(--teal);background:rgba(21,91,103,.08)}
+h2.t2{color:#7D3C98;border-color:#7D3C98;background:rgba(125,60,152,.08)}
+h2.t3{color:#E65100;border-color:#E65100;background:rgba(230,81,0,.08)}
+h3.sub{font-size:12.5px;color:var(--text2);font-weight:600;font-style:italic;margin:-4px 0 14px}
+
+.frame{background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,.06);max-width:1300px;border:1px solid var(--gray2);margin-bottom:8px;padding:16px}
+.frame.dark{background:linear-gradient(135deg,#0D3C44,#155B67);color:#fff}
+
+/* ─── PARTE 1 — HISTÓRICO DE VISTORIAS POR UNIDADE ─── */
+.unit-row{background:#fff;border:1px solid var(--gray2);border-radius:8px;margin-bottom:8px;overflow:hidden}
+.unit-row.expanded{border-color:var(--turq);box-shadow:0 4px 12px rgba(0,180,172,.15)}
+.unit-row .head{display:grid;grid-template-columns:60px 1fr 130px 90px 90px 30px;gap:8px;padding:10px 14px;cursor:pointer;align-items:center;font-size:12px}
+.unit-row .head:hover{background:rgba(21,91,103,.03)}
+.unit-row .apto{font-weight:800;color:var(--text);font-family:'SF Mono',Menlo,monospace;font-size:13px}
+.unit-row .servs{color:var(--text);line-height:1.3;font-size:11.5px}
+.unit-row .servs small{color:var(--text2);font-size:10px;display:block;margin-top:1px}
+.unit-row .auth{font-size:10.5px;line-height:1.3;font-weight:600}
+.unit-row .auth.ok{color:var(--green)}
+.unit-row .auth.semrt{color:var(--red)}
+.unit-row .auth small{font-weight:500;color:var(--text2);font-size:9.5px;display:block}
+.unit-row .compl-badge{display:inline-flex;justify-content:center;padding:3px 6px;border-radius:4px;font-size:10px;font-weight:800;color:#fff;text-transform:uppercase;letter-spacing:.3px;width:fit-content}
+.unit-row .compl-badge.baixa{background:var(--baixa)}
+.unit-row .compl-badge.media{background:var(--media)}
+.unit-row .compl-badge.alta{background:var(--alta)}
+.unit-row .vist-count{font-size:10px;color:var(--text2);text-align:center;font-weight:600}
+.unit-row .vist-count b{font-size:14px;color:var(--text);display:block}
+.unit-row .caret{color:var(--text2);font-size:14px;text-align:center;transition:transform .2s}
+.unit-row.expanded .caret{transform:rotate(180deg);color:var(--turq)}
+
+/* TIMELINE DE VISTORIAS DENTRO DA UNIT-ROW */
+.vist-timeline{padding:14px 18px 16px;background:linear-gradient(180deg,rgba(0,180,172,.05),transparent);border-top:1px solid rgba(0,180,172,.2)}
+.vist-timeline h5{font-size:11px;color:var(--turq-dk);font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.tl-line{position:relative;padding-left:24px;border-left:2px solid var(--gray2);margin-left:6px}
+.tl-item{position:relative;margin-bottom:10px;padding-bottom:10px;border-bottom:1px dashed var(--gray2)}
+.tl-item:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.tl-item::before{content:'';position:absolute;left:-32px;top:4px;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid}
+.tl-item.aprovada::before{border-color:var(--green);background:var(--green)}
+.tl-item.pendente::before{border-color:#FBC02D;background:#FBC02D}
+.tl-item.reprovada::before{border-color:var(--red);background:var(--red)}
+.tl-item.programada::before{border-color:var(--turq);background:#fff}
+.tl-item .top{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.tl-item .dt{font-weight:800;color:var(--text);font-family:'SF Mono',Menlo,monospace;font-size:12px}
+.tl-item .tipo{font-size:11px;font-weight:700;color:var(--text)}
+.tl-item .resultado{padding:2px 7px;border-radius:4px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.3px}
+.tl-item .resultado.aprovada{background:rgba(27,138,74,.15);color:var(--green)}
+.tl-item .resultado.pendente{background:rgba(251,192,45,.2);color:#8B5A0F}
+.tl-item .resultado.reprovada{background:rgba(192,0,0,.12);color:var(--red)}
+.tl-item .resultado.programada{background:rgba(0,180,172,.15);color:var(--turq-dk)}
+.tl-item .by{font-size:11px;color:var(--text2);margin-left:auto}
+.tl-item .desc{font-size:11.5px;color:var(--text2);margin-top:4px;line-height:1.45}
+.tl-item .anexos{display:flex;gap:5px;margin-top:6px;font-size:10px}
+.tl-item .anex{background:var(--gray);padding:2px 7px;border-radius:5px;color:var(--text2);font-weight:600}
+
+.add-vist{display:inline-flex;align-items:center;gap:5px;background:var(--turq);color:#fff;border:none;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-top:8px;font-family:inherit}
+.add-vist:hover{background:var(--turq-dk)}
+
+/* ─── PARTE 2 — PORTARIA ─── */
+.portaria-mockup{background:#1a1a1a;color:#fff;border-radius:12px;padding:0;overflow:hidden;max-width:780px;border:1px solid #333}
+.portaria-mockup .head{background:linear-gradient(135deg,#0D3C44,#155B67);padding:14px 18px;display:flex;align-items:center;gap:10px}
+.portaria-mockup .head .logo{width:32px;height:32px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;color:var(--teal);font-weight:800}
+.portaria-mockup .head .info{flex:1}
+.portaria-mockup .head h3{font-size:16px;font-weight:700}
+.portaria-mockup .head .sub{font-size:11px;opacity:.7}
+.portaria-mockup .head .right{font-size:11px;opacity:.85;text-align:right}
+
+.port-body{padding:16px 18px}
+.port-search{background:#2a2a2a;border:1px solid #444;border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;width:100%;outline:none;font-family:inherit;margin-bottom:14px}
+.port-search:focus{border-color:var(--turq)}
+
+.port-units{display:grid;grid-template-columns:repeat(auto-fill,minmax(70px,1fr));gap:6px;margin-bottom:14px}
+.port-u{background:#2a2a2a;border:1px solid #444;border-radius:6px;padding:11px 6px;text-align:center;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;color:rgba(255,255,255,.85)}
+.port-u:hover{background:#3a3a3a;border-color:var(--turq)}
+.port-u.has-art{border-color:rgba(27,138,74,.6);background:rgba(27,138,74,.1)}
+.port-u.no-art{border-color:rgba(192,0,0,.6);background:rgba(192,0,0,.1)}
+.port-u .ind{font-size:8px;opacity:.7;text-transform:uppercase;letter-spacing:.3px;display:block;margin-top:2px}
+
+.port-form{background:#2a2a2a;border-radius:8px;padding:14px;margin-bottom:14px}
+.port-form h4{font-size:12px;color:var(--turq);text-transform:uppercase;letter-spacing:.4px;font-weight:800;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.port-form .field{margin-bottom:10px}
+.port-form .field label{font-size:10.5px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.3px;font-weight:700;display:block;margin-bottom:4px}
+.port-form .field input,.port-form .field select{width:100%;background:#1a1a1a;border:1px solid #555;border-radius:6px;padding:9px 12px;color:#fff;font-size:13px;outline:none;font-family:inherit}
+.port-form .field input:focus,.port-form .field select:focus{border-color:var(--turq)}
+.port-form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.port-form .check-rt{background:rgba(192,0,0,.15);border:1px solid rgba(192,0,0,.4);border-radius:6px;padding:9px 12px;font-size:11.5px;color:#FFB4B4;margin-top:8px}
+.port-form .check-rt b{color:#FF8080}
+
+.port-btn{background:var(--turq);color:#fff;border:none;padding:12px;border-radius:8px;width:100%;font-size:14px;font-weight:800;cursor:pointer;text-transform:uppercase;letter-spacing:.4px;font-family:inherit}
+.port-btn:hover{background:var(--turq-dk)}
+
+.port-recent{background:#2a2a2a;border-radius:8px;padding:12px 14px}
+.port-recent h4{font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.4px;font-weight:800;margin-bottom:8px}
+.port-recent .item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid #333;font-size:11.5px;align-items:center}
+.port-recent .item:last-child{border:none}
+.port-recent .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.port-recent .dot.ok{background:var(--green)}
+.port-recent .dot.alert{background:var(--red)}
+.port-recent .hora{color:rgba(255,255,255,.5);font-family:'SF Mono',Menlo,monospace;font-size:10.5px;flex-shrink:0}
+.port-recent .desc{flex:1;color:rgba(255,255,255,.85)}
+.port-recent .desc b{color:#fff}
+
+/* ─── PARTE 3 — NOTIFICATIONS ─── */
+.notif-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:8px}
+@media(max-width:900px){.notif-row{grid-template-columns:1fr}}
+
+.notif-card{background:#fff;border:1px solid var(--gray2);border-radius:10px;overflow:hidden}
+.notif-card.diag{border-top:3px solid var(--turq)}
+.notif-card.sindico{border-top:3px solid #7D3C98}
+.notif-card .head{padding:10px 14px;background:linear-gradient(180deg,rgba(255,255,255,.5),transparent);border-bottom:1px solid var(--gray2);display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700}
+.notif-card.diag .head{color:var(--turq-dk)}
+.notif-card.sindico .head{color:#7D3C98}
+.notif-card .body{padding:12px 14px}
+
+.notif{display:flex;gap:10px;padding:10px 12px;border-radius:8px;background:#fff;border:1px solid var(--gray2);margin-bottom:8px;font-size:12px;align-items:flex-start;animation:slideIn .3s ease-out}
+.notif.alert{background:rgba(192,0,0,.04);border-color:rgba(192,0,0,.2);border-left:3px solid var(--red)}
+.notif.ok{background:rgba(27,138,74,.04);border-color:rgba(27,138,74,.2);border-left:3px solid var(--green)}
+.notif.warn{background:rgba(230,81,0,.04);border-color:rgba(230,81,0,.2);border-left:3px solid var(--media)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.notif .ico-n{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.notif.alert .ico-n{background:rgba(192,0,0,.15);color:var(--red)}
+.notif.ok .ico-n{background:rgba(27,138,74,.15);color:var(--green)}
+.notif.warn .ico-n{background:rgba(230,81,0,.15);color:var(--media)}
+.notif .content{flex:1}
+.notif .content b{display:block;color:var(--text);font-weight:600;line-height:1.3}
+.notif .content small{color:var(--text2);font-size:10.5px;display:block;margin-top:2px;line-height:1.4}
+.notif .hora{font-size:10px;color:var(--text2);font-family:'SF Mono',Menlo,monospace;align-self:flex-start;flex-shrink:0}
+
+/* ─── FLUXO ─── */
+.fluxo{background:linear-gradient(135deg,rgba(0,180,172,.06),rgba(21,91,103,.04));border:1px solid var(--turq);border-radius:10px;padding:14px;margin-top:14px}
+.fluxo h4{font-size:12px;color:var(--teal-dk);font-weight:800;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px}
+.fluxo-steps{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:6px;align-items:center}
+@media(max-width:900px){.fluxo-steps{grid-template-columns:1fr;gap:8px}}
+.fluxo-step{background:#fff;border:1px solid var(--gray2);border-radius:8px;padding:10px;font-size:11.5px;text-align:center}
+.fluxo-step .n{display:inline-block;width:22px;height:22px;background:var(--turq);color:#fff;border-radius:50%;font-weight:800;font-size:11px;line-height:22px;margin-bottom:5px}
+.fluxo-step b{display:block;color:var(--text);font-weight:700;margin-bottom:3px}
+.fluxo-step small{color:var(--text2);font-size:10.5px;line-height:1.4}
+.fluxo-arrow{font-size:20px;color:var(--turq);font-weight:700}
+@media(max-width:900px){.fluxo-arrow{transform:rotate(90deg)}}
+
+.note{background:#FFF8E1;border-left:4px solid #FBC02D;padding:10px 14px;font-size:12.5px;margin:14px 0;border-radius:0 8px 8px 0}
+.note b{color:#8B5A0F}
+.note ul{margin:6px 0 0 18px}
+.note.ok{background:#E8F5E9;border-color:var(--green)}
+.note.ok b{color:#0F5A2A}
+</style>
+</head>
+<body>
+
+<h1>Mockup — Portaria + Histórico de Vistorias</h1>
+<p class="intro">
+Combinação das suas 2 ideias: (1) cada unidade pode ter múltiplas vistorias com timeline,
+(2) portaria como sensor de entrada de prestadores, com cruzamento automático de ART + notificações em tempo real para Diagnóstika e Síndica.
+</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 class="t1">📋 PARTE 1 — Histórico de vistorias por unidade</h2>
+<h3 class="sub">Lista de reformas. Click numa linha expande timeline de todas as vistorias realizadas + próximas.</h3>
+
+<div class="frame">
+
+  <div class="unit-row expanded">
+    <div class="head">
+      <div class="apto">A·101</div>
+      <div class="servs">Hidráulica · Elétrica · Revest.<small>📌 Reforma completa de banheiro</small></div>
+      <div class="auth ok">✓ Eng. Maria Souza<small>CREA 5063789 · ART 2026/4521</small></div>
+      <div><span class="compl-badge alta">alta</span></div>
+      <div class="vist-count"><b>3</b>vistorias</div>
+      <div class="caret">⌃</div>
+    </div>
+
+    <!-- TIMELINE expandida -->
+    <div class="vist-timeline">
+      <h5>🔍 Histórico de vistorias (3) · próxima: 29/05</h5>
+      <div class="tl-line">
+
+        <div class="tl-item aprovada">
+          <div class="top">
+            <span class="dt">14/04/2026</span>
+            <span class="tipo">Vistoria inicial</span>
+            <span class="resultado aprovada">✓ Aprovada</span>
+            <span class="by">Eng. Claudemir Scaranello</span>
+          </div>
+          <div class="desc">Vistoria pré-obra conforme NBR 16280. Estado original documentado: pisos íntegros, revestimentos sem patologia. Banheiro autorizado para início da obra.</div>
+          <div class="anexos">
+            <span class="anex">📷 14 fotos</span>
+            <span class="anex">📄 Relatório.pdf</span>
+            <span class="anex">📋 Checklist NBR16280</span>
+          </div>
+        </div>
+
+        <div class="tl-item pendente">
+          <div class="top">
+            <span class="dt">02/05/2026</span>
+            <span class="tipo">Vistoria intermediária</span>
+            <span class="resultado pendente">⚠ Pendências</span>
+            <span class="by">Eng. Claudemir Scaranello</span>
+          </div>
+          <div class="desc">Inspeção durante a obra. Hidráulica realizada com PEX (conforme manual Planalto). 2 pendências: ajuste de inclinação do ralo, e isolamento de junção de tubo no shaft. RT notificada.</div>
+          <div class="anexos">
+            <span class="anex">📷 22 fotos</span>
+            <span class="anex">📋 Pendências</span>
+          </div>
+        </div>
+
+        <div class="tl-item programada">
+          <div class="top">
+            <span class="dt">29/05/2026</span>
+            <span class="tipo">Vistoria final</span>
+            <span class="resultado programada">📅 Programada</span>
+            <span class="by">a definir</span>
+          </div>
+          <div class="desc">Vistoria de conclusão. Verificar resolução das 2 pendências da vistoria intermediária + teste de estanqueidade hidráulica conforme NBR 5626.</div>
+        </div>
+
+      </div>
+      <button class="add-vist">+ Nova vistoria</button>
+    </div>
+  </div>
+
+  <!-- Outras unidades colapsadas -->
+  <div class="unit-row">
+    <div class="head">
+      <div class="apto">A·304</div>
+      <div class="servs">Pintura · Revest.<small>📌 Sala e quartos</small></div>
+      <div class="auth ok">✓ Diagnóstika<small>ART nossa · MC-2026-0007</small></div>
+      <div><span class="compl-badge baixa">baixa</span></div>
+      <div class="vist-count"><b>1</b>vistoria</div>
+      <div class="caret">⌃</div>
+    </div>
+  </div>
+
+  <div class="unit-row">
+    <div class="head" style="background:rgba(192,0,0,.04)">
+      <div class="apto">B·502</div>
+      <div class="servs">Gás · Hidráulica<small>📌 Cozinha — declarado mas sem ART</small></div>
+      <div class="auth semrt">⚠ Sem RT<small>Notificado</small></div>
+      <div><span class="compl-badge alta">alta</span></div>
+      <div class="vist-count" style="color:var(--red)"><b>0</b>vistorias</div>
+      <div class="caret">⌃</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note ok">
+  <b>✓ O que o histórico de vistorias resolve:</b>
+  <ul>
+    <li>Cada unidade pode ter <b>quantas vistorias forem necessárias</b> — não há limite arbitrário</li>
+    <li>Tipos: <b>inicial</b> (NBR 16280 obriga), <b>intermediária</b>, <b>final</b>, <b>re-vistoria</b></li>
+    <li>Resultados: <b>Aprovada / Pendências / Reprovada / Programada</b></li>
+    <li>Cada vistoria liga ao engenheiro responsável + anexos (fotos, relatório PDF, checklist)</li>
+    <li>Próxima vistoria visível no topo → engenheiro vê o que tem pra fazer sem sair da tela</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 class="t2">🚪 PARTE 2 — Tela da PORTARIA (acesso simplificado)</h2>
+<h3 class="sub">Tablet/celular da portaria. Login com PIN específico. Porteiro registra entrada de prestador em 3 toques.</h3>
+
+<div class="frame" style="background:transparent;border:none;padding:0;box-shadow:none">
+<div class="portaria-mockup">
+
+  <div class="head">
+    <div class="logo">D</div>
+    <div class="info">
+      <h3>🚪 Portaria — Monte Carlo</h3>
+      <div class="sub">Registro de entrada de prestadores</div>
+    </div>
+    <div class="right">
+      <div>Porteiro: <b>José</b></div>
+      <div style="opacity:.6;font-size:10px">14:23 · 27/05</div>
+    </div>
+  </div>
+
+  <div class="port-body">
+
+    <!-- Seleção de unidade -->
+    <div style="margin-bottom:6px;font-size:11px;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.4px;font-weight:700">1. Toque na unidade onde o prestador vai entrar:</div>
+
+    <input class="port-search" placeholder="🔍 Buscar (ex: 502, B-502...)" value="">
+
+    <div class="port-units">
+      <div class="port-u">A·101 <span class="ind">A</span></div>
+      <div class="port-u">A·102</div>
+      <div class="port-u">A·201</div>
+      <div class="port-u">A·202</div>
+      <div class="port-u">A·301</div>
+      <div class="port-u has-art">A·304 <span class="ind">📜 c/ART</span></div>
+      <div class="port-u">A·401</div>
+      <div class="port-u">B·101</div>
+      <div class="port-u">B·201</div>
+      <div class="port-u">B·301</div>
+      <div class="port-u no-art" style="ring:2px solid var(--turq)"><b style="color:#FFB4B4">B·502</b> <span class="ind" style="color:#FFB4B4">⚠ SEM ART</span></div>
+      <div class="port-u">B·601</div>
+      <div class="port-u no-art">B·705 <span class="ind" style="color:#FFB4B4">⚠ SEM ART</span></div>
+    </div>
+
+    <!-- Form de registro -->
+    <div class="port-form">
+      <h4>2. Dados do prestador (entrada em B·502)</h4>
+
+      <div class="row2">
+        <div class="field">
+          <label>Nome do prestador</label>
+          <input value="Carlos Mendes">
+        </div>
+        <div class="field">
+          <label>Empresa</label>
+          <input value="Encanador autônomo">
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label>Doc / RG</label>
+          <input placeholder="opcional" value="">
+        </div>
+        <div class="field">
+          <label>Tipo de serviço</label>
+          <select>
+            <option>Hidráulica</option>
+            <option>Elétrica</option>
+            <option>Gás</option>
+            <option>Pintura</option>
+            <option>Mudança</option>
+            <option>Outros</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="check-rt">
+        <b>⚠ ATENÇÃO</b> — Esta unidade NÃO tem ART registrada. Sistema vai notificar Diagnóstika e síndica automaticamente após registro.
+      </div>
+    </div>
+
+    <button class="port-btn">▶ Registrar entrada · 14:23</button>
+
+    <!-- Últimos registros -->
+    <div class="port-recent" style="margin-top:16px">
+      <h4>Últimas entradas registradas hoje</h4>
+      <div class="item">
+        <span class="dot ok"></span>
+        <span class="hora">13:45</span>
+        <span class="desc"><b>A·304</b> · Pintor — empresa "Cor & Cia"</span>
+      </div>
+      <div class="item">
+        <span class="dot ok"></span>
+        <span class="hora">11:20</span>
+        <span class="desc"><b>A·101</b> · Eng. Maria Souza (RT da reforma)</span>
+      </div>
+      <div class="item">
+        <span class="dot alert"></span>
+        <span class="hora">09:15</span>
+        <span class="desc"><b>B·705</b> · Pedreiro — <i>sem ART, alertas enviados</i></span>
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="note">
+  <b>Características da interface:</b>
+  <ul>
+    <li><b>Visual escuro</b> — adequado pra portaria com tablet/monitor o dia inteiro</li>
+    <li><b>Botões grandes</b> — uso por porteiro sem mouse, dedos no tablet</li>
+    <li><b>Indicação visual ART/sem ART</b> nas unidades — porteiro vê de imediato</li>
+    <li><b>Confirmação visual antes de registrar</b> — alert vermelho se unidade sem ART</li>
+    <li><b>3 cliques pra registrar</b>: unidade → nome → botão final</li>
+    <li><b>Histórico do dia visível</b> — porteiro confere o que registrou</li>
+    <li><b>Login com PIN curto</b> (ex: 4 dígitos) — entrada simples no início do turno</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 class="t3">🔔 PARTE 3 — Notificações em tempo real (Diagnóstika + Síndica)</h2>
+<h3 class="sub">Quando porteiro registra entrada em apto SEM ART (B·502), as duas plataformas recebem alerta simultâneo via Realtime.</h3>
+
+<div class="frame">
+
+  <div class="fluxo">
+    <h4>🔄 Fluxo automatizado</h4>
+    <div class="fluxo-steps">
+      <div class="fluxo-step">
+        <div class="n">1</div>
+        <b>Porteiro registra</b>
+        <small>14:23 · prestador em B·502</small>
+      </div>
+      <div class="fluxo-arrow">→</div>
+      <div class="fluxo-step">
+        <div class="n">2</div>
+        <b>Sistema cruza</b>
+        <small>Tem ART? Tem RT? Última vistoria?</small>
+      </div>
+      <div class="fluxo-arrow">→</div>
+      <div class="fluxo-step">
+        <div class="n">3</div>
+        <b>Notifica realtime</b>
+        <small>Supabase Realtime · WebSocket</small>
+      </div>
+      <div class="fluxo-arrow">→</div>
+      <div class="fluxo-step">
+        <div class="n">4</div>
+        <b>Aparece em 2 portais</b>
+        <small>PMP + Síndica (push + toast)</small>
+      </div>
+    </div>
+  </div>
+
+  <div class="notif-row">
+
+    <!-- DIAGNÓSTIKA (PMP) -->
+    <div class="notif-card diag">
+      <div class="head">🏗 Painel Técnico Diagnóstika</div>
+      <div class="body">
+
+        <div class="notif alert">
+          <div class="ico-n">⚠</div>
+          <div class="content">
+            <b>Prestador em apto SEM ART — B·502</b>
+            <small>Encanador autônomo Carlos Mendes entrou agora.<br>📞 Acionar síndica · 📋 Notificar morador · 🔍 Programar vistoria emergencial</small>
+          </div>
+          <div class="hora">agora</div>
+        </div>
+
+        <div class="notif ok">
+          <div class="ico-n">✓</div>
+          <div class="content">
+            <b>Entrada normal — A·101</b>
+            <small>RT Maria Souza chegou para acompanhar obra. Reforma com ART OK.</small>
+          </div>
+          <div class="hora">11:20</div>
+        </div>
+
+        <div class="notif warn">
+          <div class="ico-n">⚠</div>
+          <div class="content">
+            <b>Entrada SEM ART — B·705</b>
+            <small>Pedreiro registrado hoje cedo. Síndica já foi notificada. Caso ainda aberto.</small>
+          </div>
+          <div class="hora">09:15</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- SÍNDICA -->
+    <div class="notif-card sindico">
+      <div class="head">📱 Portal Síndica (Ana Paula)</div>
+      <div class="body">
+
+        <div class="notif alert">
+          <div class="ico-n">🔔</div>
+          <div class="content">
+            <b>Atenção — entrada em apto sem ART</b>
+            <small>A portaria registrou entrada de prestador <b>Carlos Mendes</b> (encanador) no apto <b>B·502</b> às 14:23.<br>Este apto declarou reforma mas não apresentou ART. Diagnóstika foi acionada automaticamente.</small>
+          </div>
+          <div class="hora">agora</div>
+        </div>
+
+        <div class="notif ok">
+          <div class="ico-n">📋</div>
+          <div class="content">
+            <b>Movimento normal — A·101</b>
+            <small>RT Maria Souza (CREA 5063789) chegou ao apto.</small>
+          </div>
+          <div class="hora">11:20</div>
+        </div>
+
+        <div class="notif warn">
+          <div class="ico-n">⚠</div>
+          <div class="content">
+            <b>Caso B·705 ainda em aberto</b>
+            <small>Prestador entrou de manhã em apto sem ART. Considere notificar formalmente o morador.</small>
+          </div>
+          <div class="hora">09:15</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="note ok">
+  <b>✓ O que esse fluxo entrega:</b>
+  <ul>
+    <li><b>Detecção em tempo real</b> de reforma irregular — não esperamos chamado, a portaria avisa</li>
+    <li><b>Auditoria completa</b> — quem entrou, em qual unidade, em qual horário, e cruza com ART/RT</li>
+    <li><b>Síndica e Diagnóstika atuam em paralelo</b> — síndica notifica morador, Diagnóstika prepara vistoria</li>
+    <li><b>Histórico permanente</b> — em caso de problema futuro (vazamento, incêndio), há registro de quem entrou onde</li>
+    <li><b>Defesa do condomínio</b> — síndica tem prova documental que tentou agir contra obra clandestina</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<h2 style="color:var(--teal);border-color:var(--turq);background:rgba(0,180,172,.08)">🛠 Arquitetura técnica resumida</h2>
+
+<div class="frame">
+  <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+    <thead>
+      <tr style="background:var(--gray)">
+        <th style="padding:10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2)">Componente</th>
+        <th style="padding:10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2)">Tecnologia</th>
+        <th style="padding:10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--text2)">Tempo de impl.</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td style="padding:10px;border:1px solid var(--gray2)">Histórico de vistorias por unidade</td><td style="padding:10px;border:1px solid var(--gray2)">Tabela <code>vistorias_reforma</code> (id, demanda_id, data, tipo, resultado, by, anexos JSONB)</td><td style="padding:10px;border:1px solid var(--gray2)">~4h</td></tr>
+      <tr><td style="padding:10px;border:1px solid var(--gray2)">Portal /portaria/ (URL pública)</td><td style="padding:10px;border:1px solid var(--gray2)">Nova página + PIN específico do condomínio (similar ao morador.html)</td><td style="padding:10px;border:1px solid var(--gray2)">~6h</td></tr>
+      <tr><td style="padding:10px;border:1px solid var(--gray2)">Tabela de entradas</td><td style="padding:10px;border:1px solid var(--gray2"><code>entradas_prestadores</code> (id, condo, unidade, prestador, doc, tipo_serv, hora, tem_art_cache)</td><td style="padding:10px;border:1px solid var(--gray2)">~2h</td></tr>
+      <tr><td style="padding:10px;border:1px solid var(--gray2)">Cruzamento automático ART</td><td style="padding:10px;border:1px solid var(--gray2)">Trigger ou função RPC ao inserir — verifica se unidade tem ART ativa</td><td style="padding:10px;border:1px solid var(--gray2)">~3h</td></tr>
+      <tr><td style="padding:10px;border:1px solid var(--gray2)">Notification realtime</td><td style="padding:10px;border:1px solid var(--gray2)">Supabase Realtime (canal já existe) — só plugar channel novo</td><td style="padding:10px;border:1px solid var(--gray2)">~2h</td></tr>
+      <tr><td style="padding:10px;border:1px solid var(--gray2)">Toast/popup nos 2 portais</td><td style="padding:10px;border:1px solid var(--gray2)">Componente novo nos dois apps (PMP + Sindico)</td><td style="padding:10px;border:1px solid var(--gray2)">~4h</td></tr>
+    </tbody>
+  </table>
+  <div style="font-size:12.5px;margin-top:10px;color:var(--text2)"><b>Total estimado:</b> ~21h de implementação · ~3 dias de trabalho</div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 🖊 FERRAMENTA DE ANOTAÇÃO (caneta + caixa de texto) -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+
+<script src="__annot.js"></script>
+</body>
+</html>
