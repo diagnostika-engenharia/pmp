@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
 <meta name="theme-color" content="#155B67">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -593,8 +593,11 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .fe-hint{font-size:11px;color:#999;text-align:center;padding:4px}
 
 /* Camera capture */
-.cam-view{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:1000}
-#cam-video{flex:1;width:100%;object-fit:contain;background:#000;min-height:0}
+.cam-view{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:1000;touch-action:none;overscroll-behavior:contain}
+#cam-video-wrap{flex:1;width:100%;background:#000;min-height:0;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;touch-action:none}
+#cam-video{width:100%;height:100%;object-fit:contain;background:#000;transform-origin:center center;transition:transform .12s ease-out;will-change:transform}
+.cam-zoom-indicator{position:absolute;top:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:5px 12px;border-radius:14px;font-size:12px;font-weight:700;letter-spacing:.3px;opacity:0;transition:opacity .25s;pointer-events:none;z-index:3}
+.cam-zoom-indicator.show{opacity:1}
 .cam-topbar{position:absolute;top:0;left:0;right:0;padding:12px;background:linear-gradient(to bottom,rgba(0,0,0,.7),transparent);display:flex;justify-content:space-between;align-items:center;color:#fff;z-index:2}
 .cam-topbar button{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;cursor:pointer}
 .cam-controls{padding:20px;background:#000;display:flex;align-items:center;justify-content:space-between;gap:14px}
@@ -1081,6 +1084,14 @@ let _demandasProgPMP = [];
 let _demandasProgChannel = null;
 
 let _demandasAllPMP = [];  // TODAS demandas (não só programadas)
+
+// Helper: monta URL pública para fotos de moradores (Storage) com fallback p/ base64 antigo
+function getFotoUrl(a){
+  if(!a) return '';
+  if(typeof a === 'string') return a;
+  if(a.storage_path) return 'https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/public/chamados-morador/' + a.storage_path.split('/').map(encodeURIComponent).join('/');
+  return a.url || '';
+}
 
 async function carregarDemandasProgPMP(){
   if(!sb) return;
@@ -1920,7 +1931,7 @@ function abrirDemandaPMP(id){
       </div>`:''}
       ${fotos.length?`<div style="margin-bottom:12px">
         <div style="font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">📎 ${fotos.length} anexo(s)</div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px">${fotos.map(a=>{const u=typeof a==='string'?a:a.url;const t=typeof a==='object'&&a.tipo==='video';return t?`<div style="position:relative;background:#000;aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">▶</div>`:`<img src="${u}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px">`;}).join('')}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:5px">${fotos.map(a=>{const u=getFotoUrl(a);const t=typeof a==='object'&&a.tipo==='video';return t?`<div style="position:relative;background:#000;aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px">▶</div>`:`<img src="${u}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px">`;}).join('')}</div>
       </div>`:''}
       ${d.resposta?`<div style="background:rgba(21,91,103,.10);border-left:3px solid var(--teal);padding:11px 14px;border-radius:0 8px 8px 0;margin-bottom:12px">
         <div style="font-size:10px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.4px">💬 Resposta enviada</div>
@@ -2947,10 +2958,13 @@ async function abrirCapturaFoto(itemId){
   const overlay=document.createElement('div');
   overlay.className='cam-view'; overlay.id='cam-overlay';
   overlay.innerHTML=`
-    <video id="cam-video" autoplay playsinline muted></video>
+    <div id="cam-video-wrap">
+      <video id="cam-video" autoplay playsinline muted></video>
+      <div class="cam-zoom-indicator" id="cam-zoom-ind">1.0×</div>
+    </div>
     <div class="cam-topbar">
       <button onclick="fecharCamera()">✕ Fechar</button>
-      <span style="font-size:13px;opacity:.85">📷 Capturar foto</span>
+      <span style="font-size:13px;opacity:.85">📷 Capturar foto · pinça para zoom</span>
       <button onclick="trocarCamera()" title="Alternar câmera">⇄ Câmera</button>
     </div>
     <div class="cam-controls">
@@ -2959,7 +2973,62 @@ async function abrirCapturaFoto(itemId){
       <button class="cam-btn-switch" onclick="trocarCamera()" title="Alternar">⇄</button>
     </div>`;
   document.body.appendChild(overlay);
+  iniciarPinchZoomCamera();
   await iniciarStream();
+}
+
+// Pinch-zoom no vídeo da câmera (sem zoom da página)
+let _camZoom = 1, _camPinchStart = 0, _camZoomStart = 1, _camIndTimer = null;
+function iniciarPinchZoomCamera(){
+  const wrap = document.getElementById('cam-video-wrap');
+  const vid = document.getElementById('cam-video');
+  const ind = document.getElementById('cam-zoom-ind');
+  if(!wrap || !vid) return;
+  _camZoom = 1; vid.style.transform = 'scale(1)';
+
+  const dist = (t1, t2) => Math.hypot(t2.clientX-t1.clientX, t2.clientY-t1.clientY);
+
+  function show(){
+    ind.textContent = _camZoom.toFixed(1)+'×';
+    ind.classList.add('show');
+    clearTimeout(_camIndTimer);
+    _camIndTimer = setTimeout(()=>ind.classList.remove('show'), 900);
+  }
+
+  wrap.addEventListener('touchstart', e=>{
+    if(e.touches.length===2){
+      e.preventDefault();
+      _camPinchStart = dist(e.touches[0], e.touches[1]);
+      _camZoomStart = _camZoom;
+    }
+  }, {passive:false});
+
+  wrap.addEventListener('touchmove', e=>{
+    if(e.touches.length===2 && _camPinchStart > 0){
+      e.preventDefault();
+      const d = dist(e.touches[0], e.touches[1]);
+      const ratio = d / _camPinchStart;
+      _camZoom = Math.max(1, Math.min(5, _camZoomStart * ratio));
+      vid.style.transform = 'scale('+_camZoom+')';
+      show();
+    }
+  }, {passive:false});
+
+  wrap.addEventListener('touchend', e=>{
+    if(e.touches.length<2) _camPinchStart = 0;
+  });
+
+  // Double-tap reseta zoom
+  let _lastTap = 0;
+  wrap.addEventListener('touchend', e=>{
+    const now = Date.now();
+    if(now - _lastTap < 300 && _camZoom !== 1){
+      _camZoom = 1;
+      vid.style.transform = 'scale(1)';
+      show();
+    }
+    _lastTap = now;
+  });
 }
 
 async function iniciarStream(){
@@ -3004,14 +3073,22 @@ function capturarFoto(){
   const v=document.getElementById('cam-video');
   if(!v||!v.videoWidth){ alert('Aguardando câmera carregar…'); return; }
   const c=document.createElement('canvas');
+  const z = _camZoom || 1;
+  // Calcula recorte central conforme o zoom aplicado
+  const srcW = v.videoWidth / z;
+  const srcH = v.videoHeight / z;
+  const srcX = (v.videoWidth - srcW) / 2;
+  const srcY = (v.videoHeight - srcH) / 2;
   // Limita 1600px e mantém proporção
-  const maxW=1600, r=Math.min(1,maxW/v.videoWidth);
-  c.width=Math.round(v.videoWidth*r); c.height=Math.round(v.videoHeight*r);
-  c.getContext('2d').drawImage(v,0,0,c.width,c.height);
-  const dataURL=c.toDataURL('image/jpeg',0.82);
-  const it=_camItemId;
+  const maxW = 1600;
+  const r = Math.min(1, maxW / srcW);
+  c.width = Math.round(srcW * r);
+  c.height = Math.round(srcH * r);
+  c.getContext('2d').drawImage(v, srcX, srcY, srcW, srcH, 0, 0, c.width, c.height);
+  const dataURL = c.toDataURL('image/jpeg', 0.82);
+  const it = _camItemId;
   fecharCamera();
-  abrirEditorFoto(it,dataURL);
+  abrirEditorFoto(it, dataURL);
 }
 
 function fecharCamera(){
@@ -5769,13 +5846,13 @@ function abrirDetalheDemandaPMP(id){
     if(a && a.tipo==='video'){
       return '<div style="position:relative;background:#000;aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px">▶</div>';
     }
-    const url = typeof a==='string'?a:a.url;
+    const url = getFotoUrl(a);
     return `<img src="${url}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:5px">`;
   }).join('') + '</div>' : '';
 
   const docsHtml = fotosDoc.length ? `<div style="margin-bottom:12px;padding:10px 12px;background:rgba(21,91,103,.06);border:1px solid var(--gray2);border-radius:6px">
     <div style="font-size:10.5px;font-weight:800;color:var(--teal);text-transform:uppercase;letter-spacing:.4px;margin-bottom:5px">📎 ${fotosDoc.length} documento(s) anexado(s)</div>
-    ${fotosDoc.map(doc=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><span>📄</span><a href="${doc.url}" download="${(doc.nome||'documento').replace(/"/g,'&quot;')}" target="_blank" style="color:var(--teal);text-decoration:none;font-weight:600">${(doc.nome||'arquivo').substring(0,50)}</a><span style="color:var(--text2);font-size:10.5px">${doc.tamanho?Math.round(doc.tamanho/1024)+' KB':''}</span></div>`).join('')}
+    ${fotosDoc.map(doc=>`<div style="display:flex;align-items:center;gap:6px;padding:4px 0;font-size:12px"><span>📄</span><a href="${getFotoUrl(doc)}" download="${(doc.nome||'documento').replace(/"/g,'&quot;')}" target="_blank" style="color:var(--teal);text-decoration:none;font-weight:600">${(doc.nome||'arquivo').substring(0,50)}</a><span style="color:var(--text2);font-size:10.5px">${doc.tamanho?Math.round(doc.tamanho/1024)+' KB':''}</span></div>`).join('')}
   </div>` : '';
 
   // Bloco morador
@@ -5997,7 +6074,8 @@ async function renderDocsView(main){
                 <span>${d.uploaded_em?new Date(d.uploaded_em).toLocaleDateString('pt-BR'):''}</span>
               </div>
               <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
-                <a href="${urlPublicaDoc(d.storage_path)}" target="_blank" style="background:var(--teal);color:#fff;padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:700;text-decoration:none">⬇ Abrir / Baixar</a>
+                <a href="https://diagnostika-engenharia.github.io/sindico/pdf-viewer.html?file=${encodeURIComponent(urlPublicaDoc(d.storage_path))}&nome=${encodeURIComponent(d.nome_exibicao)}" target="_blank" style="background:var(--teal);color:#fff;padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:700;text-decoration:none">👁 Visualizar</a>
+                <a href="${urlPublicaDoc(d.storage_path)}" target="_blank" download="${d.nome_exibicao}.pdf" style="background:#fff;color:var(--teal);border:1.5px solid var(--teal);padding:5px 10px;border-radius:6px;font-size:11.5px;font-weight:700;text-decoration:none">⬇ Baixar</a>
                 <button onclick="toggleVisivelDoc('${d.id}',${!d.visivel_morador})" style="background:#fff;border:1.5px solid var(--gray3);color:var(--text2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">${d.visivel_morador?'🚫 Tornar interno':'✓ Tornar visível'}</button>
                 <button onclick="excluirDoc('${d.id}','${d.storage_path}')" style="background:#fff;border:1.5px solid var(--red);color:var(--red);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑 Remover</button>
               </div>
