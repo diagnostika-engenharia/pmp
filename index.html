@@ -957,6 +957,8 @@ async function uploadVisita(v){
       assinatura_resp_doc:v.assinaturaRespDoc||null,
       assinatura_resp_funcao:v.assinaturaRespFuncao||null,
       itens_custom:v.itensCustom||null,
+      status: v.status || 'finalizada',
+      auto_saved_at: v.status==='em_andamento' ? new Date().toISOString() : null,
       device_id:getDeviceId()
     },{onConflict:'id'});
     const error=result.error;
@@ -993,6 +995,8 @@ function visitaFromRow(r){
     assinaturaEng:r.assinatura_eng, assinaturaResp:r.assinatura_resp,
     assinaturaRespNome:r.assinatura_resp_nome, assinaturaRespDoc:r.assinatura_resp_doc, assinaturaRespFuncao:r.assinatura_resp_funcao,
     itensCustom:r.itens_custom||[],
+    status: r.status || 'finalizada',
+    autoSavedAt: r.auto_saved_at,
     _updatedAt:r.updated_at
   };
 }
@@ -1710,6 +1714,7 @@ function renderHome(main){
     </div>`}).join('')}
   </div>
 
+  ${renderVisitasEmAndamentoHome()}
   ${renderDemandasProgramadasHome(hojeStr)}
 
   <div style="padding:0 16px 4px;display:flex;gap:8px">
@@ -1762,6 +1767,68 @@ function renderHome(main){
 // ═══════════════════════════════════════════════════════════════════════════
 // DEMANDAS PROGRAMADAS — agenda unificada do engenheiro
 // ═══════════════════════════════════════════════════════════════════════════
+function renderVisitasEmAndamentoHome(){
+  // Carrega visitas em andamento do localStorage histórico + rascunho local
+  let lista = [];
+  try{
+    const hist = JSON.parse(localStorage.getItem('historico')||'[]');
+    lista = hist.filter(v => v.status === 'em_andamento');
+    // Inclui rascunho local que não foi sincronizado ainda
+    const rascunho = JSON.parse(localStorage.getItem('rascunho')||'null');
+    if(rascunho && rascunho.id && rascunho.status !== 'finalizada' && !lista.find(v=>v.id===rascunho.id)){
+      lista.unshift(rascunho);
+    }
+  }catch(e){}
+  if(!lista.length) return '';
+
+  return `
+  <div class="section-title" style="display:flex;align-items:center;justify-content:space-between">
+    <span>📝 Visitas em andamento <span style="background:#E65100;color:#fff;font-size:10px;padding:2px 7px;border-radius:8px;margin-left:6px;font-weight:700">${lista.length}</span></span>
+  </div>
+  <div class="card" style="margin:0 16px 16px;overflow:hidden;border-left:4px solid #E65100">
+    ${lista.map(v=>{
+      const cd = CONDOMINIOS[v.condoId] || {nome:v.condoId, short:v.condoId, classe:'mc', cor:'#155B67'};
+      const itensCount = Object.values(v.itens||{}).filter(i=>i.status).length;
+      const dataStr = v.data ? fmtBR(v.data) : '';
+      const horaStr = v.hora || '';
+      const quandoSalvo = v.autoSavedAt || v._updatedAt;
+      const tempo = quandoSalvo ? 'salvo ' + new Date(quandoSalvo).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : 'só local';
+      return `<div onclick="retomarVisita('${v.id}')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--gray2);cursor:pointer;background:rgba(230,81,0,.03)">
+        <div class="visit-dot ${cd.classe}" style="background:#E65100"></div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:3px">
+            <span style="background:#E65100;color:#fff;font-size:9px;padding:2px 7px;border-radius:7px;font-weight:800;letter-spacing:.3px;text-transform:uppercase">⏳ em andamento</span>
+            <strong style="font-size:14px;color:var(--text)">${cd.short||cd.nome}</strong>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">${dataStr} ${horaStr} · ${itensCount} itens preenchidos</div>
+          <div style="font-size:10.5px;color:var(--gray4);margin-top:2px">💾 ${tempo}</div>
+        </div>
+        <div style="background:#E65100;color:#fff;padding:7px 14px;border-radius:8px;font-size:12px;font-weight:700">▶ Retomar</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function retomarVisita(id){
+  // Procura primeiro no rascunho (versão mais recente local)
+  let v = null;
+  try{
+    const rascunho = JSON.parse(localStorage.getItem('rascunho')||'null');
+    if(rascunho && rascunho.id===id) v = rascunho;
+    if(!v){
+      const hist = JSON.parse(localStorage.getItem('historico')||'[]');
+      v = hist.find(x=>x.id===id);
+    }
+  }catch(e){}
+  if(!v){ alert('Visita não encontrada'); return; }
+  // Restaura como visitaAtual e abre o checklist
+  visitaAtual = v;
+  novaCondoSel = v.condoId;
+  novaTipo = v.tipo||'pmp';
+  localStorage.setItem('rascunho', JSON.stringify(v));
+  navigate('checklist');
+}
+
 function renderDemandasProgramadasHome(hojeStr){
   const futuras = _demandasProgPMP.filter(d => (d.data_programada||'') >= hojeStr).slice(0,6);
   const atrasadas = _demandasProgPMP.filter(d => (d.data_programada||'') < hojeStr && d.status!=='resolvida');
@@ -2516,6 +2583,11 @@ function renderChecklist(main){
   const total = itens.length;
   const filled = itens.filter(i=>visitaAtual.itens[i.id]?.status).length;
   const pct = total>0 ? Math.round(filled/total*100) : 0;
+  // Garante que existe um status (rascunho/em_andamento) e dispara o primeiro autosave
+  if(!visitaAtual.status || visitaAtual.status==='finalizada'){
+    visitaAtual.status = 'em_andamento';
+  }
+  setTimeout(()=>{ atualizarBadgeAutoSave(); dispararAutoSave(); }, 200);
 
   // Group items
   const grupos = {};
@@ -2561,6 +2633,7 @@ function renderChecklist(main){
 
     <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
     <div class="progress-text">${filled}/${total} itens preenchidos</div>
+    <div id="autosave-badge" style="position:absolute;top:10px;right:14px;padding:5px 11px;border-radius:14px;font-size:10.5px;font-weight:700;background:rgba(168,191,194,.15);color:#5A7A7E;backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.2);letter-spacing:.2px;white-space:nowrap">💾 Pronto</div>
   </div>
   ${(()=>{
     const dems=demandasDoDia(visitaAtual.condoId,visitaAtual.data);
@@ -2665,11 +2738,13 @@ function setStatus(itemId, status){
     const el=document.getElementById('ci-'+itemId);
     if(el) el.scrollIntoView({behavior:'smooth',block:'nearest'});
   },50);
+  dispararAutoSave();
 }
 
 function setObs(itemId, obs){
   if(!visitaAtual.itens[itemId]) visitaAtual.itens[itemId]={status:'nao_conforme',obs:''};
   visitaAtual.itens[itemId].obs=obs;
+  dispararAutoSave();
 }
 
 function finalizarChecklist(){
@@ -2686,6 +2761,66 @@ function salvarRascunho(){
     }
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AUTO-SAVE — salva visita no servidor a cada 5s sem novas alterações
+// ═══════════════════════════════════════════════════════════════════════════
+let _autoSaveTimer = null;
+let _autoSaveState = 'idle'; // 'idle' | 'salvando' | 'salvo' | 'offline' | 'erro'
+let _autoSaveLastTime = null;
+
+function atualizarBadgeAutoSave(){
+  const el = document.getElementById('autosave-badge');
+  if(!el) return;
+  const horaStr = _autoSaveLastTime ? _autoSaveLastTime.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}) : '';
+  const map = {
+    idle: {txt:'💾 Pronto', cor:'#5A7A7E', bg:'rgba(168,191,194,.15)'},
+    salvando: {txt:'⏳ Salvando…', cor:'#E65100', bg:'rgba(230,81,0,.12)'},
+    salvo: {txt:'✓ Salvo às '+horaStr, cor:'#1B8A4A', bg:'rgba(27,138,74,.12)'},
+    offline: {txt:'📴 Offline · salvo local', cor:'#A87826', bg:'rgba(212,162,76,.15)'},
+    erro: {txt:'⚠ Erro · só salvo local', cor:'#C00000', bg:'rgba(192,0,0,.10)'}
+  };
+  const s = map[_autoSaveState] || map.idle;
+  el.style.color = s.cor;
+  el.style.background = s.bg;
+  el.textContent = s.txt;
+}
+
+function dispararAutoSave(){
+  if(!visitaAtual) return;
+  // Marca como em andamento se não foi finalizada ainda
+  if(!visitaAtual.status || visitaAtual.status==='rascunho') visitaAtual.status = 'em_andamento';
+
+  // Sempre salva local imediatamente (não espera debounce)
+  try{ localStorage.setItem('rascunho', JSON.stringify(visitaAtual)); }catch(e){}
+
+  if(_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(async ()=>{
+    if(!visitaAtual || visitaAtual.status==='finalizada') return;
+    _autoSaveState = 'salvando';
+    atualizarBadgeAutoSave();
+    if(!navigator.onLine || !sb){
+      _autoSaveState = 'offline';
+      atualizarBadgeAutoSave();
+      return;
+    }
+    const r = await uploadVisita(visitaAtual);
+    if(r.ok){
+      _autoSaveState = 'salvo';
+      _autoSaveLastTime = new Date();
+    } else {
+      _autoSaveState = navigator.onLine ? 'erro' : 'offline';
+      console.warn('Auto-save falhou:', r.err);
+    }
+    atualizarBadgeAutoSave();
+  }, 4000);  // debounce 4 segundos
+}
+
+function pararAutoSave(){
+  if(_autoSaveTimer){ clearTimeout(_autoSaveTimer); _autoSaveTimer = null; }
+}
+
+window.addEventListener('online', ()=>{ if(visitaAtual && _autoSaveState==='offline') dispararAutoSave(); });
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FOTOS COM ANOTAÇÕES (círculo / seta / texto · vermelho / amarelo / verde)
@@ -3675,14 +3810,14 @@ function renderRelatorio(main){
 
   <div class="obs-section">
     <div class="section-title" style="padding:12px 0 8px">Observações Gerais</div>
-    <textarea class="obs-general" placeholder="Condições gerais, pendências, recomendações..." onchange="visitaAtual.obsGeral=this.value">${visitaAtual.obsGeral||''}</textarea>
+    <textarea class="obs-general" placeholder="Condições gerais, pendências, recomendações..." onchange="visitaAtual.obsGeral=this.value;dispararAutoSave()">${visitaAtual.obsGeral||''}</textarea>
   </div>
 
   <div style="padding:0 16px 8px">
     <div class="section-title" style="padding:0 0 8px">Engenheiro</div>
-    <input class="form-input" type="text" placeholder="Nome do engenheiro" value="${visitaAtual.engenheiro||''}" onchange="visitaAtual.engenheiro=this.value" style="margin-bottom:10px">
+    <input class="form-input" type="text" placeholder="Nome do engenheiro" value="${visitaAtual.engenheiro||''}" onchange="visitaAtual.engenheiro=this.value;dispararAutoSave()" style="margin-bottom:10px">
     <div class="section-title" style="padding:0 0 8px">${visitaAtual.tipo==='reforma'?'Responsável Técnico pela Obra':'Representante do condomínio'}</div>
-    <input class="form-input" type="text" placeholder="${visitaAtual.tipo==='reforma'?'Engenheiro/arquiteto contratado':'Síndico(a) / Zelador(a)'}" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value">
+    <input class="form-input" type="text" placeholder="${visitaAtual.tipo==='reforma'?'Engenheiro/arquiteto contratado':'Síndico(a) / Zelador(a)'}" value="${visitaAtual.representante||''}" onchange="visitaAtual.representante=this.value;dispararAutoSave()">
   </div>
 
   <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(21,91,103,.05),rgba(0,180,172,.03));border-top:1px solid var(--gray2);border-bottom:1px solid var(--gray2);margin-top:14px">
@@ -3749,6 +3884,9 @@ function concluirVisita(){
   // update obs from textarea
   const ta = document.querySelector('.obs-general');
   if(ta) visitaAtual.obsGeral = ta.value;
+  // Marca como finalizada e cancela timer de autosave
+  visitaAtual.status = 'finalizada';
+  pararAutoSave();
   saveVisita({...visitaAtual});
   localStorage.removeItem('rascunho');
   visitaAtual=null;
