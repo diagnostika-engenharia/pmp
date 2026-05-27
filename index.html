@@ -5252,10 +5252,12 @@ function renderAgendaView(main){
 
   main.innerHTML=`
   <div class="av-tabs">
-    <button class="av-tab" id="avtab-prog" onclick="setAgendaTab('prog')">Programação</button>
+    <button class="av-tab" id="avtab-unif" onclick="setAgendaTab('unif')">Agenda Unificada</button>
+    <button class="av-tab" id="avtab-prog" onclick="setAgendaTab('prog')">Programação PMP</button>
     <button class="av-tab" id="avtab-cal" onclick="setAgendaTab('cal')">Calendário Visual</button>
   </div>
-  <div id="av-prog">
+  <div id="av-unif">${renderAgendaUnificadaPMP()}</div>
+  <div id="av-prog" class="hidden">
     ${progHtml}
     <div class="prog-export" style="padding-bottom:16px">
       <button onclick="gerarAgendaEngenheiro()" style="width:100%;padding:13px;border:none;border-radius:10px;background:var(--teal);color:#fff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
@@ -5266,16 +5268,198 @@ function renderAgendaView(main){
   </div>
   <div id="av-cal" class="hidden">${calHtml}</div>`;
 
-  setAgendaTab('prog');
+  setAgendaTab('unif');
+}
+
+// Filtros da agenda unificada
+let _agendaUnifFiltros = {condo:'', tipo:'', mes:''};
+
+function renderAgendaUnificadaPMP(){
+  const fTipo = _agendaUnifFiltros.tipo;
+  const fMes = _agendaUnifFiltros.mes;
+  const fCondo = _agendaUnifFiltros.condo;
+  const hoje = todayStr();
+  const tiposEv = {ensaio:'🧪',laudo:'📋',inspeção:'🔍','inspeção especial':'🔍',perícia:'⚖️',obra:'🏗️',reunião:'👥',limpeza:'🧹',documental:'📑',outro:'📌',evento:'📌'};
+
+  const condosAlvo = fCondo ? [fCondo] : ['monte-carlo','morada-morumbi','portal-primavera','residencial-santa-clara','jardins-do-malta','condominio-teste'];
+
+  // Lê eventos do localStorage (que é sincronizado com app_config no banco)
+  const eventosAll = JSON.parse(localStorage.getItem('eventos_extras')||'{}');
+
+  const items = [];
+  condosAlvo.forEach(cid => {
+    const c = CONDOMINIOS[cid] || {nome:cid, cor:'#155B67'};
+
+    // 1) Visitas PMP rotineiras
+    const visits = getVisitDates2026(cid);
+    visits.forEach(dt => {
+      items.push({kind:'pmp', data:dt, condoId:cid, condo:c, titulo:'Visita técnica de manutenção preventiva', descricao:'Rotina ' + (c.frequencia||'').toLowerCase() + ' · NBR 5674'});
+    });
+
+    // 2) Eventos pontuais
+    (eventosAll[cid]||[]).forEach(ev => {
+      items.push({kind:'evento', data:ev.data, hora:ev.hora, condoId:cid, condo:c, id:ev.id, titulo:ev.titulo, descricao:ev.descricao, tipo:ev.tipo});
+    });
+  });
+
+  // 3) Demandas programadas (do estado já carregado)
+  (_demandasProgPMP || []).forEach(d => {
+    if(fCondo && d.condo_id !== fCondo) return;
+    items.push({
+      kind:'demanda', data:d.data_programada, hora:d.hora_programada,
+      condoId:d.condo_id, condo:CONDOMINIOS[d.condo_id]||{nome:d.condo_id,cor:'#0D3C44'},
+      titulo:d.titulo, descricao:d.descricao_programada, tipo:d.tipo_programado||'Demanda',
+      protocolo:d.protocolo, demanda_id:d.id, origem:d.origem
+    });
+  });
+
+  // Filtros
+  let filtrados = items;
+  if(fTipo) filtrados = filtrados.filter(i => i.kind === fTipo);
+  if(fMes === 'todos'){
+    // sem filtro
+  } else if(fMes === 'passados'){
+    filtrados = filtrados.filter(i => i.data < hoje);
+  } else if(fMes){
+    filtrados = filtrados.filter(i => i.data && i.data.substring(5,7) === fMes);
+  } else {
+    const lim = new Date(); lim.setDate(lim.getDate()+60);
+    const limStr = lim.toISOString().slice(0,10);
+    filtrados = filtrados.filter(i => i.data >= hoje && i.data <= limStr);
+  }
+  filtrados.sort((a,b)=>(a.data||'').localeCompare(b.data||'') || (a.hora||'99').localeCompare(b.hora||'99'));
+
+  const cnt = {pmp:0, demanda:0, evento:0};
+  filtrados.forEach(i => cnt[i.kind]++);
+
+  // Toolbar
+  const condoOpts = condosAlvo.length === 1 ? `<option value="${fCondo}">${CONDOMINIOS[fCondo]?.short||fCondo}</option>` : Object.entries(CONDOMINIOS).map(([k,c])=>`<option value="${k}" ${fCondo===k?'selected':''}>${c.short||c.nome}</option>`).join('');
+  let html = `<div style="background:#fff;border-radius:10px;padding:11px 14px;margin:14px 16px 4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <select onchange="_agendaUnifFiltros.condo=this.value;atualizarAgendaUnif()" style="padding:7px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12.5px">
+      <option value="">Todos condomínios</option>
+      ${Object.entries(CONDOMINIOS).map(([k,c])=>`<option value="${k}" ${fCondo===k?'selected':''}>${c.short||c.nome}</option>`).join('')}
+    </select>
+    <select onchange="_agendaUnifFiltros.tipo=this.value;atualizarAgendaUnif()" style="padding:7px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12.5px">
+      <option value="">Todos os tipos</option>
+      <option value="pmp" ${fTipo==='pmp'?'selected':''}>🛠 Visitas PMP</option>
+      <option value="demanda" ${fTipo==='demanda'?'selected':''}>💬 Demandas</option>
+      <option value="evento" ${fTipo==='evento'?'selected':''}>📌 Eventos</option>
+    </select>
+    <select onchange="_agendaUnifFiltros.mes=this.value;atualizarAgendaUnif()" style="padding:7px 10px;border:1px solid var(--gray2);border-radius:6px;font-size:12.5px">
+      <option value="" ${!fMes?'selected':''}>Próximos 60 dias</option>
+      <option value="todos" ${fMes==='todos'?'selected':''}>Ano inteiro</option>
+      <option value="passados" ${fMes==='passados'?'selected':''}>Já realizados</option>
+      ${['01','02','03','04','05','06','07','08','09','10','11','12'].map(m=>{
+        const nomes=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        return `<option value="${m}" ${fMes===m?'selected':''}>${nomes[parseInt(m)]}</option>`;
+      }).join('')}
+    </select>
+  </div>
+  <div style="background:#fff;border-radius:10px;padding:10px 14px;margin:0 16px 12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+    <span style="font-size:12.5px;font-weight:700;color:var(--text)">📊 ${filtrados.length} ${filtrados.length===1?'item':'itens'}</span>
+    <span style="font-size:11px;background:rgba(125,60,152,.12);color:#5B0F87;padding:2px 8px;border-radius:8px;font-weight:700">🛠 ${cnt.pmp} PMP</span>
+    <span style="font-size:11px;background:rgba(13,60,68,.12);color:#0D3C44;padding:2px 8px;border-radius:8px;font-weight:700">💬 ${cnt.demanda} Demandas</span>
+    <span style="font-size:11px;background:rgba(212,162,76,.20);color:#A87826;padding:2px 8px;border-radius:8px;font-weight:700">📌 ${cnt.evento} Eventos</span>
+  </div>`;
+
+  if(!filtrados.length){
+    html += `<div style="background:#fff;padding:40px;text-align:center;color:var(--text2);border-radius:10px;margin:0 16px">Nada na agenda com os filtros atuais</div>`;
+    return html;
+  }
+
+  // Agrupa por mês
+  const porMes = {};
+  filtrados.forEach(i => {
+    const k = (i.data||'').substring(0,7);
+    if(!porMes[k]) porMes[k] = [];
+    porMes[k].push(i);
+  });
+
+  const meses=['','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const mAbrev=['','jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+
+  Object.keys(porMes).sort().forEach(mesKey => {
+    const [ano,mes] = mesKey.split('-').map(Number);
+    const itens = porMes[mesKey];
+    html += `<div style="background:#fff;border-radius:10px;padding:12px 14px;margin:0 16px 10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+      <div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--gray2);padding-bottom:6px">
+        ${meses[mes]} ${ano} <span style="background:var(--gray);color:var(--text2);padding:1px 7px;border-radius:8px;font-size:10px">${itens.length}</span>
+      </div>`;
+
+    itens.forEach(i => {
+      const [y,mo,d] = (i.data||'').split('-').map(Number);
+      const dt = new Date(y, (mo||1)-1, d||1);
+      const passou = i.data < hoje;
+      const ehHoje = i.data === hoje;
+      const dow = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][dt.getDay()];
+
+      let bgData, badge, ico, titulo, sub, onclick='';
+      if(i.kind === 'pmp'){
+        bgData = i.condo.cor || '#7D3C98';
+        badge = `<span style="background:rgba(125,60,152,.12);color:#5B0F87;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">🛠 PMP</span>`;
+        ico = '🛠️';
+        titulo = i.titulo;
+        sub = i.descricao;
+        onclick = `iniciarVisita('${i.condoId}','${i.data}')`;
+      } else if(i.kind === 'demanda'){
+        bgData = '#0D3C44';
+        const isMor = i.origem === 'morador';
+        badge = `<span style="background:#0D3C44;color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">💬 ${isMor?'MORADOR':'DEMANDA'}</span>` + (i.protocolo?` <span style="font-size:9.5px;color:var(--text2);font-family:'SF Mono',Menlo,Consolas,monospace">${i.protocolo}</span>`:'');
+        ico = isMor ? '🏠' : '💬';
+        titulo = `${i.tipo}: ${i.titulo}`;
+        sub = i.descricao;
+        onclick = `abrirDetalheDemandaPMP('${i.demanda_id}')`;
+      } else { // evento
+        bgData = '#D4A24C';
+        const t = (i.tipo||'').toLowerCase();
+        ico = tiposEv[t] || '📌';
+        badge = `<span style="background:rgba(212,162,76,.20);color:#A87826;font-size:9px;padding:2px 7px;border-radius:8px;font-weight:800;text-transform:uppercase;letter-spacing:.3px">📌 ${i.tipo||'EVENTO'}</span>`;
+        titulo = i.titulo;
+        sub = i.descricao;
+        onclick = `abrirCondoDetail('${i.condoId}')`;
+      }
+
+      const condoPill = `<span style="font-size:9.5px;background:${bgData}20;color:${bgData};padding:1px 6px;border-radius:5px;font-weight:700">${i.condo.short||i.condo.nome}</span>`;
+
+      html += `<div ${onclick?`onclick="${onclick}"`:''} style="display:flex;align-items:flex-start;gap:11px;padding:10px 0;border-bottom:1px solid var(--gray2);${passou?'opacity:.5':''}${ehHoje?'background:rgba(0,180,172,.04);margin:0 -8px;padding-left:8px;padding-right:8px;border-radius:6px':''};cursor:pointer">
+        <div style="text-align:center;width:46px;flex-shrink:0;background:${bgData};color:#fff;border-radius:7px;padding:5px 4px">
+          <div style="font-size:16px;font-weight:800;line-height:1">${String(d||'').padStart(2,'0')}</div>
+          <div style="font-size:8.5px;text-transform:uppercase;margin-top:1px;opacity:.9">${mAbrev[mo||0]}</div>
+          <div style="font-size:7.5px;margin-top:1px;opacity:.7">${dow}</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+            ${badge} ${condoPill}
+            ${i.hora?`<span style="font-size:10.5px;color:${bgData};font-weight:700">⏰ ${i.hora.substring(0,5)}</span>`:''}
+            ${ehHoje?'<span style="background:var(--turq);color:#fff;font-size:9px;padding:1px 5px;border-radius:7px;font-weight:800">HOJE</span>':''}
+            ${passou?'<span style="background:#1B8A4A;color:#fff;font-size:9px;padding:1px 5px;border-radius:7px;font-weight:700">✓ realizado</span>':''}
+          </div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--text);margin-top:3px;line-height:1.3">${ico} ${titulo||'—'}</div>
+          ${sub?`<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4">${sub}</div>`:''}
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  return html;
+}
+
+function atualizarAgendaUnif(){
+  const unif = document.getElementById('av-unif');
+  if(unif) unif.innerHTML = renderAgendaUnificadaPMP();
 }
 
 function setAgendaTab(tab){
+  const unif=document.getElementById('av-unif');
   const prog=document.getElementById('av-prog');
   const cal=document.getElementById('av-cal');
+  if(unif)unif.classList.toggle('hidden',tab!=='unif');
   if(prog)prog.classList.toggle('hidden',tab!=='prog');
   if(cal)cal.classList.toggle('hidden',tab!=='cal');
+  const tbU=document.getElementById('avtab-unif');
   const tbP=document.getElementById('avtab-prog');
   const tbC=document.getElementById('avtab-cal');
+  if(tbU)tbU.className='av-tab'+(tab==='unif'?' at-mc':'');
   if(tbP)tbP.className='av-tab'+(tab==='prog'?' at-mc':'');
   if(tbC)tbC.className='av-tab'+(tab==='cal'?' at-mc':'');
 }
