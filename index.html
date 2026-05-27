@@ -1085,6 +1085,17 @@ let _demandasProgChannel = null;
 
 let _demandasAllPMP = [];  // TODAS demandas (não só programadas)
 
+// Escapa HTML especial — usar em TODA interpolação de dados em template literals
+function esc(s){
+  if(s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Helper: monta URL pública para fotos de moradores (Storage) com fallback p/ base64 antigo
 function getFotoUrl(a){
   if(!a) return '';
@@ -3775,7 +3786,7 @@ INSTRUÇÕES:
       panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div>
         <div class="ai-error">❌ Resposta não pôde ser interpretada (provavelmente truncada).<br>Tente novamente ou troque o modelo.</div>
         <details style="margin-top:8px"><summary style="cursor:pointer;color:#FBC02D;font-size:11px">Ver resposta bruta</summary>
-        <pre style="font-size:10px;color:#999;white-space:pre-wrap;margin-top:6px;max-height:200px;overflow:auto">${texto.replace(/</g,'&lt;').substring(0,1200)}</pre></details>`;
+        <pre style="font-size:10px;color:#999;white-space:pre-wrap;margin-top:6px;max-height:200px;overflow:auto">${esc((texto||'').substring(0,1200))}</pre></details>`;
       return;
     }
     renderResultadoIA(panel,r);
@@ -5752,7 +5763,7 @@ function renderTilePMP(d){
       <span class="dt-proto">📋 ${d.protocolo||'—'}</span>
       <div style="display:flex;gap:4px;flex-wrap:wrap;align-items:flex-end">${badges}</div>
     </div>
-    <div class="dt-titulo">${(d.titulo||'').replace(/</g,'&lt;')}</div>
+    <div class="dt-titulo">${esc(d.titulo||'')}</div>
     <div class="dt-meta">
       <span class="dt-pill ${condoClassPMP(d.condo_id)}">${condoShortPMP(d.condo_id)}</span>
       ${metaExtra}
@@ -5914,7 +5925,7 @@ function abrirDetalheDemandaPMP(id){
       <div class="dem-modal-head">
         <div style="flex:1;min-width:0">
           <div class="mh-proto">📋 ${d.protocolo||'—'}</div>
-          <h2>${(d.titulo||'').replace(/</g,'&lt;')}</h2>
+          <h2>${esc(d.titulo||'')}</h2>
           <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:6px">${badges}</div>
         </div>
         <button class="dem-modal-x" onclick="document.getElementById('dem-pmp-detail-modal').remove()">×</button>
