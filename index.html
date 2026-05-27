@@ -804,6 +804,9 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
         <button class="sn-btn" id="sn-plano" onclick="navigate('plano')">
           <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg><span>Plano</span>
         </button>
+        <button class="sn-btn" id="sn-docs" onclick="navigate('docs')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span>Documentos</span>
+        </button>
       </div>
       <div class="sn-footer">
         <button class="sn-btn" onclick="sairSistema()" style="color:#FFB4B4" title="Sair da conta">
@@ -1607,6 +1610,7 @@ function render(){
     case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026',true);         renderAgendaView(main); break;
     case 'demandas':      setNavActive('nav-demandas'); setHeader('Demandas e Chamados',true); renderDemandasView(main); break;
     case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
+    case 'docs':          setNavActive('nav-plano');    setHeader('📚 Documentos dos Condomínios',true); renderDocsView(main); break;
   }
   aplicarSpellcheckPtBR();
 }
@@ -5779,6 +5783,206 @@ async function mudarStatusDemandaPMP(id, novo){
     if(error) throw error;
     document.getElementById('dem-pmp-detail-modal')?.remove();
     carregarDemandasProgPMP();
+  }catch(e){ alert('Erro: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DOCUMENTOS DOS CONDOMÍNIOS — upload pela equipe, leitura pública/morador
+// ═══════════════════════════════════════════════════════════════════════════
+const DOC_CATEGORIAS = {reforma:'🏗️ Reforma', geral:'📘 Manual / Geral', laudo:'📋 Laudos', tecnico:'🛠 Técnico', outro:'📌 Outros'};
+let _docsCondoSel = 'monte-carlo';
+let _docsCache = {}; // condo_id → docs
+
+async function carregarDocsDoCondo(condoId){
+  const {data,error} = await sb.from('docs_condos').select('*').eq('condo_id',condoId).order('categoria').order('ordem');
+  if(error) throw error;
+  _docsCache[condoId] = data || [];
+  return _docsCache[condoId];
+}
+
+function urlPublicaDoc(storagePath){
+  return 'https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/public/docs-condos/' + storagePath.split('/').map(encodeURIComponent).join('/');
+}
+
+async function renderDocsView(main){
+  main.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--text2)">⏳ Carregando…</div>';
+  try{
+    const docs = await carregarDocsDoCondo(_docsCondoSel);
+    const c = CONDOMINIOS[_docsCondoSel] || {nome:_docsCondoSel, cor:'#155B67'};
+    const condoOpts = Object.entries(CONDOMINIOS).map(([k,cc])=>`<option value="${k}" ${k===_docsCondoSel?'selected':''}>${cc.short||cc.nome}</option>`).join('');
+
+    let html = `
+    <div style="padding:14px 16px;background:#fff;border-bottom:1px solid var(--gray2);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <select id="docs-condo-sel" onchange="(()=>{_docsCondoSel=this.value;renderDocsView(document.getElementById('main'))})();" style="padding:8px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13.5px;font-weight:600;flex:1;min-width:160px">
+        ${condoOpts}
+      </select>
+      <button onclick="abrirUploadDoc()" style="background:var(--teal);color:#fff;border:none;padding:9px 16px;border-radius:7px;font-weight:700;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Novo documento
+      </button>
+    </div>
+
+    <div style="padding:14px 16px;background:linear-gradient(135deg,rgba(125,60,152,.04),rgba(0,180,172,.04));border-bottom:1px solid var(--gray2)">
+      <div style="font-size:12.5px;color:var(--text2);line-height:1.5">
+        <b style="color:var(--text)">📚 Documentos do condomínio</b><br>
+        Os documentos marcados como <b>visíveis ao morador</b> aparecem automaticamente no formulário de solicitação técnica quando o morador escolhe a categoria <b>Reforma</b>. Cada condomínio tem sua biblioteca própria.
+      </div>
+    </div>`;
+
+    if(!docs.length){
+      html += `<div style="padding:60px 20px;text-align:center;color:var(--text2)">
+        <div style="font-size:54px;margin-bottom:10px">📚</div>
+        <h3 style="color:var(--text);font-size:17px;margin-bottom:6px">Nenhum documento ainda</h3>
+        <p style="font-size:13px">Adicione manuais, modelos e formulários para os moradores de <b>${c.nome}</b>.</p>
+      </div>`;
+    } else {
+      // Agrupa por categoria
+      const porCat = {};
+      docs.forEach(d => { if(!porCat[d.categoria]) porCat[d.categoria]=[]; porCat[d.categoria].push(d); });
+      const ordemCat = ['reforma','geral','laudo','tecnico','outro'];
+
+      ordemCat.forEach(cat => {
+        if(!porCat[cat]) return;
+        html += `<div style="padding:14px 16px 6px"><div style="font-size:11px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.6px">${DOC_CATEGORIAS[cat]||cat}</div></div>`;
+        porCat[cat].forEach(d => {
+          const ehImg = (d.mime||'').startsWith('image/');
+          const ico = ehImg ? '🖼' : '📄';
+          const tam = d.tamanho_bytes ? (d.tamanho_bytes/1024/1024).toFixed(2)+' MB' : '';
+          html += `<div style="background:#fff;margin:0 16px 8px;border-radius:10px;padding:14px;border-left:4px solid ${d.visivel_morador?'#1B8A4A':'var(--gray3)'};box-shadow:0 1px 3px rgba(0,0,0,.05);display:flex;gap:12px;align-items:flex-start">
+            <div style="font-size:30px;line-height:1;flex-shrink:0">${ico}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:14px;font-weight:700;color:var(--text);line-height:1.3">${d.nome_exibicao}</div>
+              ${d.descricao?`<div style="font-size:11.5px;color:var(--text2);margin-top:3px;line-height:1.4">${d.descricao}</div>`:''}
+              <div style="font-size:10.5px;color:var(--gray4);margin-top:5px;display:flex;gap:8px;flex-wrap:wrap">
+                <span>${tam}</span>
+                <span>${d.visivel_morador?'<span style="color:#1B8A4A">✓ Visível ao morador</span>':'<span style="color:var(--gray4)">○ Interno (não visível)</span>'}</span>
+                <span>${d.uploaded_em?new Date(d.uploaded_em).toLocaleDateString('pt-BR'):''}</span>
+              </div>
+              <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+                <a href="${urlPublicaDoc(d.storage_path)}" target="_blank" style="background:var(--teal);color:#fff;padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:700;text-decoration:none">⬇ Abrir / Baixar</a>
+                <button onclick="toggleVisivelDoc('${d.id}',${!d.visivel_morador})" style="background:#fff;border:1.5px solid var(--gray3);color:var(--text2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">${d.visivel_morador?'🚫 Tornar interno':'✓ Tornar visível'}</button>
+                <button onclick="excluirDoc('${d.id}','${d.storage_path}')" style="background:#fff;border:1.5px solid var(--red);color:var(--red);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">🗑 Remover</button>
+              </div>
+            </div>
+          </div>`;
+        });
+      });
+    }
+
+    main.innerHTML = html;
+  }catch(e){
+    main.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--red)">❌ Erro: ${e.message}</div>`;
+  }
+}
+
+function abrirUploadDoc(){
+  const c = CONDOMINIOS[_docsCondoSel];
+  const ov = document.createElement('div');
+  ov.id = 'doc-up-ov';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:480px;width:100%;padding:22px;margin:auto;box-shadow:0 12px 40px rgba(0,0,0,.35);position:relative">
+      <button onclick="document.getElementById('doc-up-ov').remove()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:#5A7A7E">×</button>
+      <h2 style="color:var(--teal);font-size:18px;margin-bottom:4px">📚 Novo documento</h2>
+      <div style="font-size:12.5px;color:var(--text2);margin-bottom:14px">${c.nome}</div>
+
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:5px">Arquivo (PDF/DOC/imagem · máx 15MB)</label>
+      <input id="doc-file" type="file" accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*" style="width:100%;padding:10px;border:1.5px dashed var(--gray2);border-radius:8px;font-size:13px;margin-bottom:10px">
+
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:5px">Nome de exibição *</label>
+      <input id="doc-nome" type="text" placeholder="Ex: Manual de Reforma — Monte Carlo" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;margin-bottom:10px">
+
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:5px">Categoria</label>
+      <select id="doc-cat" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;margin-bottom:10px;background:#fff">
+        ${Object.entries(DOC_CATEGORIAS).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}
+      </select>
+
+      <label style="font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:5px">Descrição (aparece pro morador)</label>
+      <textarea id="doc-desc" placeholder="Breve descrição do que o documento contém" style="width:100%;padding:10px 12px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;min-height:70px;margin-bottom:10px;resize:vertical;font-family:inherit"></textarea>
+
+      <label style="display:flex;align-items:center;gap:8px;padding:11px 13px;background:var(--gray);border-radius:8px;cursor:pointer;margin-bottom:14px;font-size:13px">
+        <input type="checkbox" id="doc-visivel" checked style="width:18px;height:18px;accent-color:var(--teal)">
+        <span>Mostrar este documento pro morador no formulário de solicitação</span>
+      </label>
+
+      <button id="btn-up-doc" onclick="enviarDoc()" style="width:100%;padding:12px;background:var(--teal);color:#fff;border:none;border-radius:10px;font-weight:700;cursor:pointer;font-size:14px">📤 Enviar documento</button>
+      <div id="up-status" style="font-size:11px;color:var(--text2);margin-top:8px;text-align:center"></div>
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+async function enviarDoc(){
+  const file = document.getElementById('doc-file').files[0];
+  const nome = document.getElementById('doc-nome').value.trim();
+  const cat = document.getElementById('doc-cat').value;
+  const desc = document.getElementById('doc-desc').value.trim();
+  const visivel = document.getElementById('doc-visivel').checked;
+  const status = document.getElementById('up-status');
+  const btn = document.getElementById('btn-up-doc');
+
+  if(!file){ status.textContent='⚠ Selecione um arquivo'; return; }
+  if(!nome){ status.textContent='⚠ Informe o nome de exibição'; return; }
+  if(file.size > 15*1024*1024){ status.textContent='⚠ Arquivo passa de 15 MB'; return; }
+
+  btn.disabled = true; btn.textContent = '⏳ Enviando...';
+  try{
+    // Sanitiza nome do arquivo
+    const ext = (file.name.split('.').pop() || 'pdf').toLowerCase();
+    const slug = nome.normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-zA-Z0-9 .-]/g,'').replace(/\s+/g,'_').toLowerCase();
+    const fname = `${slug}_${Date.now().toString(36)}.${ext}`;
+    const storagePath = `${_docsCondoSel}/${fname}`;
+
+    // Upload (auth do usuário logado tem permissão)
+    const session = (await sb.auth.getSession()).data.session;
+    if(!session) throw new Error('Sessão expirada — faça login novamente');
+    const up = await fetch(`https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/docs-condos/${encodeURI(storagePath)}`,{
+      method:'POST',
+      headers:{'Content-Type':file.type||'application/octet-stream','Authorization':'Bearer '+session.access_token,'x-upsert':'true'},
+      body:file
+    });
+    if(!up.ok) throw new Error('Upload falhou: HTTP '+up.status+' - '+(await up.text()).substring(0,150));
+
+    // Metadata
+    const nome_user = getEngenheiro() || (session.user.email||'').split('@')[0] || 'Equipe';
+    const {error} = await sb.from('docs_condos').insert({
+      condo_id: _docsCondoSel, storage_path: storagePath, nome_exibicao: nome,
+      categoria: cat, descricao: desc||null, tamanho_bytes: file.size,
+      mime: file.type, ordem: 99, visivel_morador: visivel, uploaded_por: nome_user
+    });
+    if(error) throw error;
+
+    document.getElementById('doc-up-ov').remove();
+    delete _docsCache[_docsCondoSel];
+    renderDocsView(document.getElementById('main'));
+  }catch(e){
+    status.textContent = '❌ '+e.message;
+    btn.disabled = false; btn.textContent = '📤 Enviar documento';
+  }
+}
+
+async function toggleVisivelDoc(id, novo){
+  try{
+    const {error} = await sb.from('docs_condos').update({visivel_morador:novo}).eq('id',id);
+    if(error) throw error;
+    delete _docsCache[_docsCondoSel];
+    renderDocsView(document.getElementById('main'));
+  }catch(e){ alert('Erro: '+e.message); }
+}
+
+async function excluirDoc(id, storagePath){
+  if(!confirm('Remover este documento permanentemente?')) return;
+  try{
+    const session = (await sb.auth.getSession()).data.session;
+    // Apaga do storage
+    await fetch(`https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/docs-condos/${encodeURI(storagePath)}`,{
+      method:'DELETE', headers:{'Authorization':'Bearer '+session.access_token}
+    });
+    // Apaga metadata
+    const {error} = await sb.from('docs_condos').delete().eq('id',id);
+    if(error) throw error;
+    delete _docsCache[_docsCondoSel];
+    renderDocsView(document.getElementById('main'));
   }catch(e){ alert('Erro: '+e.message); }
 }
 
