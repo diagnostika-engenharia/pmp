@@ -683,6 +683,141 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .spark-cell svg{width:100%;height:30px;display:block;margin-top:4px}
 .sn-version{font-size:10px;color:rgba(255,255,255,.35)}
 
+/* ════════════════════════════════════════════════════════════════════════
+   Fase Task #4 — Dashboard BI Executivo (chips, tipos, gbar, funnel, gauge)
+   ═══════════════════════════════════════════════════════════════════════ */
+.bi-hdr{background:linear-gradient(135deg,var(--teal-dk),var(--teal));padding:10px 14px;border-radius:10px;color:#fff;margin:14px 16px 12px}
+.bi-hdr .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+.bi-hdr h2{font-size:14px;font-weight:700;margin:0}
+.bi-hdr .filt-row{margin-left:auto;display:flex;gap:5px;flex-wrap:wrap}
+.bi-hdr .bi-filter{background:rgba(255,255,255,.18);border:none;color:#fff;padding:5px 11px;border-radius:5px;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit}
+.bi-hdr .bi-filter.active{background:#FBC02D;color:#3B2A0A}
+.bi-hdr .condo-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding-top:6px;border-top:1px solid rgba(255,255,255,.12)}
+.bi-hdr .cr-lbl{font-size:9.5px;color:rgba(255,255,255,.7);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-right:6px}
+.bi-hdr .condo-chip{background:rgba(255,255,255,.12);border:1.5px solid transparent;color:#fff;padding:5px 12px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .15s;font-family:inherit}
+.bi-hdr .condo-chip:hover{background:rgba(255,255,255,.22)}
+.bi-hdr .condo-chip.active{background:#fff;color:var(--teal-dk);font-weight:700;border-color:#fff;box-shadow:0 2px 8px rgba(255,255,255,.3)}
+.bi-hdr .condo-chip .cdot{width:9px;height:9px;border-radius:50%}
+.bi-hdr .condo-chip .ccount{background:rgba(0,0,0,.12);font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px;margin-left:2px}
+.bi-hdr .condo-chip.active .ccount{background:rgba(0,0,0,.1);color:var(--teal-dk)}
+
+.bi-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px;margin:0 16px 12px}
+
+.bi-kpi{background:#fff;border-radius:9px;padding:11px 13px;box-shadow:0 1px 4px rgba(0,0,0,.05);cursor:pointer;position:relative;overflow:hidden}
+.bi-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--turq)}
+.bi-kpi.warn::before{background:#E65100}
+.bi-kpi.danger::before{background:#C00000}
+.bi-kpi.ok::before{background:#1B8A4A}
+.bi-kpi .top-r{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:3px}
+.bi-kpi .lbl{font-size:9.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700}
+.bi-kpi .ico{width:26px;height:26px;border-radius:6px;background:rgba(0,180,172,.12);color:var(--turq-dk);display:flex;align-items:center;justify-content:center;font-size:12px}
+.bi-kpi.warn .ico{background:rgba(230,81,0,.12);color:#E65100}
+.bi-kpi.danger .ico{background:rgba(192,0,0,.12);color:#C00000}
+.bi-kpi.ok .ico{background:rgba(27,138,74,.12);color:#1B8A4A}
+.bi-kpi .num{font-size:26px;font-weight:800;line-height:1;margin:2px 0;color:var(--text)}
+.bi-kpi .delta{font-size:10px;font-weight:700}
+.bi-kpi .delta.up{color:#1B8A4A}
+.bi-kpi .delta.down{color:#C00000}
+.bi-kpi .spark{height:18px;margin-top:4px}
+
+.bi-tipo{background:#fff;border-radius:8px;padding:10px 12px;box-shadow:0 1px 4px rgba(0,0,0,.05);cursor:pointer;position:relative;overflow:hidden;display:flex;align-items:center;gap:10px;transition:transform .12s}
+.bi-tipo:hover{transform:translateY(-1px);box-shadow:0 3px 10px rgba(0,0,0,.1)}
+.bi-tipo::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.bi-tipo.art::before{background:#7D3C98}
+.bi-tipo.aprov::before{background:#1976D2}
+.bi-tipo.parecer::before{background:#E65100}
+.bi-tipo.duvida::before{background:#5A7A7E}
+.bi-tipo.corretiva::before{background:#C00000}
+.bi-tipo .ico-t{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex-shrink:0}
+.bi-tipo.art .ico-t{background:linear-gradient(135deg,#9C27B0,#7D3C98)}
+.bi-tipo.aprov .ico-t{background:linear-gradient(135deg,#42A5F5,#1976D2)}
+.bi-tipo.parecer .ico-t{background:linear-gradient(135deg,#FB8C00,#E65100)}
+.bi-tipo.duvida .ico-t{background:linear-gradient(135deg,#789396,#5A7A7E)}
+.bi-tipo.corretiva .ico-t{background:linear-gradient(135deg,#E63333,#C00000)}
+.bi-tipo .info{flex:1;min-width:0}
+.bi-tipo .num-t{font-size:20px;font-weight:800;line-height:1;color:var(--text)}
+.bi-tipo .lbl-t{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-top:1px}
+.bi-tipo .brk{font-size:9.5px;color:var(--text2);margin-top:2px}
+.bi-tipo .brk .pen{color:#E65100;font-weight:700}
+.bi-tipo .brk .ok{color:#1B8A4A;font-weight:700}
+
+.bi-card{background:#fff;border-radius:9px;padding:11px 14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.bi-card h3.cct{font-size:10.5px;color:var(--text);font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between;gap:6px}
+.bi-card h3.cct small{font-size:9.5px;color:var(--text2);font-weight:500;font-style:italic;text-transform:none;letter-spacing:0}
+
+.bi-bar{display:grid;grid-template-columns:130px 1fr 36px;gap:8px;align-items:center;margin-bottom:6px;font-size:11px}
+.bi-bar .lbl{font-weight:700;display:flex;align-items:center;gap:5px}
+.bi-bar .dot{width:8px;height:8px;border-radius:50%}
+.bi-bar .bg{height:20px;background:var(--gray);border-radius:4px;overflow:hidden;display:flex;cursor:pointer}
+.bi-bar .seg{display:flex;align-items:center;justify-content:center;color:#fff;font-size:10px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.3)}
+.bi-bar .seg.aut{background:#1B8A4A}
+.bi-bar .seg.agu{background:#FBC02D;color:#3B2A0A;text-shadow:none}
+.bi-bar .seg.srt{background:#C00000}
+.bi-bar .seg.vis{background:#1976D2}
+.bi-bar .seg.cnc{background:#9E9E9E}
+.bi-bar .total{font-weight:800;text-align:right;font-size:13px}
+
+.bi-bar-legend{display:flex;gap:10px;font-size:9.5px;color:var(--text2);margin-top:8px;padding-top:6px;border-top:1px dashed var(--gray2);flex-wrap:wrap}
+.bi-bar-legend .leg{display:flex;align-items:center;gap:4px}
+.bi-bar-legend .sw{width:11px;height:11px;border-radius:3px}
+
+.bi-hot{display:flex;align-items:center;gap:8px;padding:7px 10px;background:rgba(192,0,0,.05);border:1px solid rgba(192,0,0,.15);border-left:3px solid #C00000;border-radius:6px;font-size:10.5px;margin-bottom:5px;cursor:pointer}
+.bi-hot.aguard{background:rgba(251,192,45,.08);border-color:rgba(251,192,45,.3);border-left-color:#FBC02D}
+.bi-hot.vist{background:rgba(25,118,210,.05);border-color:rgba(25,118,210,.2);border-left-color:#1976D2}
+.bi-hot .hic{font-size:13px}
+.bi-hot .hinfo{flex:1}
+.bi-hot .hinfo b{display:block;color:var(--text);font-weight:700;font-size:11px}
+.bi-hot .hinfo small{color:var(--text2);font-size:10px}
+
+.bi-gbar{display:grid;grid-template-columns:125px 1fr 60px;gap:8px;align-items:center;margin-bottom:8px;font-size:10.5px}
+.bi-gbar .lbl{font-weight:700;display:flex;align-items:center;gap:5px}
+.bi-gbar .dot{width:7px;height:7px;border-radius:50%}
+.bi-gbar .gbars{display:flex;flex-direction:column;gap:2px}
+.bi-gbar .gb{height:15px;border-radius:3px;display:flex;align-items:center;padding:0 6px;color:#fff;font-size:9px;font-weight:800;text-shadow:0 1px 2px rgba(0,0,0,.3);position:relative;cursor:pointer}
+.bi-gbar .gb.req{background:linear-gradient(90deg,#64B5F6,#42A5F5)}
+.bi-gbar .gb.del{background:linear-gradient(90deg,#66BB6A,#1B8A4A)}
+.bi-gbar .gb .qty{position:absolute;right:5px;font-size:10px}
+.bi-gbar .gb .pre{margin-right:auto;font-size:8.5px;opacity:.85;letter-spacing:.4px;text-transform:uppercase}
+.bi-gbar .ratio{text-align:center;background:var(--gray);border-radius:4px;padding:5px 6px}
+.bi-gbar .ratio .rn{font-size:13px;font-weight:800;line-height:1}
+.bi-gbar .ratio .rn.ok{color:#1B8A4A}
+.bi-gbar .ratio .rn.warn{color:#E65100}
+.bi-gbar .ratio .rn.bad{color:#C00000}
+.bi-gbar .ratio .rl{font-size:7.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700;margin-top:1px}
+
+.bi-cmp-legend{display:flex;gap:10px;font-size:9.5px;color:var(--text2);margin-bottom:6px;align-items:center;flex-wrap:wrap}
+.bi-cmp-legend .leg{display:flex;align-items:center;gap:4px}
+.bi-cmp-legend .sw{width:12px;height:12px;border-radius:3px}
+.bi-cmp-legend .sw.req{background:#42A5F5}
+.bi-cmp-legend .sw.del{background:#1B8A4A}
+
+.bi-funnel{display:flex;flex-direction:column;gap:3px;padding:4px 0}
+.bi-funnel .fs{padding:7px 10px;display:flex;justify-content:space-between;align-items:center;color:#fff;font-weight:800;font-size:10.5px;clip-path:polygon(0% 0%, 100% 0%, 92% 100%, 8% 100%);cursor:pointer}
+.bi-funnel .fs:nth-child(1){background:#42A5F5;width:100%}
+.bi-funnel .fs:nth-child(2){background:#FB8C00;width:88%;margin-left:6%}
+.bi-funnel .fs:nth-child(3){background:#7D3C98;width:70%;margin-left:15%}
+.bi-funnel .fs:nth-child(4){background:#1B8A4A;width:50%;margin-left:25%}
+
+.bi-gauge-wrap{position:relative;width:130px;height:70px;margin:0 auto}
+.bi-gauge-wrap svg{width:100%;height:100%}
+.bi-gauge-wrap .center{position:absolute;bottom:0;left:0;right:0;text-align:center}
+.bi-gauge-wrap .center .big{font-size:22px;font-weight:800;color:var(--text);line-height:1}
+.bi-gauge-wrap .center .lbl{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.3px;font-weight:700}
+
+.bi-c2{grid-column:span 2}
+.bi-c3{grid-column:span 3}
+.bi-c4{grid-column:span 4}
+.bi-c5{grid-column:span 5}
+.bi-c6{grid-column:span 6}
+.bi-c7{grid-column:span 7}
+.bi-c8{grid-column:span 8}
+.bi-c9{grid-column:span 9}
+.bi-c12{grid-column:span 12}
+@media(max-width:900px){
+  .bi-c2,.bi-c3,.bi-c4{grid-column:span 6}
+  .bi-c5,.bi-c6,.bi-c7,.bi-c8,.bi-c9{grid-column:span 12}
+}
+
 /* ── Responsivo Desktop ─────────────────────────────────────────────────── */
 @media (min-width:768px){
   #app{max-width:100%}
@@ -1929,8 +2064,7 @@ function renderHome(main){
   const proximas=condosList.map(c=>({...c,prox:proxVisita(c.id)})).sort((a,b)=>a.prox<b.prox?-1:1);
 
   main.innerHTML=`
-  ${renderKPIBarHome()}
-  ${renderMatrixDemandasHome()}
+  ${renderBIDashboardHome()}
   ${renderChamadosPendentesHome()}
 
   <div class="section-title">Próximas visitas — o que fazer</div>
@@ -1958,7 +2092,6 @@ function renderHome(main){
 
   ${renderVisitasEmAndamentoHome()}
   ${renderDemandasProgramadasHome(hojeStr)}
-  ${renderTrendCardHome()}
 
   <div style="padding:0 16px 4px;display:flex;gap:8px">
     <button onclick="navigate('agenda')" style="flex:1;padding:12px 0;border:2px solid var(--teal);border-radius:10px;background:var(--white);color:var(--teal);font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
@@ -2008,7 +2141,465 @@ function renderHome(main){
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// Fase Task#4 — Dashboard BI Executivo (substitui KPI bar + matriz + trend)
+// Layout: header com chips de condomínio + 4 KPIs + 5 tipos + bars+hotspots
+//         + solicitações/entregas + funnel + conformidade
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Filtro global do dashboard — qual condomínio está selecionado
+let _homeCondoFilter = 'todos'; // 'todos' ou id do condomínio
+let _homePeriodFilter = '30d';  // '30d', '90d', '2026'
+
+function setHomeCondoFilter(id){
+  _homeCondoFilter = id;
+  if(currentView==='home') render();
+}
+function setHomePeriodFilter(p){
+  _homePeriodFilter = p;
+  if(currentView==='home') render();
+}
+
+// Helper — filtra _demandasAllPMP pelo condo + período
+function _biFilteredDemandas(){
+  const hojeMs = new Date(todayStr()+'T00:00:00').getTime();
+  const oneDay = 86400000;
+  let cutoffDays = 30;
+  if(_homePeriodFilter==='90d') cutoffDays = 90;
+  else if(_homePeriodFilter==='2026') cutoffDays = 365;
+  const cutoffMs = hojeMs - (cutoffDays * oneDay);
+  return (_demandasAllPMP||[]).filter(d => {
+    if(d.deletada_em) return false;
+    if(_homeCondoFilter !== 'todos' && d.condo_id !== _homeCondoFilter) return false;
+    if(d.created_at && new Date(d.created_at).getTime() < cutoffMs) return false;
+    return true;
+  });
+}
+
+// ─── HEADER + filtros + chips de condomínio ─────────────────────────────
+function renderBIHeader(){
+  const condos = [
+    {id:'monte-carlo', cor:'#155B67', nome:'Monte Carlo'},
+    {id:'morada-morumbi', cor:'#00B4AC', nome:'Morada Morumbi'},
+    {id:'portal-primavera', cor:'#8DB72A', nome:'Portal Primavera'},
+    {id:'residencial-santa-clara', cor:'#7D3C98', nome:'Santa Clara'},
+    {id:'jardins-do-malta', cor:'#D4A24C', nome:'Jardins do Malta'}
+  ];
+  const periods = [{k:'30d',l:'30 dias'},{k:'90d',l:'90 dias'},{k:'2026',l:'2026'}];
+
+  // Contagem de demandas por condo (no período filtrado)
+  const periodFilterBkp = _homeCondoFilter;
+  _homeCondoFilter = 'todos';
+  const allD = _biFilteredDemandas();
+  _homeCondoFilter = periodFilterBkp;
+  const countByCondo = {};
+  let totalDemandas = 0;
+  allD.forEach(d => { countByCondo[d.condo_id] = (countByCondo[d.condo_id]||0)+1; totalDemandas++; });
+
+  const periodBtns = periods.map(p =>
+    `<button class="bi-filter ${_homePeriodFilter===p.k?'active':''}" onclick="setHomePeriodFilter('${p.k}')">${p.l}</button>`
+  ).join('');
+
+  const condoChips = condos.map(c => {
+    const ct = countByCondo[c.id] || 0;
+    const active = _homeCondoFilter === c.id ? ' active' : '';
+    return `<button class="condo-chip${active}" onclick="setHomeCondoFilter('${c.id}')">
+      <span class="cdot" style="background:${c.cor}"></span>${esc(c.nome)}<span class="ccount">${ct}</span>
+    </button>`;
+  }).join('');
+
+  const todasActive = _homeCondoFilter==='todos' ? ' active' : '';
+
+  return `<div class="bi-hdr">
+    <div class="top">
+      <h2>📊 Dashboard Executivo</h2>
+      <div class="filt-row">
+        ${periodBtns}
+        <button class="bi-filter" onclick="gerarAgendaEngenheiro()" title="Exportar PDF">📥 PDF</button>
+      </div>
+    </div>
+    <div class="condo-row">
+      <span class="cr-lbl">Condomínios:</span>
+      <button class="condo-chip${todasActive}" onclick="setHomeCondoFilter('todos')">Todos<span class="ccount">${totalDemandas}</span></button>
+      ${condoChips}
+    </div>
+  </div>`;
+}
+
+// ─── KPIs (4 cards) ─────────────────────────────────────────────────────
+function _biSpark(values, color){
+  if(!values || !values.length) return '';
+  const max = Math.max(1, ...values);
+  const n = values.length;
+  const pts = values.map((v,i)=>{
+    const x = (i/(n-1||1))*100;
+    const y = 18 - (v/max)*15;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  return `<svg class="spark" viewBox="0 0 100 18" preserveAspectRatio="none">
+    <polyline points="${pts}" stroke="${color}" stroke-width="1.5" fill="none"/>
+    <polyline points="${pts} 100,18 0,18" fill="${color}22" stroke="none"/>
+  </svg>`;
+}
+
+function renderBIKPIs(){
+  const k = computeHomeKPIs();
+  const hojeStr = todayStr();
+
+  // Sparkline de demandas criadas últimos 14 dias
+  const buckets = Array(14).fill(0);
+  const hojeMs = new Date(hojeStr+'T00:00:00').getTime();
+  _biFilteredDemandas().forEach(d => {
+    if(!d.created_at) return;
+    const diff = Math.floor((hojeMs - new Date(d.created_at).getTime())/86400000);
+    if(diff>=0 && diff<14) buckets[13-diff]++;
+  });
+
+  return `
+    <div class="bi-kpi bi-c3" onclick="navigate('demandas')">
+      <div class="top-r"><div class="lbl">Demandas ativas</div><div class="ico">📌</div></div>
+      <div class="num">${_biFilteredDemandas().filter(d=>d.status!=='fechada'&&!d.deletada_em).length}</div>
+      <div class="delta up">↑ no período</div>
+      ${_biSpark(buckets, '#00B4AC')}
+    </div>
+    <div class="bi-kpi bi-c3 warn" onclick="navigate('demandas')">
+      <div class="top-r"><div class="lbl">⚠ Atrasadas</div><div class="ico">⏰</div></div>
+      <div class="num">${k.atrasadas}</div>
+      <div class="delta">prazo passou</div>
+    </div>
+    <div class="bi-kpi bi-c3 danger" onclick="navigate('demandas')">
+      <div class="top-r"><div class="lbl">⚡ Em andamento</div><div class="ico">▶</div></div>
+      <div class="num">${k.emAndamento}</div>
+      <div class="delta">sendo tratadas</div>
+    </div>
+    <div class="bi-kpi bi-c3 ok" onclick="navigate('historico')">
+      <div class="top-r"><div class="lbl">✓ Visitas mês</div><div class="ico">✓</div></div>
+      <div class="num">${k.visitasMes}</div>
+      <div class="delta up">finalizadas</div>
+    </div>
+  `;
+}
+
+// ─── 5 tipos de demanda ─────────────────────────────────────────────────
+function renderBITipos(){
+  const ds = _biFilteredDemandas();
+
+  // Classificação por subtipo_morador ou categoria
+  function _classifica(d){
+    const sub = d.detalhes?.subtipo_morador;
+    if(sub === 'art' || d.categoria === 'art') return 'art';
+    if(sub === 'reforma' || d.categoria === 'reforma') return 'aprov';
+    if(d.categoria === 'laudo') return 'parecer';
+    if(sub === 'duvida' || d.categoria === 'duvida') return 'duvida';
+    if(sub === 'corretiva' || d.categoria === 'corretiva') return 'corretiva';
+    return 'duvida'; // fallback
+  }
+
+  const tipos = {art:{t:0,p:0,o:0}, aprov:{t:0,p:0,o:0}, parecer:{t:0,p:0,o:0}, duvida:{t:0,p:0,o:0}, corretiva:{t:0,p:0,o:0}};
+  ds.forEach(d => {
+    const k = _classifica(d);
+    tipos[k].t++;
+    const isPendente = (d.status==='aberta' || d.status==='em_andamento');
+    if(isPendente) tipos[k].p++;
+    else tipos[k].o++; // resolvida ou fechada
+  });
+
+  const cards = [
+    {k:'art', emoji:'📜', lbl:'ART', pLbl:'pend.', oLbl:'emit.'},
+    {k:'aprov', emoji:'📋', lbl:'Aprov. Reforma', pLbl:'anal.', oLbl:'aprov.'},
+    {k:'parecer', emoji:'📄', lbl:'Parecer/Laudo', pLbl:'redaç.', oLbl:'entr.'},
+    {k:'duvida', emoji:'❓', lbl:'Dúvida técnica', pLbl:'ab.', oLbl:'resp.'},
+    {k:'corretiva', emoji:'🔧', lbl:'Corretiva', pLbl:'ab.', oLbl:'resolv.'}
+  ];
+
+  return `<div class="bi-c12" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+    ${cards.map(c => {
+      const t = tipos[c.k];
+      return `<div class="bi-tipo ${c.k}" onclick="navigate('demandas')" title="${c.lbl}: ${t.t} total">
+        <div class="ico-t">${c.emoji}</div>
+        <div class="info">
+          <div class="num-t">${t.t}</div>
+          <div class="lbl-t">${c.lbl}</div>
+          <div class="brk">${t.p>0?`<span class="pen">${t.p} ${c.pLbl}</span>`:''}${t.p>0&&t.o>0?' · ':''}${t.o>0?`<span class="ok">${t.o} ${c.oLbl}</span>`:''}${t.t===0?'<span style="opacity:.5">sem registros</span>':''}</div>
+        </div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+// ─── Demandas por condomínio (barras empilhadas por status) ─────────────
+function renderBIDemandasPorCondo(){
+  const condos = [
+    {id:'monte-carlo', cor:'#155B67', nome:'Monte Carlo'},
+    {id:'morada-morumbi', cor:'#00B4AC', nome:'Morada Morumbi'},
+    {id:'portal-primavera', cor:'#8DB72A', nome:'Portal Primavera'},
+    {id:'residencial-santa-clara', cor:'#7D3C98', nome:'Santa Clara'},
+    {id:'jardins-do-malta', cor:'#D4A24C', nome:'Jardins do Malta'}
+  ];
+
+  // Usa _demandasAllPMP sem filtro de condo (precisa de todos pra comparar)
+  const periodFilterBkp = _homeCondoFilter;
+  _homeCondoFilter = 'todos';
+  const allD = _biFilteredDemandas();
+  _homeCondoFilter = periodFilterBkp;
+
+  // Categoriza cada demanda por status
+  function _statusOf(d){
+    if(d.status === 'fechada' || d.status === 'resolvida') return 'cnc';
+    const sub = d.detalhes?.subtipo_morador;
+    if(d.detalhes?.tem_rt === false && (sub==='reforma')) return 'srt';
+    if(sub === 'art' && !d.resposta) return 'agu';
+    if(d.tipo_programado && /vistoria/i.test(d.tipo_programado)) return 'vis';
+    return 'aut'; // em andamento autorizada
+  }
+
+  const dataByCondo = {};
+  let maxTotal = 1;
+  condos.forEach(c => {
+    const lista = allD.filter(d => d.condo_id === c.id);
+    const counts = {aut:0, agu:0, vis:0, srt:0, cnc:0};
+    lista.forEach(d => counts[_statusOf(d)]++);
+    const total = counts.aut + counts.agu + counts.vis + counts.srt + counts.cnc;
+    dataByCondo[c.id] = { counts, total };
+    if(total > maxTotal) maxTotal = total;
+  });
+
+  const rows = condos.map(c => {
+    const { counts, total } = dataByCondo[c.id];
+    const widthPct = Math.round((total / maxTotal) * 100);
+    const segs = [
+      {k:'aut', n:counts.aut},
+      {k:'agu', n:counts.agu},
+      {k:'vis', n:counts.vis},
+      {k:'srt', n:counts.srt},
+      {k:'cnc', n:counts.cnc}
+    ].filter(s => s.n > 0);
+
+    return `<div class="bi-bar">
+      <div class="lbl"><span class="dot" style="background:${c.cor}"></span>${esc(c.nome)}</div>
+      <div class="bg" style="width:${widthPct||1}%" onclick="setHomeCondoFilter('${c.id}')">
+        ${segs.map(s => `<div class="seg ${s.k}" style="flex:${s.n}">${s.n}</div>`).join('')}
+      </div>
+      <div class="total">${total}</div>
+    </div>`;
+  }).join('');
+
+  return `<div class="bi-card bi-c7">
+    <h3 class="cct">📊 Demandas por condomínio <small>click na barra filtra · empilhado por status</small></h3>
+    ${rows}
+    <div class="bi-bar-legend">
+      <div class="leg"><span class="sw" style="background:#1B8A4A"></span>Em obra autorizada</div>
+      <div class="leg"><span class="sw" style="background:#FBC02D"></span>Aguardando ART</div>
+      <div class="leg"><span class="sw" style="background:#1976D2"></span>Vistoria final</div>
+      <div class="leg"><span class="sw" style="background:#C00000"></span>Sem RT (risco)</div>
+      <div class="leg"><span class="sw" style="background:#9E9E9E"></span>Concluída</div>
+    </div>
+  </div>`;
+}
+
+// ─── Requer ação (top 4 hotspots) ───────────────────────────────────────
+function renderBIRequerAcao(){
+  const ds = _biFilteredDemandas();
+
+  // Top 4 itens que pedem ação imediata
+  const hotspots = [];
+
+  // Sem RT em reformas
+  ds.filter(d => d.detalhes?.tem_rt === false && d.detalhes?.subtipo_morador === 'reforma' && d.status !== 'fechada')
+    .forEach(d => {
+      const diasAbertos = Math.floor((Date.now() - new Date(d.created_at).getTime()) / 86400000);
+      hotspots.push({
+        prio: 1, cls: '', ic: '🚨',
+        ttl: `${d.morador_apto||'?'} · ${esc(CONDOMINIOS[d.condo_id]?.short||d.condo_id)}`,
+        sub: `Sem RT · ${diasAbertos} dias`,
+        id: d.id
+      });
+    });
+
+  // Aguardando ART nossa
+  ds.filter(d => d.detalhes?.subtipo_morador === 'art' && !d.resposta && d.status !== 'fechada')
+    .forEach(d => {
+      const diasAbertos = Math.floor((Date.now() - new Date(d.created_at).getTime()) / 86400000);
+      hotspots.push({
+        prio: 2, cls: 'aguard', ic: '⏳',
+        ttl: `${d.morador_apto||'?'} · ${esc(CONDOMINIOS[d.condo_id]?.short||d.condo_id)}`,
+        sub: `Aguarda emissão de ART · ${diasAbertos} dias`,
+        id: d.id
+      });
+    });
+
+  // Vistorias pendentes
+  ds.filter(d => d.tipo_programado && /vistoria/i.test(d.tipo_programado) && d.status === 'em_andamento')
+    .forEach(d => {
+      hotspots.push({
+        prio: 3, cls: 'vist', ic: '📅',
+        ttl: `${d.morador_apto||'?'} · ${esc(CONDOMINIOS[d.condo_id]?.short||d.condo_id)}`,
+        sub: `Vistoria ${d.data_programada?'em '+fmtDateBR(d.data_programada):'a agendar'}`,
+        id: d.id
+      });
+    });
+
+  hotspots.sort((a,b) => a.prio - b.prio);
+  const top4 = hotspots.slice(0, 4);
+
+  const itensHtml = top4.length === 0
+    ? `<div style="font-size:11px;color:var(--text2);text-align:center;padding:30px 10px;font-style:italic">✨ Nenhuma ação pendente no momento</div>`
+    : top4.map(h => `<div class="bi-hot ${h.cls}" onclick="abrirDetalheDemandaPMP('${h.id}')">
+        <span class="hic">${h.ic}</span>
+        <div class="hinfo"><b>${h.ttl}</b><small>${esc(h.sub)}</small></div>
+      </div>`).join('');
+
+  return `<div class="bi-card bi-c5">
+    <h3 class="cct">⚡ Requer ação <small>top prioridade · click abre detalhe</small></h3>
+    ${itensHtml}
+  </div>`;
+}
+
+// ─── Solicitações vs Entregas (grouped bars) ────────────────────────────
+function renderBISolicEntregas(){
+  const condos = [
+    {id:'monte-carlo', cor:'#155B67', nome:'Monte Carlo'},
+    {id:'morada-morumbi', cor:'#00B4AC', nome:'Morada Morumbi'},
+    {id:'portal-primavera', cor:'#8DB72A', nome:'Portal Primavera'},
+    {id:'residencial-santa-clara', cor:'#7D3C98', nome:'Santa Clara'},
+    {id:'jardins-do-malta', cor:'#D4A24C', nome:'Jardins do Malta'}
+  ];
+
+  const periodFilterBkp = _homeCondoFilter;
+  _homeCondoFilter = 'todos';
+  const allD = _biFilteredDemandas();
+  _homeCondoFilter = periodFilterBkp;
+
+  // Solicitadas = total criadas no período · Entregues = resolvidas+fechadas
+  const counts = {};
+  let maxSolic = 1;
+  condos.forEach(c => {
+    const list = allD.filter(d => d.condo_id === c.id);
+    const solic = list.length;
+    const entr = list.filter(d => d.status === 'resolvida' || d.status === 'fechada').length;
+    counts[c.id] = { solic, entr };
+    if(solic > maxSolic) maxSolic = solic;
+  });
+
+  let totalSolic = 0, totalEntr = 0;
+  Object.values(counts).forEach(c => { totalSolic += c.solic; totalEntr += c.entr; });
+
+  const rows = condos.map(c => {
+    const { solic, entr } = counts[c.id];
+    const reqW = Math.round((solic / maxSolic) * 100);
+    const delW = Math.round((entr / maxSolic) * 100);
+    const ratio = solic === 0 ? 0 : Math.round((entr / solic) * 100);
+    const rcls = ratio >= 90 ? 'ok' : (ratio >= 65 ? 'warn' : 'bad');
+
+    return `<div class="bi-gbar">
+      <div class="lbl"><span class="dot" style="background:${c.cor}"></span>${esc(c.nome)}</div>
+      <div class="gbars">
+        <div class="gb req" style="width:${reqW||1}%"><span class="pre">Solicit.</span><span class="qty">${solic}</span></div>
+        <div class="gb del" style="width:${delW||1}%"><span class="pre">Entreg.</span><span class="qty">${entr}</span></div>
+      </div>
+      <div class="ratio"><div class="rn ${rcls}">${ratio}%</div><div class="rl">cumpr.</div></div>
+    </div>`;
+  }).join('');
+
+  return `<div class="bi-card bi-c7">
+    <h3 class="cct">📊 Solicitações ↔ Entregas <small>${_homePeriodFilter==='30d'?'30 dias':_homePeriodFilter==='90d'?'90 dias':'2026'} · taxa à direita</small></h3>
+    <div class="bi-cmp-legend">
+      <div class="leg"><span class="sw req"></span>Solicitadas</div>
+      <div class="leg"><span class="sw del"></span>Entregues</div>
+      <div style="margin-left:auto;font-size:10px"><b>Total:</b> ${totalSolic} solicitadas · ${totalEntr} entregues · ${totalSolic-totalEntr} pendentes</div>
+    </div>
+    ${rows}
+  </div>`;
+}
+
+// ─── Funnel de chamados ─────────────────────────────────────────────────
+function renderBIFunnel(){
+  const ds = _biFilteredDemandas();
+  const abertos = ds.filter(d => d.status === 'aberta').length;
+  const andamento = ds.filter(d => d.status === 'em_andamento').length;
+  const resolvidos = ds.filter(d => d.status === 'resolvida').length;
+  const fechados = ds.filter(d => d.status === 'fechada').length;
+  const total = abertos + andamento + resolvidos + fechados;
+  const taxaResol = total === 0 ? 0 : Math.round(((resolvidos + fechados) / total) * 100);
+
+  return `<div class="bi-card bi-c3">
+    <h3 class="cct">🔻 Funnel de chamados</h3>
+    <div class="bi-funnel">
+      <div class="fs" onclick="navigate('demandas')"><span>📥 Abertos</span><b>${abertos}</b></div>
+      <div class="fs" onclick="navigate('demandas')"><span>▶ Em andamento</span><b>${andamento}</b></div>
+      <div class="fs" onclick="navigate('demandas')"><span>✓ Resolvidos</span><b>${resolvidos}</b></div>
+      <div class="fs" onclick="navigate('demandas')"><span>🔒 Fechados</span><b>${fechados}</b></div>
+    </div>
+    <div style="text-align:center;font-size:11px;color:var(--text2);margin-top:8px;font-style:italic">
+      Taxa de resolução: <b style="color:#1B8A4A">${taxaResol}%</b>
+    </div>
+  </div>`;
+}
+
+// ─── Conformidade gauge ─────────────────────────────────────────────────
+function renderBIConformidade(){
+  // % de visitas SEM NCs no período
+  const hojeStr = todayStr();
+  let cutoffDays = 30;
+  if(_homePeriodFilter==='90d') cutoffDays = 90;
+  else if(_homePeriodFilter==='2026') cutoffDays = 365;
+  const cutoffMs = new Date(hojeStr+'T00:00:00').getTime() - (cutoffDays * 86400000);
+
+  let hist = [];
+  try { hist = JSON.parse(localStorage.getItem('historico')||'[]'); } catch(e){}
+  const visitas = hist.filter(v => {
+    if(v.status !== 'finalizada') return false;
+    if(_homeCondoFilter !== 'todos' && v.condoId !== _homeCondoFilter) return false;
+    const ts = v.data || v.finalizada_em || v.created_at;
+    if(!ts) return false;
+    const ms = new Date(ts + (ts.length === 10 ? 'T00:00:00' : '')).getTime();
+    return ms >= cutoffMs;
+  });
+
+  const totalV = visitas.length;
+  const visitasOK = visitas.filter(v => {
+    const itens = Object.values(v.itens || {});
+    return itens.every(i => i.status !== 'nao_conforme');
+  }).length;
+  const pct = totalV === 0 ? 0 : Math.round((visitasOK / totalV) * 100);
+
+  // Calcular ângulo de preenchimento (0 a 180 graus)
+  const fillAngle = Math.min(180, Math.max(0, (pct / 100) * 180));
+  const endX = 50 - 40 * Math.cos((fillAngle * Math.PI) / 180);
+  const endY = 50 - 40 * Math.sin((fillAngle * Math.PI) / 180);
+
+  return `<div class="bi-card bi-c2" style="display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start">
+    <h3 class="cct">📈 Conformidade</h3>
+    <div class="bi-gauge-wrap">
+      <svg viewBox="0 0 100 55">
+        <path d="M 10 50 A 40 40 0 0 1 90 50" stroke="var(--gray)" stroke-width="14" fill="none" stroke-linecap="round"/>
+        <path d="M 10 50 A 40 40 0 0 1 ${endX.toFixed(1)} ${endY.toFixed(1)}" stroke="url(#bigaugegrad)" stroke-width="14" fill="none" stroke-linecap="round"/>
+        <defs><linearGradient id="bigaugegrad" x1="0" x2="1"><stop offset="0%" stop-color="#FFA726"/><stop offset="100%" stop-color="#66BB6A"/></linearGradient></defs>
+      </svg>
+      <div class="center"><div class="big">${pct}%</div><div class="lbl">média</div></div>
+    </div>
+    <div style="font-size:10px;color:var(--text2);text-align:center;margin-top:4px">${totalV} visitas · ${visitasOK} sem NCs</div>
+  </div>`;
+}
+
+// ─── Render principal do dashboard BI ───────────────────────────────────
+function renderBIDashboardHome(){
+  return `
+    ${renderBIHeader()}
+    <div class="bi-grid">
+      ${renderBIKPIs()}
+      ${renderBITipos()}
+      ${renderBIDemandasPorCondo()}
+      ${renderBIRequerAcao()}
+      ${renderBISolicEntregas()}
+      ${renderBIFunnel()}
+      ${renderBIConformidade()}
+    </div>
+  `;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // Fase Z2 — KPI bar mini + Matriz heatmap (condo × prazo) no dashboard
+// [DEPRECATED na Task#4 — código mantido por retrocompat caso reverter]
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Helpers de data
