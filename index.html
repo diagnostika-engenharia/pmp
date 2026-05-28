@@ -6645,7 +6645,9 @@ function abrirDetalheDemandaPMP(id){
       if(det.tem_rt) extra += `<div><b>RT:</b> ${det.rt_nome||'(s/nome)'} ${det.rt_registro?'· '+det.rt_registro:''}</div>`;
       else extra += `<div style="color:#A87826"><b>⚠ Sem RT</b> — pode contratar ART da Diagnóstika</div>`;
     } else if(sub==='art'){
-      if(det.art_tipo_obra) extra += `<div style="margin-top:3px"><b>Obra:</b> ${DEM_ART[det.art_tipo_obra]||det.art_tipo_obra}</div>`;
+      // Fase #12 — exibe array de tipos de obra (multi-select) com fallback pro singular antigo
+      const tiposObra = Array.isArray(det.art_tipos_obra) ? det.art_tipos_obra : (det.art_tipo_obra ? [det.art_tipo_obra] : []);
+      if(tiposObra.length) extra += `<div style="margin-top:3px"><b>Obra:</b> ${tiposObra.map(t=>DEM_ART[t]||t).join(' · ')}</div>`;
       if(det.art_prazo) extra += `<div><b>Prazo:</b> ${DEM_PRAZO[det.art_prazo]||det.art_prazo}</div>`;
       extra += `<div style="margin-top:4px;padding:4px 8px;background:rgba(212,162,76,.15);border-radius:4px;font-weight:700;color:#A87826">💰 Oportunidade — emitir orçamento de ART</div>`;
     }
@@ -6742,7 +6744,8 @@ async function responderDemandaPMP(id){
   if(txt===null) return;
   if(!txt.trim()){ alert('Resposta vazia'); return; }
   try{
-    const nome = getEngenheiro() || 'Diagnóstika';
+    // Fase #7 — quem realizou a AÇÃO (responder) é o usuário logado, não o engenheiro cadastrado
+    const nome = window.usuarioLogadoNome || getEngenheiro() || 'Diagnóstika';
     const {error} = await sb.from('demandas').update({resposta:txt.trim(),respondido_em:new Date().toISOString(),respondido_por:nome,updated_at:new Date().toISOString()}).eq('id',id);
     if(error) throw error;
     document.getElementById('dem-pmp-detail-modal')?.remove();
@@ -6751,24 +6754,92 @@ async function responderDemandaPMP(id){
   }catch(e){ alert('Erro: '+e.message); }
 }
 
+// Tipos de programação disponíveis
+const TIPOS_PROGRAMACAO = ['Visita técnica','Laudo','Inspeção','Vistoria de reforma','Emissão de ART','Parecer técnico','Reunião com síndica','Outros'];
+
+// Helper: data ISO YYYY-MM-DD → DD/MM/YYYY (formato BR pra exibir)
+function fmtDateBR(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return `${d}/${m}/${y}`;
+}
+
 async function programarDemandaPMP(id){
   const d = _demandasAllPMP.find(x=>x.id===id);
   if(!d) return;
-  const data = prompt(`📅 ${d.data_programada?'Reagendar':'Programar'} a demanda:\n\n"${d.titulo}"\n\nData (formato YYYY-MM-DD):`, d.data_programada||new Date().toISOString().slice(0,10));
-  if(!data) return;
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(data)){ alert('Formato inválido'); return; }
-  const hora = prompt('Hora (HH:MM, opcional):', d.hora_programada?d.hora_programada.substring(0,5):'09:00') || null;
-  const tipo = prompt('Tipo (Visita técnica / Laudo / Inspeção / etc):', d.tipo_programado||'Visita técnica') || 'Visita técnica';
-  try{
-    const nome = getEngenheiro() || 'Diagnóstika';
-    const upd = {data_programada:data, hora_programada:hora, tipo_programado:tipo, programado_em:new Date().toISOString(), programado_por:nome, updated_at:new Date().toISOString()};
-    if(d.status==='aberta') upd.status='em_andamento';
-    const {error} = await sb.from('demandas').update(upd).eq('id',id);
-    if(error) throw error;
-    document.getElementById('dem-pmp-detail-modal')?.remove();
-    carregarDemandasProgPMP();
-    showToast?.('✓ Programado') || alert('Demanda programada');
-  }catch(e){ alert('Erro: '+e.message); }
+  const isReagendar = !!d.data_programada;
+  const hoje = new Date().toISOString().slice(0,10);
+  const dataInicial = d.data_programada || hoje;
+  const horaInicial = d.hora_programada ? d.hora_programada.substring(0,5) : '09:00';
+  const tipoInicial = d.tipo_programado || 'Visita técnica';
+  const descInicial = d.descricao_programada || '';
+
+  // Modal customizado em vez de prompts encadeados (Fase #5)
+  const ov = document.createElement('div');
+  ov.className = 'dem-modal-ov open';
+  ov.style.zIndex = '10000';
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  ov.innerHTML = `<div class="dem-modal" style="max-width:540px">
+    <div class="dem-modal-head">
+      <div style="flex:1">
+        <div class="mh-proto" style="color:#0D3C44">📅 ${isReagendar?'Reagendar':'Programar'} demanda</div>
+        <h2 style="font-size:15px;margin-top:4px">${esc(d.titulo||'')}</h2>
+      </div>
+      <button class="dem-modal-x" onclick="this.closest('.dem-modal-ov').remove()">×</button>
+    </div>
+    <div class="dem-modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div>
+          <label style="display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:5px">Data</label>
+          <input id="prog-data" type="date" value="${dataInicial}" min="${hoje}" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13.5px;font-family:inherit;outline:none">
+          <div id="prog-data-br" style="font-size:11px;color:var(--text2);margin-top:3px">${fmtDateBR(dataInicial)}</div>
+        </div>
+        <div>
+          <label style="display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:5px">Hora</label>
+          <input id="prog-hora" type="time" value="${horaInicial}" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13.5px;font-family:inherit;outline:none">
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:5px">Tipo de programação</label>
+        <select id="prog-tipo" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13.5px;font-family:inherit;outline:none;background:#fff">
+          ${TIPOS_PROGRAMACAO.map(t=>`<option value="${esc(t)}"${t===tipoInicial?' selected':''}>${esc(t)}</option>`).join('')}
+        </select>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="display:block;font-size:11px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-bottom:5px">Descrição da programação (opcional)</label>
+        <textarea id="prog-desc" rows="2" placeholder="Ex: medições da piscina · vistoria intermediária · etc" style="width:100%;padding:9px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;outline:none">${esc(descInicial)}</textarea>
+      </div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--gray2);padding-top:12px">
+        <button onclick="this.closest('.dem-modal-ov').remove()" style="padding:9px 16px;border:1.5px solid var(--gray2);background:#fff;color:var(--text2);border-radius:7px;cursor:pointer;font-weight:600;font-size:12.5px;font-family:inherit">Cancelar</button>
+        <button id="prog-submit" style="padding:9px 18px;border:none;background:var(--teal);color:#fff;border-radius:7px;cursor:pointer;font-weight:700;font-size:12.5px;font-family:inherit">✓ ${isReagendar?'Reagendar':'Confirmar programação'}</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.appendChild(ov);
+
+  // Atualiza display BR ao mudar data
+  ov.querySelector('#prog-data').addEventListener('change', e=>{
+    ov.querySelector('#prog-data-br').textContent = fmtDateBR(e.target.value);
+  });
+
+  ov.querySelector('#prog-submit').onclick = async ()=>{
+    const data = ov.querySelector('#prog-data').value;
+    const hora = ov.querySelector('#prog-hora').value || null;
+    const tipo = ov.querySelector('#prog-tipo').value || 'Visita técnica';
+    const desc = ov.querySelector('#prog-desc').value.trim();
+    if(!data){ alert('Selecione uma data'); return; }
+    try{
+      const nome = window.usuarioLogadoNome || getEngenheiro() || 'Diagnóstika';
+      const upd = {data_programada:data, hora_programada:hora, tipo_programado:tipo, descricao_programada:desc||null, programado_em:new Date().toISOString(), programado_por:nome, updated_at:new Date().toISOString()};
+      if(d.status==='aberta') upd.status='em_andamento';
+      const {error} = await sb.from('demandas').update(upd).eq('id',id);
+      if(error) throw error;
+      ov.remove();
+      document.getElementById('dem-pmp-detail-modal')?.remove();
+      carregarDemandasProgPMP();
+      showToast?.('✓ Programado') || alert('Demanda programada');
+    }catch(e){ alert('Erro: '+e.message); }
+  };
 }
 
 async function mudarStatusDemandaPMP(id, novo){
