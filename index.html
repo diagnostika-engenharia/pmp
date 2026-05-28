@@ -1839,47 +1839,8 @@ function renderSidebarDyn(){
 
   const hojeStr = todayStr();
 
-  // 1) CTA dinâmico — prioridade: visita em andamento > visita hoje > nada
-  let ctaHTML = '';
-  let emAndamento = null;
-  try{
-    const hist = JSON.parse(localStorage.getItem('historico')||'[]');
-    emAndamento = hist.find(v => v.status === 'em_andamento');
-    if(!emAndamento){
-      const rasc = JSON.parse(localStorage.getItem('visita_rascunho')||'null');
-      if(rasc && rasc.status === 'em_andamento') emAndamento = rasc;
-    }
-  }catch(e){}
-
-  if(emAndamento){
-    const c = CONDOMINIOS[emAndamento.condoId];
-    const nome = c?.short || emAndamento.condoId;
-    ctaHTML = `<button class="sn-cta-dyn" onclick="navigate('checklist')" title="Retomar checklist em andamento">
-      <span class="sn-cta-ico">↩</span>
-      <div class="sn-cta-txt">Retomar visita<span class="sn-cta-small">${esc(nome)} · ${esc(emAndamento.data||'')}</span></div>
-    </button>`;
-  } else {
-    // Visita hoje em qualquer condomínio?
-    const condos = ['monte-carlo','morada-morumbi','portal-primavera','residencial-santa-clara','jardins-do-malta','condominio-teste'];
-    let hoje = null;
-    for(const id of condos){
-      try{
-        const dates = getVisitDates2026(id);
-        if(dates && dates.has(hojeStr)){ hoje = id; break; }
-      }catch(e){}
-    }
-    if(hoje){
-      const c = CONDOMINIOS[hoje];
-      const allDates = [...getVisitDates2026(hoje)].sort();
-      const at = atividadesDia(hoje, hojeStr, allDates);
-      const tipoLbl = {padrao:'Padrão',mensal:'Mensal',trimestral:'Trimestral',semestral:'Semestral',anual:'Anual'}[at.tipo]||'Inspeção';
-      ctaHTML = `<button class="sn-cta-dyn" onclick="iniciarVisita('${hoje}','${hojeStr}')" title="Iniciar visita programada para hoje">
-        <span class="sn-cta-ico">▶</span>
-        <div class="sn-cta-txt">Iniciar visita hoje<span class="sn-cta-small">${esc(c?.short||hoje)} · ${tipoLbl}</span></div>
-      </button>`;
-    }
-  }
-  ctaEl.innerHTML = ctaHTML;
+  // 1) CTA dinâmico — REMOVIDO conforme decisão do usuário (laranja era distrativo)
+  ctaEl.innerHTML = '';
 
   // 2) Lista de condomínios com badges contextuais
   const condosArr = [
