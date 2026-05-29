@@ -1079,6 +1079,15 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
         <button class="sn-btn" id="sn-agenda" onclick="navigate('agenda')">
           <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="12" y2="18"/></svg><span>Agenda</span>
         </button>
+        <button class="sn-btn" id="sn-demandas" onclick="navigate('demandas')">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>Demandas <span id="sn-dem-badge" style="background:#C00000;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;display:none"></span></span>
+        </button>
+        <button class="sn-btn" id="sn-reformas" onclick="navigate('reformas')">
+          <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/><rect x="9" y="9" width="2" height="2"/><rect x="9" y="13" width="2" height="2"/><rect x="9" y="17" width="2" height="2"/><rect x="15" y="13" width="2" height="2"/><rect x="15" y="17" width="2" height="2"/></svg><span>Reformas</span>
+        </button>
+        <button class="sn-btn" id="sn-portaria" onclick="navigate('portaria')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg><span>Portaria <span id="sn-port-badge" style="background:#DC2626;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;display:none"></span></span>
+        </button>
         <button class="sn-btn" id="sn-historico" onclick="navigate('historico')">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>Histórico</span>
         </button>
@@ -1127,6 +1136,14 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
     <button class="nav-btn" id="nav-demandas" onclick="navigate('demandas')">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       <span>Demandas <span id="nav-dem-badge" style="background:#C00000;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:2px;display:none"></span></span>
+    </button>
+    <button class="nav-btn" id="nav-reformas" onclick="navigate('reformas')">
+      <svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/><rect x="9" y="9" width="2" height="2"/><rect x="9" y="13" width="2" height="2"/><rect x="9" y="17" width="2" height="2"/><rect x="15" y="13" width="2" height="2"/><rect x="15" y="17" width="2" height="2"/></svg>
+      <span>Reformas</span>
+    </button>
+    <button class="nav-btn" id="nav-portaria" onclick="navigate('portaria')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Portaria <span id="nav-port-badge" style="background:#DC2626;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:2px;display:none"></span></span>
     </button>
     <button class="nav-btn" id="nav-historico" onclick="navigate('historico')">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -1515,6 +1532,7 @@ const CONDOMINIOS = {
     cor:'#155B67',
     sindico:'Ana Paula Ferreira Cruz', endereco:'Rua Armando Antônio D\'Ottaviano, nº 175, Jardim Vista Alegre, Paulínia/SP · CEP 13.140-153',
     blocos:'Bloco A + Bloco B',
+    estrutura:{ torres:['A','B'], aptosPorTorre:128, pavimentos:16, totalUnidades:256, porte:'grande' },
     termoRecebimentoTelhado:'26/09/2025',
     emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#155B67"/><circle cx="32" cy="20" r="5" fill="none" stroke="#D4A24C" stroke-width="2"/><rect x="22" y="22" width="20" height="3" fill="#D4A24C"/><rect x="24" y="26" width="2" height="22" fill="#D4A24C"/><rect x="30" y="26" width="2" height="22" fill="#D4A24C"/><rect x="36" y="26" width="2" height="22" fill="#D4A24C"/><rect x="20" y="48" width="24" height="3" fill="#D4A24C"/><rect x="18" y="51" width="28" height="3" fill="#D4A24C"/></svg>',
     checklist:[
@@ -1599,6 +1617,7 @@ const CONDOMINIOS = {
     cidade:'Paulínia/SP', frequencia:'Quinzenal (início 04/03/2026)', classe:'mm',
     cor:'#00B4AC',
     sindico:'Ana Paula', endereco:'Paulínia/SP',
+    estrutura:{ torres:['1','2','3'], aptosPorTorre:62, pavimentos:null, totalUnidades:186, porte:'medio' },
     emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#00B4AC"/><path d="M16 32 L32 18 L48 32 L48 48 L16 48 Z" fill="none" stroke="#fff" stroke-width="2.5" stroke-linejoin="round"/><rect x="22" y="36" width="6" height="8" fill="#fff"/><rect x="34" y="32" width="6" height="6" fill="#fff" opacity="0.85"/><rect x="42" y="32" width="3" height="6" fill="#fff" opacity="0.85"/><path d="M14 32 L32 16 L50 32" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/></svg>',
     checklist:[
       {id:'mm1',  critico:true,  grupo:'⚠ CRÍTICO — LT-2025-09',  nome:'Coberturas — risco de queda', detalhe:'Lajes estufadas, pontas quebradas, grades soltas', norma:'NBR 6118:2023 / LT-2025-09'},
@@ -1665,6 +1684,7 @@ const CONDOMINIOS = {
     cidade:'Hortolândia/SP', frequencia:'Quinzenal (2 visitas/mês)', classe:'pp',
     sindico:'Camila Bonfim', endereco:'Av. Thereza Ana Cecon Breda, 1951 — Jardim das Colinas, Hortolândia/SP',
     cnpj:'26.481.953/0001-02', incorporadora:'BRZ Empreendimentos',
+    estrutura:{ torres:['01','02','03','04','05','06','07','08','09','10','11','12','13','14','15'], aptosPorTorre:32, pavimentos:8, totalUnidades:480, porte:'grande' },
     emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#8DB72A"/><circle cx="32" cy="32" r="5" fill="#fff"/><path d="M32 14 C28 22 28 26 32 30 C36 26 36 22 32 14 Z" fill="#fff"/><path d="M32 50 C28 42 28 38 32 34 C36 38 36 42 32 50 Z" fill="#fff"/><path d="M14 32 C22 28 26 28 30 32 C26 36 22 36 14 32 Z" fill="#fff"/><path d="M50 32 C42 28 38 28 34 32 C38 36 42 36 50 32 Z" fill="#fff"/><circle cx="32" cy="32" r="3" fill="#8DB72A"/></svg>',
     cor:'#8DB72A',
     checklist:[
@@ -1712,6 +1732,7 @@ const CONDOMINIOS = {
     cidade:'Paulínia/SP', frequencia:'Quinzenal (2 visitas/mês)', classe:'sc',
     sindico:'Renato', endereco:'Av. João Vieira, 1877 — Jão Aranha, Paulínia/SP · CEP 13.145-756',
     cnpj:'39.836.306/0001-18',
+    estrutura:{ torres:['1A','1B','2A','2B','3A','3B','4A','4B','5A','5B'], aptosPorTorre:16, pavimentos:4, totalUnidades:160, porte:'medio' },
     emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#7D3C98"/><polygon points="32,12 36,24 49,24 38,32 42,45 32,37 22,45 26,32 15,24 28,24" fill="#fff"/><circle cx="32" cy="30" r="3" fill="#7D3C98"/></svg>',
     cor:'#7D3C98',
     checklist:[
@@ -1756,6 +1777,7 @@ const CONDOMINIOS = {
     sindico:'Aline Rafaela Raimundo', endereco:'Rua das Quaresmeiras, 160 — Jardim do Malta, Hortolândia/SP · CEP 13.185-096',
     cnpj:'39.520.821/0001-94',
     observacao:'Processo judicial nº 1005468-51.2022.8.26.0229 vs. Anhanguera Incorporações — Vara Cível Hortolândia/SP',
+    estrutura:{ torres:['1','2','3','4','5'], aptosPorTorre:28, pavimentos:5, totalUnidades:140, porte:'medio' },
     emblema:'<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="4" width="56" height="56" rx="6" fill="#D4A24C"/><path d="M32 52 L32 36" stroke="#5C3A0A" stroke-width="3" stroke-linecap="round"/><path d="M32 38 C24 34 18 30 16 22 C24 22 30 26 32 34 Z" fill="#fff"/><path d="M32 38 C40 34 46 30 48 22 C40 22 34 26 32 34 Z" fill="#fff"/><path d="M32 30 C26 28 22 24 22 16 C28 18 31 22 32 28 Z" fill="#fff"/><path d="M32 30 C38 28 42 24 42 16 C36 18 33 22 32 28 Z" fill="#fff"/><rect x="22" y="50" width="20" height="4" rx="1" fill="#5C3A0A"/></svg>',
     cor:'#D4A24C',
     checklist:[
@@ -2029,6 +2051,8 @@ function render(){
     case 'historico-det': setNavActive('nav-historico');setHeader('Detalhe da Visita',true);  renderHistoricoDet(main); break;
     case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026',true);         renderAgendaView(main); break;
     case 'demandas':      setNavActive('nav-demandas'); setHeader('Demandas e Chamados',true); renderDemandasView(main); break;
+    case 'reformas':      setNavActive('nav-reformas'); setHeader('Reformas — Mapa + Kanban',true); renderReformasView(main); break;
+    case 'portaria':      setNavActive('nav-portaria'); setHeader('Portaria — Eventos em tempo real',true); renderPortariaView(main); break;
     case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
     case 'docs':          setNavActive('nav-plano');    setHeader('📚 Documentos dos Condomínios',true); renderDocsView(main); break;
   }
@@ -7134,6 +7158,493 @@ function renderTilePMP(d){
       <div style="font-size:10.5px;color:var(--gray4)">${quando}</div>
     </div>
   </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REFORMAS — Mapa + Kanban adaptativo por porte
+// ═══════════════════════════════════════════════════════════════════════════
+let _reformasCondoFilter = 'todos';
+let _reformasTorreFilter = null;
+
+function setReformasCondoFilter(id){
+  _reformasCondoFilter = id;
+  _reformasTorreFilter = null;
+  if(currentView==='reformas') render();
+}
+function setReformasTorreFilter(t){
+  _reformasTorreFilter = t;
+  if(currentView==='reformas') render();
+}
+
+function _reformasFiltered(){
+  const lista = _demandasAllPMP || [];
+  return lista.filter(d => {
+    if(d.deletada_em) return false;
+    const t = (d.tipo||d.categoria||d.assunto||'').toLowerCase();
+    if(!t.includes('reforma') && d.tipo!=='reforma' && d.categoria!=='reforma') return false;
+    if(_reformasCondoFilter !== 'todos' && d.condo_id !== _reformasCondoFilter) return false;
+    return true;
+  });
+}
+
+function _statusReformaCor(s){
+  const m = {'pendente':'#9CA3AF','em-analise':'#F59E0B','em_analise':'#F59E0B','analise':'#F59E0B',
+    'aprovada':'#10B981','aprovado':'#10B981',
+    'em-andamento':'#3B82F6','em_andamento':'#3B82F6','andamento':'#3B82F6',
+    'concluida':'#155B67','concluído':'#155B67','concluida':'#155B67',
+    'rejeitada':'#EF4444','nao-conformidade':'#DC2626','nc':'#DC2626'};
+  return m[(s||'').toString().toLowerCase()] || '#9CA3AF';
+}
+
+function renderReformasView(main){
+  const reformas = _reformasFiltered();
+
+  const chips = ['todos', ...Object.keys(CONDOMINIOS)].map(id => {
+    const c = id==='todos' ? {short:'Todos', cor:'#155B67'} : CONDOMINIOS[id];
+    if(!c) return '';
+    const active = _reformasCondoFilter===id;
+    return `<button class="ref-chip${active?' active':''}" onclick="setReformasCondoFilter('${id}')" style="${active?`background:${c.cor};color:#fff;border-color:${c.cor}`:''}">${c.short}</button>`;
+  }).join('');
+
+  let mapaHtml = '';
+  if(_reformasCondoFilter === 'todos'){
+    mapaHtml = renderReformasOverview();
+  } else {
+    const condo = CONDOMINIOS[_reformasCondoFilter];
+    if(!condo?.estrutura){
+      mapaHtml = `<div style="padding:30px;text-align:center;color:#9CA3AF">Estrutura ainda não cadastrada para este condomínio.</div>`;
+    } else if(condo.estrutura.porte === 'grande' && !_reformasTorreFilter){
+      mapaHtml = renderTorresGrid(condo, reformas);
+    } else {
+      mapaHtml = renderMapaAptos(condo, reformas, _reformasTorreFilter);
+    }
+  }
+
+  const kanban = renderKanbanReformas(reformas);
+
+  main.innerHTML = `
+    <div class="ref-wrap">
+      <div class="ref-chips-bar">${chips}</div>
+      <div class="ref-grid">
+        <div class="ref-mapa-panel">${mapaHtml}</div>
+        <div class="ref-kanban-panel">${kanban}</div>
+      </div>
+    </div>
+    <style>
+      .ref-wrap{padding:14px;display:flex;flex-direction:column;gap:14px}
+      .ref-chips-bar{display:flex;gap:6px;flex-wrap:wrap;background:#fff;padding:10px;border-radius:10px;border:1px solid #E5E7EB}
+      .ref-chip{padding:6px 12px;border-radius:18px;border:1px solid #D1D5DB;background:#F9FAFB;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+      .ref-chip.active{box-shadow:0 1px 4px rgba(0,0,0,.18)}
+      .ref-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:14px}
+      @media (max-width:900px){.ref-grid{grid-template-columns:1fr}}
+      .ref-mapa-panel,.ref-kanban-panel{background:#fff;border-radius:10px;border:1px solid #E5E7EB;padding:14px;min-height:400px}
+      .torres-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:8px}
+      .torre-card{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-weight:700;color:#fff;position:relative;font-size:15px;transition:transform .12s}
+      .torre-card:hover{transform:scale(1.06)}
+      .torre-card .torre-badge{position:absolute;top:4px;right:4px;background:#fff;color:#111;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px}
+      .mapa-aptos-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px}
+      .apto-cell{aspect-ratio:1;border-radius:5px;background:#E5E7EB;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:600;color:#374151;cursor:pointer;transition:transform .1s}
+      .apto-cell:hover{transform:scale(1.15);z-index:2}
+      .apto-cell.has-reforma{color:#fff;font-weight:700}
+      .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed #E5E7EB;font-size:10.5px;color:#6B7280}
+      .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
+      .kanban-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px}
+      .kanban-col{background:#F9FAFB;border-radius:8px;padding:7px;min-height:300px}
+      .kanban-col h4{font-size:10.5px;font-weight:700;margin:0 0 6px;color:#374151;text-transform:uppercase;letter-spacing:.4px}
+      .kanban-card{background:#fff;border-radius:6px;padding:7px;margin-bottom:5px;border-left:3px solid #9CA3AF;font-size:11px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}
+      .kanban-card .kc-titulo{font-weight:600;color:#111;line-height:1.25}
+      .kanban-card .kc-meta{font-size:10px;color:#6B7280;margin-top:3px}
+      .ref-back-btn{background:none;border:none;color:#155B67;cursor:pointer;font-weight:600;font-size:12px;margin-bottom:8px;padding:0}
+      .ref-back-btn:hover{text-decoration:underline}
+    </style>
+  `;
+}
+
+function renderReformasOverview(){
+  const lista = _reformasFiltered();
+  const porCondo = {};
+  Object.keys(CONDOMINIOS).forEach(id => porCondo[id]=[]);
+  lista.forEach(d => { if(porCondo[d.condo_id]) porCondo[d.condo_id].push(d); });
+
+  const cards = Object.entries(CONDOMINIOS).filter(([id])=>id!=='condominio-teste').map(([id,c]) => {
+    const n = porCondo[id].length;
+    const ativ = porCondo[id].filter(r => !['concluida','rejeitada'].includes((r.status||'').toLowerCase())).length;
+    const tot = c.estrutura?.totalUnidades || '?';
+    const torres = (c.estrutura?.torres||[]).length;
+    return `<div onclick="setReformasCondoFilter('${id}')" style="cursor:pointer;background:#F9FAFB;border:1px solid #E5E7EB;border-radius:10px;padding:12px;border-left:4px solid ${c.cor||'#155B67'};transition:transform .12s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="font-weight:700;color:#111;margin-bottom:4px;font-size:13px">${c.short}</div>
+      <div style="font-size:11px;color:#6B7280">${tot} unid · ${torres} torre(s)</div>
+      <div style="display:flex;gap:10px;margin-top:8px;align-items:baseline">
+        <span style="font-size:22px;font-weight:700;color:${c.cor||'#155B67'};line-height:1">${n}</span>
+        <span style="font-size:10.5px;color:#6B7280">reformas (${ativ} ativas)</span>
+      </div>
+    </div>`;
+  }).join('');
+  return `<h3 style="font-size:12px;margin:0 0 10px;color:#155B67;font-weight:700;letter-spacing:.4px">SELECIONE UM CONDOMÍNIO</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px">${cards}</div>`;
+}
+
+function renderTorresGrid(condo, reformas){
+  const torres = condo.estrutura.torres;
+  const porTorre = {};
+  torres.forEach(t => porTorre[t]=0);
+  reformas.forEach(r => {
+    const t = (r.bloco||r.torre||'').toString();
+    if(porTorre[t]!==undefined) porTorre[t]++;
+  });
+  const grid = torres.map(t => {
+    const n = porTorre[t];
+    const cor = n>0 ? condo.cor : '#B8C2CC';
+    return `<div class="torre-card" style="background:${cor}" onclick="setReformasTorreFilter('${t}')" title="Torre ${t}${n?' · '+n+' reforma(s)':''}">
+      ${t}
+      ${n>0?`<span class="torre-badge">${n}</span>`:''}
+    </div>`;
+  }).join('');
+  return `<button class="ref-back-btn" onclick="setReformasCondoFilter('todos')">← Todos condomínios</button>
+    <h3 style="font-size:13px;margin:0 0 10px;color:#155B67;font-weight:700">${condo.short} · ${condo.estrutura.totalUnidades} unid · ${torres.length} torres</h3>
+    <div class="torres-grid">${grid}</div>
+    <div style="font-size:11px;color:#6B7280;margin-top:10px">Clique numa torre para ver o mapa de apartamentos</div>`;
+}
+
+function renderMapaAptos(condo, reformas, torreSel){
+  const e = condo.estrutura;
+  const torres = torreSel ? [torreSel] : e.torres;
+
+  function aptos(t){
+    const arr=[];
+    for(let i=1;i<=e.aptosPorTorre;i++){
+      arr.push({torre:t, num:i});
+    }
+    return arr;
+  }
+
+  const blocosHtml = torres.map(t => {
+    const cells = aptos(t).map(a => {
+      const refs = reformas.filter(r => ((r.bloco||r.torre||'').toString())==t.toString() && ((r.apto||r.unidade||'').toString())==a.num.toString());
+      const cls = refs.length ? 'has-reforma' : '';
+      const stCor = refs.length ? _statusReformaCor(refs[0].status) : '';
+      return `<div class="apto-cell ${cls}" ${refs.length?`style="background:${stCor}"`:''} title="${t}-${a.num}${refs.length?' · '+refs.length+' reforma(s)':''}">${a.num}</div>`;
+    }).join('');
+    return `<div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#374151;margin-bottom:5px">Torre ${t}</div>
+      <div class="mapa-aptos-grid">${cells}</div>
+    </div>`;
+  }).join('');
+
+  const back = e.porte==='grande' && torreSel ?
+    `<button class="ref-back-btn" onclick="setReformasTorreFilter(null)">← Torres</button>` :
+    `<button class="ref-back-btn" onclick="setReformasCondoFilter('todos')">← Todos condomínios</button>`;
+
+  return `${back}
+    <h3 style="font-size:13px;margin:0 0 10px;color:#155B67;font-weight:700">${condo.short}${torreSel?' — Torre '+torreSel:''}</h3>
+    ${blocosHtml}
+    <div class="legend">
+      <span><span class="legend-dot" style="background:#E5E7EB"></span>Sem reforma</span>
+      <span><span class="legend-dot" style="background:#9CA3AF"></span>Pendente</span>
+      <span><span class="legend-dot" style="background:#F59E0B"></span>Em análise</span>
+      <span><span class="legend-dot" style="background:#10B981"></span>Aprovada</span>
+      <span><span class="legend-dot" style="background:#3B82F6"></span>Em andamento</span>
+      <span><span class="legend-dot" style="background:#155B67"></span>Concluída</span>
+      <span><span class="legend-dot" style="background:#EF4444"></span>Rejeitada</span>
+    </div>`;
+}
+
+function renderKanbanReformas(reformas){
+  const cols = [
+    {key:'analise',   label:'Em análise',   match:r => ['pendente','em-analise','em_analise','analise','',null,undefined].includes((r.status||'').toString().toLowerCase())},
+    {key:'aprovada',  label:'Aprovada',     match:r => ['aprovada','aprovado'].includes((r.status||'').toString().toLowerCase())},
+    {key:'andamento', label:'Em andamento', match:r => ['em-andamento','em_andamento','andamento'].includes((r.status||'').toString().toLowerCase())},
+    {key:'concluida', label:'Concluída',    match:r => ['concluida','concluído','concluido'].includes((r.status||'').toString().toLowerCase())},
+  ];
+  const html = cols.map(col => {
+    const items = reformas.filter(col.match);
+    return `<div class="kanban-col">
+      <h4>${col.label} <span style="color:#9CA3AF">(${items.length})</span></h4>
+      ${items.slice(0,20).map(r => {
+        const c = CONDOMINIOS[r.condo_id];
+        const cor = _statusReformaCor(r.status);
+        const localStr = (r.bloco||r.torre) ? `${r.bloco||r.torre}${(r.apto||r.unidade) ? '·'+(r.apto||r.unidade) : ''}` : '';
+        const titulo = (r.titulo||r.assunto||r.descricao||'Reforma').toString().substring(0,42);
+        return `<div class="kanban-card" style="border-left-color:${cor}">
+          <div class="kc-titulo">${titulo}</div>
+          <div class="kc-meta">${c?.short||'?'}${localStr?' · '+localStr:''}</div>
+        </div>`;
+      }).join('') || `<div style="font-size:10.5px;color:#9CA3AF;text-align:center;padding:14px">— vazio —</div>`}
+    </div>`;
+  }).join('');
+  return `<h3 style="font-size:12px;margin:0 0 10px;color:#155B67;font-weight:700;letter-spacing:.4px">KANBAN — STATUS DAS REFORMAS</h3>
+    <div class="kanban-cols">${html}</div>`;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PORTARIA — Eventos em tempo real (PMP/Diagnóstika)
+// ═══════════════════════════════════════════════════════════════════════════
+let _portariaEventos = [];
+let _portariaCondoFilter = 'todos';
+let _portariaTipoFilter = 'todos';
+let _portariaPeriodo = 'hoje'; // hoje | 7d | 30d
+let _portariaSub = null;
+let _portariaLoaded = false;
+
+async function carregarPortariaEventos(){
+  if(!sb){ _portariaEventos = []; return; }
+  try{
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - 30);
+    const { data, error } = await sb.from('portaria_eventos')
+      .select('*')
+      .gte('hora', cutoff.toISOString())
+      .order('hora', {ascending:false})
+      .limit(500);
+    if(error) throw error;
+    _portariaEventos = data || [];
+    _portariaLoaded = true;
+    atualizarBadgePortaria();
+  }catch(e){
+    console.warn('Erro ao carregar eventos portaria:', e);
+    _portariaEventos = [];
+  }
+}
+
+function subscribePortariaRealtime(){
+  if(!sb || _portariaSub) return;
+  try{
+    _portariaSub = sb.channel('portaria_eventos_pmp')
+      .on('postgres_changes', {event:'INSERT', schema:'public', table:'portaria_eventos'}, (payload) => {
+        const ev = payload.new;
+        if(ev){
+          _portariaEventos.unshift(ev);
+          atualizarBadgePortaria();
+          if(ev.tipo_evento === 'obra_clandestina'){
+            // notificação visual prominente
+            try{
+              if(typeof toastTopo === 'function'){
+                toastTopo('🚨 Obra clandestina sinalizada — ' + (CONDOMINIOS[ev.condo_id]?.short||ev.condo_id) + ' · ' + ev.torre + '·' + ev.apto, 'err', 6000);
+              }
+            }catch(e){}
+          }
+          if(currentView === 'portaria') render();
+        }
+      })
+      .subscribe();
+  }catch(e){ console.warn('Subscribe portaria falhou', e); }
+}
+
+function atualizarBadgePortaria(){
+  // badge = clandestinas das últimas 24h não revisadas
+  const cutoff = Date.now() - 24*3600*1000;
+  const n = _portariaEventos.filter(e =>
+    e.tipo_evento === 'obra_clandestina' &&
+    new Date(e.hora).getTime() > cutoff &&
+    !e.revisada_em
+  ).length;
+  ['nav-port-badge','sn-port-badge'].forEach(bid => {
+    const b = document.getElementById(bid);
+    if(b){
+      if(n>0){ b.textContent = n; b.style.display = 'inline-block'; }
+      else b.style.display = 'none';
+    }
+  });
+}
+
+function setPortariaFilter(field, val){
+  if(field === 'condo') _portariaCondoFilter = val;
+  if(field === 'tipo')  _portariaTipoFilter  = val;
+  if(field === 'per')   _portariaPeriodo     = val;
+  if(currentView === 'portaria') render();
+}
+
+function _portariaFiltered(){
+  let cutoff = 0;
+  if(_portariaPeriodo === 'hoje'){
+    const d = new Date(); d.setHours(0,0,0,0); cutoff = d.getTime();
+  } else if(_portariaPeriodo === '7d') cutoff = Date.now() - 7*86400000;
+  else if(_portariaPeriodo === '30d') cutoff = Date.now() - 30*86400000;
+
+  return _portariaEventos.filter(e => {
+    if(_portariaCondoFilter !== 'todos' && e.condo_id !== _portariaCondoFilter) return false;
+    if(_portariaTipoFilter  !== 'todos' && e.tipo_evento !== _portariaTipoFilter) return false;
+    if(new Date(e.hora).getTime() < cutoff) return false;
+    return true;
+  });
+}
+
+function renderPortariaView(main){
+  // dispara carregamento + subscribe na primeira vez
+  if(!_portariaLoaded){
+    carregarPortariaEventos().then(()=>{ if(currentView==='portaria') render(); });
+    subscribePortariaRealtime();
+  }
+
+  const eventos = _portariaFiltered();
+
+  // KPI cards por condomínio (clandestinas hoje + total eventos hoje)
+  const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
+  const evHoje = _portariaEventos.filter(e => new Date(e.hora).getTime() >= hoje0.getTime());
+  const kpis = Object.entries(CONDOMINIOS).filter(([id])=>id!=='condominio-teste').map(([id,c]) => {
+    const evs = evHoje.filter(e => e.condo_id === id);
+    const cland = evs.filter(e => e.tipo_evento === 'obra_clandestina').length;
+    const entr  = evs.filter(e => e.tipo_evento === 'entrada_prestador').length;
+    const alert = cland > 0;
+    return `<div class="port-kpi ${alert?'alert':''}" onclick="setPortariaFilter('condo','${id}')" style="cursor:pointer;border-left:4px solid ${c.cor||'#155B67'}">
+      <div class="port-kpi-titulo">${c.short}</div>
+      <div class="port-kpi-row">
+        <div class="port-kpi-stat" title="Entradas de prestador hoje"><span class="n">${entr}</span><span class="lb">entradas</span></div>
+        <div class="port-kpi-stat ${cland?'danger':''}" title="Obras clandestinas hoje"><span class="n">${cland}</span><span class="lb">⚠ clandestinas</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Chips filtro condomínio + tipo + período
+  const chipsCondo = ['todos', ...Object.keys(CONDOMINIOS).filter(k=>k!=='condominio-teste')].map(id => {
+    const c = id==='todos' ? {short:'Todos', cor:'#155B67'} : CONDOMINIOS[id];
+    if(!c) return '';
+    const active = _portariaCondoFilter===id;
+    return `<button class="port-chip${active?' active':''}" onclick="setPortariaFilter('condo','${id}')" style="${active?`background:${c.cor};color:#fff;border-color:${c.cor}`:''}">${c.short}</button>`;
+  }).join('');
+
+  const tipos = [['todos','Todos'],['entrada_prestador','Entradas'],['obra_clandestina','⚠ Clandestinas'],['saida_prestador','Saídas']];
+  const chipsTipo = tipos.map(([k,lb]) => {
+    const active = _portariaTipoFilter===k;
+    return `<button class="port-chip${active?' active':''}" onclick="setPortariaFilter('tipo','${k}')">${lb}</button>`;
+  }).join('');
+
+  const pers = [['hoje','Hoje'],['7d','7 dias'],['30d','30 dias']];
+  const chipsPer = pers.map(([k,lb]) => {
+    const active = _portariaPeriodo===k;
+    return `<button class="port-chip${active?' active':''}" onclick="setPortariaFilter('per','${k}')">${lb}</button>`;
+  }).join('');
+
+  // Feed cronológico
+  const fmtHora = (iso) => {
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2,'0');
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mi = String(d.getMinutes()).padStart(2,'0');
+    return `${dd}/${mm} ${hh}:${mi}`;
+  };
+
+  const feed = eventos.length ? eventos.slice(0,80).map(e => {
+    const c = CONDOMINIOS[e.condo_id];
+    const cland = e.tipo_evento === 'obra_clandestina';
+    const icon = cland ? '🚨' : (e.tipo_evento==='entrada_prestador' ? '🔧' : '🚪');
+    const borda = cland ? '#DC2626' : (c?.cor||'#155B67');
+    return `<div class="port-ev ${cland?'cland':''}" style="border-left:4px solid ${borda}">
+      <div class="port-ev-icon">${icon}</div>
+      <div class="port-ev-body">
+        <div class="port-ev-line1">
+          <b>${cland?'OBRA CLANDESTINA':(e.tipo_servico||'Entrada')}</b>
+          <span class="port-ev-local">${c?.short||e.condo_id} · ${e.torre||'?'}·${e.apto||'?'}</span>
+        </div>
+        <div class="port-ev-line2">
+          ${e.prestador_nome ? '👤 '+e.prestador_nome : ''}
+          ${e.prestador_tel  ? ' · 📞 '+e.prestador_tel : ''}
+          ${e.observacao     ? ' · '+e.observacao : ''}
+        </div>
+        <div class="port-ev-meta">${fmtHora(e.hora)} · Porteiro: ${e.porteiro||'—'}</div>
+      </div>
+      ${cland?'<button class="port-ev-acao" onclick="abrirChamadoDeClandestina(\''+e.id+'\')">Abrir chamado →</button>':''}
+    </div>`;
+  }).join('') : `<div style="text-align:center;padding:40px 20px;color:#9CA3AF">
+    <div style="font-size:36px;margin-bottom:8px">🛡️</div>
+    <div style="font-size:13px">Nenhum evento da portaria neste período.</div>
+    <div style="font-size:11px;margin-top:4px">Eventos aparecem aqui em tempo real quando o porteiro registra entradas.</div>
+  </div>`;
+
+  main.innerHTML = `
+  <div class="port-wrap">
+    <div class="port-kpi-grid">${kpis}</div>
+
+    <div class="port-filtros">
+      <div class="port-fil-row"><span class="port-fil-lb">Condomínio:</span>${chipsCondo}</div>
+      <div class="port-fil-row"><span class="port-fil-lb">Tipo:</span>${chipsTipo}</div>
+      <div class="port-fil-row"><span class="port-fil-lb">Período:</span>${chipsPer}</div>
+    </div>
+
+    <div class="port-feed">
+      <h3 style="font-size:12px;font-weight:700;color:#155B67;letter-spacing:.4px;margin:4px 0 10px">EVENTOS RECENTES (${eventos.length})</h3>
+      ${feed}
+    </div>
+  </div>
+  <style>
+    .port-wrap{padding:14px;display:flex;flex-direction:column;gap:14px}
+    .port-kpi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px}
+    .port-kpi{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;transition:transform .12s}
+    .port-kpi:hover{transform:translateY(-2px)}
+    .port-kpi.alert{background:rgba(220,38,38,.04);border-color:#FCA5A5;animation:portPulse 1.6s infinite}
+    @keyframes portPulse{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,.4)}50%{box-shadow:0 0 0 6px rgba(220,38,38,0)}}
+    .port-kpi-titulo{font-weight:700;color:#111;font-size:13px;margin-bottom:6px}
+    .port-kpi-row{display:flex;gap:12px}
+    .port-kpi-stat{display:flex;flex-direction:column;align-items:flex-start}
+    .port-kpi-stat .n{font-size:20px;font-weight:800;color:#155B67;line-height:1}
+    .port-kpi-stat.danger .n{color:#DC2626}
+    .port-kpi-stat .lb{font-size:10px;color:#6B7280;margin-top:2px}
+    .port-filtros{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+    .port-fil-row{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+    .port-fil-lb{font-size:10.5px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.5px;min-width:90px}
+    .port-chip{padding:5px 11px;border-radius:14px;border:1px solid #D1D5DB;background:#F9FAFB;font-size:11.5px;font-weight:600;cursor:pointer}
+    .port-chip.active{box-shadow:0 1px 3px rgba(0,0,0,.15)}
+    .port-feed{background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px}
+    .port-ev{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:flex-start;padding:11px 10px;border-radius:8px;background:#F9FAFB;margin-bottom:7px;border-left:4px solid #155B67}
+    .port-ev.cland{background:rgba(220,38,38,.06)}
+    .port-ev-icon{font-size:20px;line-height:1.1}
+    .port-ev-body{min-width:0}
+    .port-ev-line1{font-size:13px;color:#111;line-height:1.3;margin-bottom:2px;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+    .port-ev-line1 b{font-weight:700}
+    .port-ev-local{font-size:11px;color:#6B7280;font-weight:600}
+    .port-ev-line2{font-size:12px;color:#374151;line-height:1.4;margin:2px 0}
+    .port-ev-meta{font-size:10.5px;color:#9CA3AF;margin-top:3px}
+    .port-ev-acao{background:#DC2626;color:#fff;border:none;border-radius:8px;padding:6px 11px;font-size:11px;font-weight:700;cursor:pointer;align-self:center}
+    .port-ev-acao:hover{background:#B91C1C}
+  </style>`;
+
+  atualizarBadgePortaria();
+}
+
+async function abrirChamadoDeClandestina(eventoId){
+  const ev = _portariaEventos.find(e => e.id === eventoId);
+  if(!ev){ alert('Evento não encontrado'); return; }
+  const c = CONDOMINIOS[ev.condo_id];
+  if(!confirm(`Abrir chamado interno para investigar obra clandestina?\n\n${c?.short}\nUnidade ${ev.torre}·${ev.apto}\nSinalizada por: ${ev.porteiro}\n${new Date(ev.hora).toLocaleString('pt-BR')}`)) return;
+
+  const novaDemanda = {
+    condo_id: ev.condo_id,
+    tipo: 'reforma',
+    categoria: 'reforma',
+    assunto: `Obra clandestina em ${ev.torre}·${ev.apto}`,
+    descricao: `Obra não declarada sinalizada pela portaria em ${new Date(ev.hora).toLocaleString('pt-BR')} pelo porteiro ${ev.porteiro}. ${ev.observacao||''}`,
+    bloco: ev.torre,
+    apto: ev.apto,
+    status: 'em-analise',
+    clandestina: true,
+    origem: 'portaria',
+    porteiro_origem: ev.porteiro,
+    created_at: new Date().toISOString(),
+  };
+
+  if(sb){
+    try{
+      const { error } = await sb.from('demandas').insert(novaDemanda);
+      if(error) throw error;
+      // marcar evento como revisado
+      await sb.from('portaria_eventos').update({revisada_em: new Date().toISOString()}).eq('id', eventoId);
+      ev.revisada_em = new Date().toISOString();
+      alert('✅ Chamado interno criado. Aparece agora na aba Reformas com status "em análise".');
+      atualizarBadgePortaria();
+      render();
+    }catch(e){
+      console.warn('Erro abrir chamado:', e);
+      alert('❌ Erro ao criar chamado: ' + (e.message||e));
+    }
+  }
+}
+
+// pré-carregar eventos da portaria + badge ao logar (não bloqueia)
+if(typeof sb !== 'undefined' && sb){
+  setTimeout(()=>{
+    carregarPortariaEventos().then(()=>{ subscribePortariaRealtime(); });
+  }, 1500);
 }
 
 function renderDemandasView(main){
