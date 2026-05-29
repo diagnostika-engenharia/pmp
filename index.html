@@ -7180,8 +7180,7 @@ function _reformasFiltered(){
   const lista = _demandasAllPMP || [];
   return lista.filter(d => {
     if(d.deletada_em) return false;
-    const t = (d.tipo||d.categoria||d.assunto||'').toLowerCase();
-    if(!t.includes('reforma') && d.tipo!=='reforma' && d.categoria!=='reforma') return false;
+    if(d.categoria !== 'reforma') return false;
     if(_reformasCondoFilter !== 'todos' && d.condo_id !== _reformasCondoFilter) return false;
     return true;
   });
@@ -7350,11 +7349,12 @@ function renderMapaAptos(condo, reformas, torreSel){
 }
 
 function renderKanbanReformas(reformas){
+  // status conforme tabela demandas: aberta, em_andamento, resolvida, fechada
   const cols = [
-    {key:'analise',   label:'Em análise',   match:r => ['pendente','em-analise','em_analise','analise','',null,undefined].includes((r.status||'').toString().toLowerCase())},
-    {key:'aprovada',  label:'Aprovada',     match:r => ['aprovada','aprovado'].includes((r.status||'').toString().toLowerCase())},
-    {key:'andamento', label:'Em andamento', match:r => ['em-andamento','em_andamento','andamento'].includes((r.status||'').toString().toLowerCase())},
-    {key:'concluida', label:'Concluída',    match:r => ['concluida','concluído','concluido'].includes((r.status||'').toString().toLowerCase())},
+    {key:'aberta',     label:'Aberta',      match:r => ['aberta','pendente','',null,undefined].includes((r.status||'').toString().toLowerCase())},
+    {key:'andamento',  label:'Em andamento',match:r => ['em_andamento','em-andamento','andamento'].includes((r.status||'').toString().toLowerCase())},
+    {key:'resolvida',  label:'Resolvida',   match:r => ['resolvida','aprovada','concluida'].includes((r.status||'').toString().toLowerCase())},
+    {key:'fechada',    label:'Fechada',     match:r => ['fechada','arquivada'].includes((r.status||'').toString().toLowerCase())},
   ];
   const html = cols.map(col => {
     const items = reformas.filter(col.match);
@@ -7610,17 +7610,17 @@ async function abrirChamadoDeClandestina(eventoId){
 
   const novaDemanda = {
     condo_id: ev.condo_id,
-    tipo: 'reforma',
     categoria: 'reforma',
-    assunto: `Obra clandestina em ${ev.torre}·${ev.apto}`,
-    descricao: `Obra não declarada sinalizada pela portaria em ${new Date(ev.hora).toLocaleString('pt-BR')} pelo porteiro ${ev.porteiro}. ${ev.observacao||''}`,
+    urgencia: 'alta',
+    titulo: `Obra clandestina em ${ev.torre}·${ev.apto}`,
+    descricao: `Obra não declarada sinalizada pela portaria em ${new Date(ev.hora).toLocaleString('pt-BR')} pelo porteiro ${ev.porteiro}. ${ev.observacao||''}`.trim(),
     bloco: ev.torre,
     apto: ev.apto,
-    status: 'em-analise',
+    status: 'aberta',
     clandestina: true,
     origem: 'portaria',
     porteiro_origem: ev.porteiro,
-    created_at: new Date().toISOString(),
+    portaria_evento_id: ev.id,
   };
 
   if(sb){
