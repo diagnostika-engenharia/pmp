@@ -7139,6 +7139,7 @@ function renderTilePMP(d){
   let badges = '';
   if(isMor) badges += `<span class="dt-mor-badge">🏠 MOR</span>`;
   badges += `<span class="dt-status s-${d.status}">${DEM_STAT[d.status]||d.status}</span>`;
+  badges += aguardandoBadgeHTML(d);
 
   const classes = ['dem-tile','s-'+d.status,isMor?'morador':'',urgAlta?'urg-alta':''].filter(Boolean).join(' ');
   return `<div class="${classes}" onclick="abrirDetalheDemandaPMP('${d.id}')" data-dem-id="${d.id}">
@@ -7709,6 +7710,50 @@ function renderDemandasView(main){
 }
 
 // MODAL DE DETALHE — abre ao clicar em qualquer tile
+// ═══════════════════════════════════════════════════════════════════════════
+// "Aguardando ação de X" — indica de quem é a bola na conversa
+// ═══════════════════════════════════════════════════════════════════════════
+function calcAguardando(d){
+  if(!d) return null;
+  if(d.deletada_em) return null;
+  if(d.status === 'resolvida') return {de:'encerrada', lbl:'Resolvida', cor:'#1B8A4A', icon:'✅'};
+  if(d.status === 'fechada')   return {de:'encerrada', lbl:'Fechada',   cor:'#5A7A7E', icon:'🔒'};
+
+  const msgs = Array.isArray(d.mensagens) ? d.mensagens : [];
+  let ultimoAutor = null;
+  if(msgs.length){
+    ultimoAutor = msgs[msgs.length-1].autor;
+  } else if(d.resposta){
+    ultimoAutor = 'engenharia';
+  }
+
+  const origem = (d.origem === 'morador') ? 'morador' : 'sindico';
+
+  if(!ultimoAutor){
+    // chamado novo, sem trocas — bola é da Diagnóstika
+    return {de:'diagnostika', lbl:'Aguardando Diagnóstika', cor:'#D97706', icon:'🛠'};
+  }
+  if(ultimoAutor === 'engenharia'){
+    // Diagnóstika respondeu — bola voltou pro solicitante
+    return origem === 'morador'
+      ? {de:'morador',  lbl:'Aguardando morador',     cor:'#7D3C98', icon:'👤'}
+      : {de:'sindica',  lbl:'Aguardando síndico(a)',  cor:'#D4A24C', icon:'🧑‍💼'};
+  }
+  // morador ou síndica respondeu — bola voltou pra Diagnóstika
+  return {de:'diagnostika', lbl:'Aguardando Diagnóstika', cor:'#D97706', icon:'🛠'};
+}
+
+function aguardandoBadgeHTML(d, opts){
+  const a = calcAguardando(d);
+  if(!a) return '';
+  const style = opts?.style || '';
+  const big = opts?.big;
+  if(big){
+    return `<span style="${style};background:${a.cor};color:#fff;padding:4px 11px;border-radius:12px;font-size:11px;font-weight:800;letter-spacing:.3px;display:inline-flex;align-items:center;gap:4px">${a.icon} ${a.lbl}</span>`;
+  }
+  return `<span style="${style};background:${a.cor};color:#fff;padding:2px 7px;border-radius:8px;font-size:9.5px;font-weight:800;letter-spacing:.2px;display:inline-flex;align-items:center;gap:2px">${a.icon} ${a.lbl}</span>`;
+}
+
 function abrirDetalheDemandaPMP(id){
   const d = _demandasAllPMP.find(x=>x.id===id);
   if(!d){ alert('Demanda não encontrada'); return; }
@@ -7787,6 +7832,7 @@ function abrirDetalheDemandaPMP(id){
   let badges = '';
   if(isMor) badges += `<span style="background:rgba(255,255,255,.22);padding:3px 9px;border-radius:10px;font-size:10px;font-weight:800;letter-spacing:.3px">🏠 MORADOR</span>`;
   badges += `<span class="dt-status s-${d.status}" style="font-size:10px">${DEM_STAT[d.status]||d.status}</span>`;
+  badges += aguardandoBadgeHTML(d, {big:true});
 
   document.getElementById('dem-pmp-detail-modal')?.remove();
   const ov = document.createElement('div');
