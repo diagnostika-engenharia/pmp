@@ -8371,15 +8371,30 @@ async function analisarDemandaIA(id){
   if(btn){ btn.disabled = true; btn.textContent = '🤖 Analisando…'; }
 
   try{
-    const parecer = await _gerarParecerMock(d);
-    const { error } = await sb.from('demandas')
-      .update({ parecer_ia: parecer, updated_at: new Date().toISOString() })
-      .eq('id', id);
-    if(error) throw error;
+    // Tenta Edge Function (LLM real via OpenAI)
+    let parecer = null;
+    let usedMock = false;
+    try{
+      const { data, error } = await sb.functions.invoke('analisar-reforma', {
+        body: { demanda_id: id }
+      });
+      if(error) throw error;
+      if(data?.error) throw new Error(data.error);
+      parecer = data;
+    }catch(eFunc){
+      console.warn('Edge Function indisponível, usando mock:', eFunc?.message||eFunc);
+      usedMock = true;
+      // Fallback: mock heurístico (já persiste por dentro)
+      parecer = await _gerarParecerMock(d);
+      const { error } = await sb.from('demandas')
+        .update({ parecer_ia: parecer, updated_at: new Date().toISOString() })
+        .eq('id', id);
+      if(error) throw error;
+    }
     await carregarDemandasProgPMP();
     document.getElementById('dem-pmp-detail-modal')?.remove();
     setTimeout(() => abrirDetalheDemandaPMP(id), 200);
-    showToast?.('✅ Parecer gerado');
+    showToast?.(usedMock ? '✅ Parecer gerado (modo offline)' : '✅ Parecer gerado pela OpenAI');
   }catch(e){
     if(btn){ btn.disabled = false; btn.textContent = '🤖 Analisar com IA'; }
     alert('Erro: ' + e.message);
