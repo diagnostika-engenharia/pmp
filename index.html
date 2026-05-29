@@ -7839,21 +7839,137 @@ function linkWhatsAppPMP(d){
 }
 
 // AÇÕES no PMP
+// ═══════════════════════════════════════════════════════════════════════════
+// Task #9 + #16 — RESPONDER DEMANDA (modal com thread + anexos)
+// ═══════════════════════════════════════════════════════════════════════════
+let _anexosNovaResposta = [];
+
 async function responderDemandaPMP(id){
   const d = _demandasAllPMP.find(x=>x.id===id);
   if(!d) return;
-  const txt = prompt(`💬 ${d.resposta?'Atualizar resposta':'Responder'} para a demanda:\n\n"${d.titulo}"\n\nSua resposta:`, d.resposta||'');
-  if(txt===null) return;
-  if(!txt.trim()){ alert('Resposta vazia'); return; }
+  _anexosNovaResposta = [];
+
+  // Renderiza thread cronológica de mensagens (mensagens jsonb + resposta legacy)
+  const msgs = Array.isArray(d.mensagens) ? d.mensagens : [];
+  const threadHtml = msgs.length ? msgs.map(m => {
+    const isMorador = m.autor === 'morador';
+    const cor = isMorador ? '#7D3C98' : '#155B67';
+    const bg  = isMorador ? 'rgba(125,60,152,.06)' : 'rgba(21,91,103,.06)';
+    const data = m.em ? new Date(m.em).toLocaleString('pt-BR') : '';
+    const anex = (m.anexos||[]).length ? '<div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px">'+m.anexos.map(a => `<a href="${_anexoUrl(a)}" target="_blank" style="display:inline-flex;align-items:center;gap:4px;background:#fff;border:1px solid #E5E7EB;padding:4px 8px;border-radius:6px;font-size:11px;color:${cor};text-decoration:none">📎 ${(a.nome||'arquivo').substring(0,30)}</a>`).join('')+'</div>' : '';
+    return `<div style="background:${bg};border-left:3px solid ${cor};padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:8px">
+      <div style="font-size:11px;color:${cor};font-weight:700;letter-spacing:.3px;margin-bottom:4px">${isMorador?'👤 '+(m.autor_nome||'Morador'):'🛠 '+(m.autor_nome||'Diagnóstika')} · ${data}</div>
+      <div style="font-size:13px;line-height:1.5;color:#111;white-space:pre-wrap">${(m.texto||'').replace(/[<>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]))}</div>
+      ${anex}
+    </div>`;
+  }).join('') : '';
+
+  // Mostra também a resposta legacy (campo `resposta`) caso exista e não tenha sido migrada
+  const respLegacy = d.resposta && !msgs.some(m=>m.texto===d.resposta) ? `<div style="background:rgba(21,91,103,.06);border-left:3px solid #155B67;padding:10px 12px;border-radius:0 8px 8px 0;margin-bottom:8px">
+    <div style="font-size:11px;color:#155B67;font-weight:700;margin-bottom:4px">🛠 ${d.respondido_por||'Diagnóstika'}${d.respondido_em?' · '+new Date(d.respondido_em).toLocaleString('pt-BR'):''}</div>
+    <div style="font-size:13px;line-height:1.5;white-space:pre-wrap">${d.resposta.replace(/[<>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]))}</div>
+  </div>` : '';
+
+  const modalHtml = `
+    <div id="resp-modal-bg" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px" onclick="if(event.target===this)fecharRespModal()">
+      <div style="background:#fff;border-radius:14px;max-width:640px;width:100%;max-height:92vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+        <div style="background:#155B67;color:#fff;padding:14px 18px;display:flex;align-items:center;gap:10px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;opacity:.8;font-weight:700;text-transform:uppercase;letter-spacing:.4px">${(CONDOMINIOS[d.condo_id]?.short||d.condo_id)} · ${d.protocolo||'sem protocolo'}</div>
+            <div style="font-size:14px;font-weight:700;margin-top:2px">${(d.titulo||'').replace(/[<>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]))}</div>
+          </div>
+          <button onclick="fecharRespModal()" style="background:rgba(255,255,255,.15);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px">×</button>
+        </div>
+        <div style="padding:16px 18px;overflow-y:auto;flex:1">
+          <div style="background:#F0F4F5;padding:11px 13px;border-radius:8px;margin-bottom:14px;font-size:12.5px;line-height:1.5;color:#1A2E31"><b style="color:#155B67">📝 Solicitação original:</b><br>${(d.descricao||'(sem descrição)').replace(/[<>]/g,c=>({'<':'&lt;','>':'&gt;'}[c]))}</div>
+          ${threadHtml || respLegacy ? '<h4 style="font-size:11px;color:#5A7A7E;letter-spacing:.4px;font-weight:700;text-transform:uppercase;margin-bottom:10px">💬 Conversa</h4>'+threadHtml+respLegacy : '<div style="font-size:12px;color:#9CB0B4;text-align:center;padding:14px;font-style:italic">— sem mensagens ainda —</div>'}
+        </div>
+        <div style="border-top:1px solid #E5E7EB;padding:14px 18px;background:#FAFBFC">
+          <label style="font-size:11px;font-weight:700;color:#5A7A7E;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">Sua resposta</label>
+          <textarea id="resp-texto" placeholder="Escreva sua resposta para o(a) síndico(a) ou morador…" rows="3" style="width:100%;padding:10px 12px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;outline:none" lang="pt-BR" spellcheck="true"></textarea>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap">
+            <label style="background:#fff;border:1.5px solid #D1D5DB;padding:7px 11px;border-radius:8px;cursor:pointer;font-size:11.5px;font-weight:600;color:#155B67;display:inline-flex;align-items:center;gap:5px">
+              📎 Anexar
+              <input type="file" multiple accept="image/*,application/pdf" onchange="anexarRespPMP(this)" style="display:none">
+            </label>
+            <span id="resp-anexos-info" style="font-size:11px;color:#5A7A7E"></span>
+            <div style="flex:1"></div>
+            <button onclick="fecharRespModal()" style="background:#fff;border:1px solid #D1D5DB;padding:8px 14px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;color:#5A7A7E">Cancelar</button>
+            <button onclick="enviarRespostaPMP('${id}')" id="btn-resp-enviar" style="background:#155B67;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:12.5px;font-weight:700;cursor:pointer">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(()=>document.getElementById('resp-texto')?.focus(), 100);
+}
+
+function fecharRespModal(){ document.getElementById('resp-modal-bg')?.remove(); _anexosNovaResposta = []; }
+
+function _anexoUrl(a){
+  if(!a) return '#';
+  if(typeof a === 'string') return a;
+  if(a.storage_path) return 'https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/public/chamados-morador/' + a.storage_path.split('/').map(encodeURIComponent).join('/');
+  return a.url || '#';
+}
+
+async function anexarRespPMP(input){
+  const files = Array.from(input.files||[]);
+  const info = document.getElementById('resp-anexos-info');
+  if(info) info.textContent = 'Enviando '+files.length+' arquivo(s)…';
+  for(const f of files){
+    if(f.size > 10*1024*1024){ alert(f.name+' tem mais de 10MB — ignorado'); continue; }
+    try{
+      const ext = (f.name.split('.').pop()||'bin').toLowerCase();
+      const uuid = (crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));
+      const path = `respostas-pmp/${uuid}.${ext}`;
+      const { error } = await sb.storage.from('chamados-morador').upload(path, f, {cacheControl:'3600', upsert:false});
+      if(error) throw error;
+      _anexosNovaResposta.push({nome:f.name, storage_path:path, tipo:f.type, tamanho:f.size, origem:'diagnostika'});
+    }catch(e){ console.warn('Falha upload:', e); alert('Falha em '+f.name+': '+e.message); }
+  }
+  if(info) info.textContent = _anexosNovaResposta.length+' anexo(s) prontos';
+}
+
+async function enviarRespostaPMP(id){
+  const txt = document.getElementById('resp-texto').value.trim();
+  if(!txt && !_anexosNovaResposta.length){ alert('Escreva uma resposta ou anexe algo'); return; }
+  if(txt && txt.length < 2){ alert('Resposta muito curta'); return; }
+  const btn = document.getElementById('btn-resp-enviar');
+  if(btn){ btn.disabled = true; btn.textContent = 'Enviando…'; }
+
+  const nome = window.usuarioLogadoNome || getEngenheiro() || 'Diagnóstika';
+  const d = _demandasAllPMP.find(x=>x.id===id);
+  const msgsAtuais = Array.isArray(d?.mensagens) ? d.mensagens : [];
+  const novaMsg = {
+    id: (crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2)),
+    autor: 'engenharia',
+    autor_nome: nome,
+    texto: txt || '(anexo enviado)',
+    em: new Date().toISOString(),
+    anexos: _anexosNovaResposta
+  };
+  const mensagens = [...msgsAtuais, novaMsg];
+
   try{
-    // Fase #7 — quem realizou a AÇÃO (responder) é o usuário logado, não o engenheiro cadastrado
-    const nome = window.usuarioLogadoNome || getEngenheiro() || 'Diagnóstika';
-    const {error} = await sb.from('demandas').update({resposta:txt.trim(),respondido_em:new Date().toISOString(),respondido_por:nome,updated_at:new Date().toISOString()}).eq('id',id);
+    const upd = {
+      mensagens,
+      resposta: txt || d?.resposta || '',
+      respondido_em: new Date().toISOString(),
+      respondido_por: nome,
+      updated_at: new Date().toISOString()
+    };
+    const {error} = await sb.from('demandas').update(upd).eq('id',id);
     if(error) throw error;
+    fecharRespModal();
     document.getElementById('dem-pmp-detail-modal')?.remove();
-    carregarDemandasProgPMP();
+    typeof carregarDemandasProgPMP === 'function' ? carregarDemandasProgPMP() : (typeof render === 'function' && render());
     showToast?.('✓ Resposta enviada') || alert('Resposta enviada');
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){
+    if(btn){ btn.disabled = false; btn.textContent = 'Enviar'; }
+    alert('Erro ao enviar: '+e.message);
+  }
 }
 
 // Tipos de programação disponíveis
