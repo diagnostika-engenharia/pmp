@@ -7248,7 +7248,9 @@ function renderReformasView(main){
       .apto-cell.has-reforma{color:#fff;font-weight:700}
       .legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;padding-top:10px;border-top:1px dashed #E5E7EB;font-size:10.5px;color:#6B7280}
       .legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle}
-      .kanban-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;font-size:11px}
+      .kanban-cols{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;font-size:11px}
+      @media(max-width:1200px){.kanban-cols{grid-template-columns:repeat(3,1fr)}}
+      @media(max-width:700px){.kanban-cols{grid-template-columns:repeat(2,1fr)}}
       .kanban-col{background:#F9FAFB;border-radius:8px;padding:7px;min-height:300px}
       .kanban-col h4{font-size:10.5px;font-weight:700;margin:0 0 6px;color:#374151;text-transform:uppercase;letter-spacing:.4px}
       .kanban-card{background:#fff;border-radius:6px;padding:7px;margin-bottom:5px;border-left:3px solid #9CA3AF;font-size:11px;cursor:pointer;box-shadow:0 1px 2px rgba(0,0,0,.05)}
@@ -7350,12 +7352,19 @@ function renderMapaAptos(condo, reformas, torreSel){
 }
 
 function renderKanbanReformas(reformas){
-  // status conforme tabela demandas: aberta, em_andamento, resolvida, fechada
+  // Fluxo conceitual da reforma:
+  // 1. Aberta — recém-declarada
+  // 2. Elaborando documento — Diagnóstika está preparando ART/plano (em_andamento sem ART emitida)
+  // 3. Em andamento — ART emitida, obra acontecendo
+  // 4. Resolvida — obra concluída
+  // 5. Fechada — arquivada
+  const inStatus = (r, list) => list.includes((r.status||'').toString().toLowerCase());
   const cols = [
-    {key:'aberta',     label:'Aberta',      match:r => ['aberta','pendente','',null,undefined].includes((r.status||'').toString().toLowerCase())},
-    {key:'andamento',  label:'Em andamento',match:r => ['em_andamento','em-andamento','andamento'].includes((r.status||'').toString().toLowerCase())},
-    {key:'resolvida',  label:'Resolvida',   match:r => ['resolvida','aprovada','concluida'].includes((r.status||'').toString().toLowerCase())},
-    {key:'fechada',    label:'Fechada',     match:r => ['fechada','arquivada'].includes((r.status||'').toString().toLowerCase())},
+    {key:'aberta',     label:'Aberta',                match:r => inStatus(r,['aberta','pendente','',null,undefined])},
+    {key:'elaborando', label:'Elaborando documento',  match:r => inStatus(r,['em_andamento','em-andamento','andamento']) && !r.art_numero},
+    {key:'andamento',  label:'Em andamento',          match:r => inStatus(r,['em_andamento','em-andamento','andamento']) && !!r.art_numero},
+    {key:'resolvida',  label:'Resolvida',             match:r => inStatus(r,['resolvida','aprovada','concluida'])},
+    {key:'fechada',    label:'Fechada',               match:r => inStatus(r,['fechada','arquivada'])},
   ];
   const html = cols.map(col => {
     const items = reformas.filter(col.match);
@@ -7363,12 +7372,15 @@ function renderKanbanReformas(reformas){
       <h4>${col.label} <span style="color:#9CA3AF">(${items.length})</span></h4>
       ${items.slice(0,20).map(r => {
         const c = CONDOMINIOS[r.condo_id];
-        const cor = _statusReformaCor(r.status);
-        const localStr = (r.bloco||r.torre) ? `${r.bloco||r.torre}${(r.apto||r.unidade) ? '·'+(r.apto||r.unidade) : ''}` : '';
+        const cor = col.key === 'elaborando' ? '#0EA5E9' : _statusReformaCor(r.status);
+        const bloco = (r.bloco||r.torre||'').toString().trim();
+        const apto  = (r.apto||r.unidade||'').toString().trim();
+        const localStr = bloco && apto ? `${bloco}·${apto}` : (bloco ? `Torre ${bloco}` : (apto ? `Apto ${apto}` : '<span style="color:#DC2626;font-weight:700">⚠ sem localização</span>'));
         const titulo = (r.titulo||r.assunto||r.descricao||'Reforma').toString().substring(0,42);
-        return `<div class="kanban-card" style="border-left-color:${cor}">
+        const onclick = r.id ? `onclick="abrirDetalheDemandaPMP('${r.id}')"` : '';
+        return `<div class="kanban-card" style="border-left-color:${cor};cursor:pointer" ${onclick}>
           <div class="kc-titulo">${titulo}</div>
-          <div class="kc-meta">${c?.short||'?'}${localStr?' · '+localStr:''}</div>
+          <div class="kc-meta">${c?.short||'?'} · ${localStr}</div>
         </div>`;
       }).join('') || `<div style="font-size:10.5px;color:#9CA3AF;text-align:center;padding:14px">— vazio —</div>`}
     </div>`;
