@@ -7521,6 +7521,91 @@ function _portariaFiltered(){
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Mapa visual de unidades na aba Portaria (PMP)
+// ═══════════════════════════════════════════════════════════════════════════
+let _portariaTorrePMP = null;
+
+function _statusUnidadePMP(condoId, torre, num){
+  const tS = torre.toString();
+  const nS = num.toString();
+  const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
+
+  const cland = _portariaEventos.find(e => e.condo_id===condoId && e.tipo_evento==='obra_clandestina' && (e.torre||'').toString()===tS && (e.apto||'').toString()===nS && !e.revisada_em);
+  if(cland) return {cls:'cland', title:`⚠ Obra não autorizada — sinalizada por ${cland.porteiro||'?'} em ${new Date(cland.hora).toLocaleString('pt-BR')}`};
+
+  const refs = (_demandasAllPMP||[]).filter(d => d.condo_id===condoId && d.categoria==='reforma' && !d.deletada_em && ((d.bloco||'').toString().toUpperCase()===tS.toUpperCase()) && ((d.apto||'').toString()===nS));
+  if(refs.length){
+    const r = refs[0];
+    if(r.clandestina) return {cls:'cland', title:'⚠ Chamado: obra não autorizada'};
+    if(r.art_numero)  return {cls:'art', title:`📄 Reforma c/ART ${r.art_numero}`};
+    if(r.irregular)   return {cls:'sem-rt', title:'⚠ Reforma sem RT (irregular)'};
+    return {cls:'aguard', title:'⏳ Reforma aguardando ART'};
+  }
+
+  const entrou = _portariaEventos.find(e => e.condo_id===condoId && e.tipo_evento==='entrada_prestador' && (e.torre||'').toString()===tS && (e.apto||'').toString()===nS && new Date(e.hora).getTime()>=hoje0.getTime());
+  if(entrou) return {cls:'entrada', title:`🔧 Entrada hoje: ${entrou.prestador_nome||'prestador'} — ${entrou.tipo_servico||'?'}`};
+
+  return {cls:'', title:''};
+}
+
+function renderMapaPortariaPMP(){
+  // Só mostra mapa quando um condomínio específico está selecionado
+  if(_portariaCondoFilter === 'todos') return '';
+  const c = CONDOMINIOS[_portariaCondoFilter];
+  const est = c?.estrutura;
+  if(!est) return '';
+
+  if(!_portariaTorrePMP || !est.torres.includes(_portariaTorrePMP)) _portariaTorrePMP = est.torres[0];
+
+  const torresHTML = est.torres.map(t => {
+    const active = _portariaTorrePMP===t ? 'active' : '';
+    return `<button class="torre-pill-pmp ${active}" onclick="setTorrePortariaPMP('${t}')">${t}</button>`;
+  }).join('');
+
+  const cells = [];
+  for(let i=1; i<=est.aptosPorTorre; i++){
+    const st = _statusUnidadePMP(_portariaCondoFilter, _portariaTorrePMP, i);
+    cells.push(`<div class="uni-cell-pmp ${st.cls}" title="${(_portariaTorrePMP+'·'+i)+' — '+(st.title||'sem movimento')}">${i}</div>`);
+  }
+
+  return `
+    <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <h3 style="font-size:13px;font-weight:700;color:#155B67;letter-spacing:.4px;margin:0">🗺 MAPA DE UNIDADES — ${c.short}</h3>
+        <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
+          <span style="font-size:10.5px;color:#6B7280;font-weight:700;letter-spacing:.4px;margin-right:4px">TORRE:</span>
+          ${torresHTML}
+        </div>
+      </div>
+      <div class="mapa-pmp-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:5px">${cells.join('')}</div>
+      <div style="margin-top:14px;padding-top:12px;border-top:1px dashed #E5E7EB;display:flex;flex-wrap:wrap;gap:11px;font-size:11px;color:#6B7280">
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#E5E7EB;border:1px solid #D1D5DB;vertical-align:-2px;margin-right:3px"></span>Sem movimento</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#3B82F6;vertical-align:-2px;margin-right:3px"></span>Entrada hoje</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#10B981;vertical-align:-2px;margin-right:3px"></span>Reforma c/ART</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#F59E0B;vertical-align:-2px;margin-right:3px"></span>Aguardando ART</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#EF4444;vertical-align:-2px;margin-right:3px"></span>Sem RT</span>
+        <span><span style="display:inline-block;width:11px;height:11px;border-radius:3px;background:#DC2626;vertical-align:-2px;margin-right:3px;animation:portPulse 1.4s infinite"></span>Não autorizada</span>
+      </div>
+    </div>
+    <style>
+      .uni-cell-pmp{aspect-ratio:1;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;background:#E5E7EB;color:#374151;cursor:pointer;transition:transform .1s;border:1px solid #D1D5DB}
+      .uni-cell-pmp:hover{transform:scale(1.18);z-index:2;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+      .uni-cell-pmp.entrada{background:#3B82F6;color:#fff;border-color:#1D4ED8}
+      .uni-cell-pmp.art{background:#10B981;color:#fff;border-color:#047857}
+      .uni-cell-pmp.aguard{background:#F59E0B;color:#fff;border-color:#B45309}
+      .uni-cell-pmp.sem-rt{background:#EF4444;color:#fff;border-color:#B91C1C}
+      .uni-cell-pmp.cland{background:#DC2626;color:#fff;border-color:#7F1D1D;animation:portPulse 1.4s infinite}
+      .torre-pill-pmp{padding:4px 11px;border-radius:15px;border:1.5px solid #D1D5DB;background:#fff;color:#1A2E31;font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit}
+      .torre-pill-pmp.active{background:#155B67;color:#fff;border-color:#155B67}
+    </style>`;
+}
+
+function setTorrePortariaPMP(t){
+  _portariaTorrePMP = t;
+  if(currentView==='portaria') render();
+}
+
 function renderPortariaView(main){
   // dispara carregamento + subscribe na primeira vez
   if(!_portariaLoaded){
@@ -7621,6 +7706,9 @@ function renderPortariaView(main){
     </div>`;
   })();
 
+  // Mapa visual de unidades — só aparece se condomínio selecionado
+  const mapaHTML = renderMapaPortariaPMP();
+
   main.innerHTML = `
   <div class="port-wrap">
     <div class="port-kpi-grid">${kpis}</div>
@@ -7630,6 +7718,8 @@ function renderPortariaView(main){
       <div class="port-fil-row"><span class="port-fil-lb">Tipo:</span>${chipsTipo}</div>
       <div class="port-fil-row"><span class="port-fil-lb">Período:</span>${chipsPer}</div>
     </div>
+
+    ${mapaHTML}
 
     <div class="port-feed">
       <h3 style="font-size:12px;font-weight:700;color:#155B67;letter-spacing:.4px;margin:4px 0 10px">EVENTOS RECENTES (${eventos.length})</h3>
