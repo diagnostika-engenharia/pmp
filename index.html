@@ -7289,23 +7289,28 @@ function renderReformasOverview(){
 function renderTorresGrid(condo, reformas){
   const torres = condo.estrutura.torres;
   const porTorre = {};
-  torres.forEach(t => porTorre[t]=0);
+  let semLocalizacao = 0;
+  torres.forEach(t => porTorre[t.toUpperCase()]=0);
   reformas.forEach(r => {
-    const t = (r.bloco||r.torre||'').toString();
-    if(porTorre[t]!==undefined) porTorre[t]++;
+    const loc = _extrairLocalizacaoDemanda(r);
+    const t = loc.bloco.toUpperCase();
+    if(t && porTorre[t]!==undefined) porTorre[t]++;
+    else if(!t) semLocalizacao++;
   });
   const grid = torres.map(t => {
-    const n = porTorre[t];
+    const n = porTorre[t.toUpperCase()] || 0;
     const cor = n>0 ? condo.cor : '#B8C2CC';
     return `<div class="torre-card" style="background:${cor}" onclick="setReformasTorreFilter('${t}')" title="Torre ${t}${n?' · '+n+' reforma(s)':''}">
       ${t}
       ${n>0?`<span class="torre-badge">${n}</span>`:''}
     </div>`;
   }).join('');
+  const aviso = semLocalizacao > 0 ? `<div style="margin-top:14px;background:rgba(220,38,38,.06);border-left:3px solid #DC2626;padding:8px 12px;border-radius:0 6px 6px 0;font-size:11.5px;color:#374151"><b style="color:#DC2626">⚠ ${semLocalizacao} reforma(s) sem torre/apto identificado</b><br>Aparecem no kanban à direita mas não no mapa. Edite a demanda pra preencher.</div>` : '';
   return `<button class="ref-back-btn" onclick="setReformasCondoFilter('todos')">← Todos condomínios</button>
     <h3 style="font-size:13px;margin:0 0 10px;color:#155B67;font-weight:700">${condo.short} · ${condo.estrutura.totalUnidades} unid · ${torres.length} torres</h3>
     <div class="torres-grid">${grid}</div>
-    <div style="font-size:11px;color:#6B7280;margin-top:10px">Clique numa torre para ver o mapa de apartamentos</div>`;
+    <div style="font-size:11px;color:#6B7280;margin-top:10px">Clique numa torre para ver o mapa de apartamentos</div>
+    ${aviso}`;
 }
 
 function renderMapaAptos(condo, reformas, torreSel){
@@ -7322,7 +7327,10 @@ function renderMapaAptos(condo, reformas, torreSel){
 
   const blocosHtml = torres.map(t => {
     const cells = aptos(t).map(a => {
-      const refs = reformas.filter(r => ((r.bloco||r.torre||'').toString())==t.toString() && ((r.apto||r.unidade||'').toString())==a.num.toString());
+      const refs = reformas.filter(r => {
+        const loc = _extrairLocalizacaoDemanda(r);
+        return loc.bloco.toUpperCase() === t.toString().toUpperCase() && loc.apto.toString() === a.num.toString();
+      });
       const cls = refs.length ? 'has-reforma' : '';
       const stCor = refs.length ? _statusReformaCor(refs[0].status) : '';
       return `<div class="apto-cell ${cls}" ${refs.length?`style="background:${stCor}"`:''} title="${t}-${a.num}${refs.length?' · '+refs.length+' reforma(s)':''}">${a.num}</div>`;
@@ -7351,6 +7359,37 @@ function renderMapaAptos(condo, reformas, torreSel){
     </div>`;
 }
 
+// Tenta extrair bloco+apto de uma demanda, mesmo se vier de fontes diferentes
+// (campos bloco/apto novos OU morador_apto combinado tipo "A · Apto 34")
+function _extrairLocalizacaoDemanda(r){
+  if(!r) return {bloco:'', apto:'', exibir:'<span style="color:#DC2626;font-weight:700">⚠ sem localização</span>'};
+  let bloco = (r.bloco||r.torre||'').toString().trim();
+  let apto  = (r.apto||r.unidade||'').toString().trim();
+
+  if((!bloco || !apto) && r.morador_apto){
+    const txt = r.morador_apto.toString().trim();
+    // Padrões aceitos: "A · Apto 34", "A-34", "B 304", "Apto 305", "A.123"
+    const m = txt.match(/^\s*([A-Za-z0-9]{1,4})\s*(?:[·\-\.,\/\s]+(?:apto\s*)?)?(\d{1,4})\s*$/i) ||
+              txt.match(/^\s*(?:apto|ap|apartamento)\s*(\d{1,4})\s*$/i);
+    if(m){
+      if(m.length === 3){
+        if(!bloco) bloco = m[1].toUpperCase();
+        if(!apto)  apto  = m[2];
+      } else if(m.length === 2){
+        if(!apto) apto = m[1];
+      }
+    } else if(!bloco && !apto){
+      // não casou padrão — exibe texto bruto
+      return {bloco:'', apto:'', exibir:`<span style="color:#6B7280">${txt.substring(0,30)}</span>`};
+    }
+  }
+
+  if(bloco && apto) return {bloco, apto, exibir:`<b>${bloco}·${apto}</b>`};
+  if(bloco)        return {bloco, apto, exibir:`Torre ${bloco}`};
+  if(apto)         return {bloco, apto, exibir:`Apto ${apto}`};
+  return {bloco:'', apto:'', exibir:'<span style="color:#DC2626;font-weight:700">⚠ sem localização</span>'};
+}
+
 function renderKanbanReformas(reformas){
   // Fluxo conceitual da reforma:
   // 1. Aberta — recém-declarada
@@ -7373,9 +7412,8 @@ function renderKanbanReformas(reformas){
       ${items.slice(0,20).map(r => {
         const c = CONDOMINIOS[r.condo_id];
         const cor = col.key === 'elaborando' ? '#0EA5E9' : _statusReformaCor(r.status);
-        const bloco = (r.bloco||r.torre||'').toString().trim();
-        const apto  = (r.apto||r.unidade||'').toString().trim();
-        const localStr = bloco && apto ? `${bloco}·${apto}` : (bloco ? `Torre ${bloco}` : (apto ? `Apto ${apto}` : '<span style="color:#DC2626;font-weight:700">⚠ sem localização</span>'));
+        const loc = _extrairLocalizacaoDemanda(r);
+        const localStr = loc.exibir;
         const titulo = (r.titulo||r.assunto||r.descricao||'Reforma').toString().substring(0,42);
         const onclick = r.id ? `onclick="abrirDetalheDemandaPMP('${r.id}')"` : '';
         return `<div class="kanban-card" style="border-left-color:${cor};cursor:pointer" ${onclick}>
