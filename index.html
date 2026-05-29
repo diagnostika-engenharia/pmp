@@ -7383,7 +7383,7 @@ function renderKanbanReformas(reformas){
 let _portariaEventos = [];
 let _portariaCondoFilter = 'todos';
 let _portariaTipoFilter = 'todos';
-let _portariaPeriodo = 'hoje'; // hoje | 7d | 30d
+let _portariaPeriodo = '7d'; // hoje | 7d | 30d (default 7d para sempre mostrar contexto recente)
 let _portariaSub = null;
 let _portariaLoaded = false;
 
@@ -7479,19 +7479,24 @@ function renderPortariaView(main){
 
   const eventos = _portariaFiltered();
 
-  // KPI cards por condomínio (obras não autorizadas hoje + total eventos hoje)
-  const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
-  const evHoje = _portariaEventos.filter(e => new Date(e.hora).getTime() >= hoje0.getTime());
+  // KPI cards refletem o período selecionado (sincroniza com chip de período)
+  let cutoffKPI = 0;
+  if(_portariaPeriodo === 'hoje'){
+    const d = new Date(); d.setHours(0,0,0,0); cutoffKPI = d.getTime();
+  } else if(_portariaPeriodo === '7d') cutoffKPI = Date.now() - 7*86400000;
+  else if(_portariaPeriodo === '30d') cutoffKPI = Date.now() - 30*86400000;
+  const periodoLbl = _portariaPeriodo === 'hoje' ? 'hoje' : (_portariaPeriodo === '7d' ? '7 dias' : '30 dias');
+  const evPeriodo = _portariaEventos.filter(e => new Date(e.hora).getTime() >= cutoffKPI);
   const kpis = Object.entries(CONDOMINIOS).filter(([id])=>id!=='condominio-teste').map(([id,c]) => {
-    const evs = evHoje.filter(e => e.condo_id === id);
+    const evs = evPeriodo.filter(e => e.condo_id === id);
     const cland = evs.filter(e => e.tipo_evento === 'obra_clandestina').length;
     const entr  = evs.filter(e => e.tipo_evento === 'entrada_prestador').length;
     const alert = cland > 0;
     return `<div class="port-kpi ${alert?'alert':''}" onclick="setPortariaFilter('condo','${id}')" style="cursor:pointer;border-left:4px solid ${c.cor||'#155B67'}">
-      <div class="port-kpi-titulo">${c.short}</div>
+      <div class="port-kpi-titulo">${c.short} <span style="font-size:9.5px;color:#9CA3AF;font-weight:600">· ${periodoLbl}</span></div>
       <div class="port-kpi-row">
-        <div class="port-kpi-stat" title="Entradas de prestador hoje"><span class="n">${entr}</span><span class="lb">entradas</span></div>
-        <div class="port-kpi-stat ${cland?'danger':''}" title="Obras não autorizadas hoje"><span class="n">${cland}</span><span class="lb">⚠ não autorizadas</span></div>
+        <div class="port-kpi-stat" title="Entradas de prestador no período"><span class="n">${entr}</span><span class="lb">entradas</span></div>
+        <div class="port-kpi-stat ${cland?'danger':''}" title="Obras não autorizadas no período"><span class="n">${cland}</span><span class="lb">⚠ não autorizadas</span></div>
       </div>
     </div>`;
   }).join('');
@@ -7547,11 +7552,23 @@ function renderPortariaView(main){
       </div>
       ${cland?'<button class="port-ev-acao" onclick="abrirChamadoDeClandestina(\''+e.id+'\')">Abrir chamado →</button>':''}
     </div>`;
-  }).join('') : `<div style="text-align:center;padding:40px 20px;color:#9CA3AF">
-    <div style="font-size:36px;margin-bottom:8px">🛡️</div>
-    <div style="font-size:13px">Nenhum evento da portaria neste período.</div>
-    <div style="font-size:11px;margin-top:4px">Eventos aparecem aqui em tempo real quando o porteiro registra entradas.</div>
-  </div>`;
+  }).join('') : (function(){
+    // Vazio: verifica se há eventos em períodos maiores e sugere troca de filtro
+    const total7d = _portariaEventos.filter(e => new Date(e.hora).getTime() >= Date.now()-7*86400000).length;
+    const total30d = _portariaEventos.filter(e => new Date(e.hora).getTime() >= Date.now()-30*86400000).length;
+    let sugestao = '';
+    if(_portariaPeriodo === 'hoje' && total7d > 0){
+      sugestao = `<button onclick="setPortariaFilter('per','7d')" style="margin-top:10px;background:#155B67;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px">Ver ${total7d} evento(s) dos últimos 7 dias</button>`;
+    } else if(_portariaPeriodo === '7d' && total30d > 0){
+      sugestao = `<button onclick="setPortariaFilter('per','30d')" style="margin-top:10px;background:#155B67;color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;font-size:12px">Ver ${total30d} evento(s) dos últimos 30 dias</button>`;
+    }
+    return `<div style="text-align:center;padding:40px 20px;color:#9CA3AF">
+      <div style="font-size:36px;margin-bottom:8px">🛡️</div>
+      <div style="font-size:13px">Nenhum evento da portaria neste período.</div>
+      <div style="font-size:11px;margin-top:4px">Eventos aparecem aqui em tempo real quando o porteiro registra entradas.</div>
+      ${sugestao}
+    </div>`;
+  })();
 
   main.innerHTML = `
   <div class="port-wrap">
