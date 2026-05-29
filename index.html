@@ -7419,7 +7419,7 @@ function subscribePortariaRealtime(){
             // notificação visual prominente
             try{
               if(typeof toastTopo === 'function'){
-                toastTopo('🚨 Obra clandestina sinalizada — ' + (CONDOMINIOS[ev.condo_id]?.short||ev.condo_id) + ' · ' + ev.torre + '·' + ev.apto, 'err', 6000);
+                toastTopo('🚨 Obra não autorizada sinalizada — ' + (CONDOMINIOS[ev.condo_id]?.short||ev.condo_id) + ' · ' + ev.torre + '·' + ev.apto, 'err', 6000);
               }
             }catch(e){}
           }
@@ -7478,7 +7478,7 @@ function renderPortariaView(main){
 
   const eventos = _portariaFiltered();
 
-  // KPI cards por condomínio (clandestinas hoje + total eventos hoje)
+  // KPI cards por condomínio (obras não autorizadas hoje + total eventos hoje)
   const hoje0 = new Date(); hoje0.setHours(0,0,0,0);
   const evHoje = _portariaEventos.filter(e => new Date(e.hora).getTime() >= hoje0.getTime());
   const kpis = Object.entries(CONDOMINIOS).filter(([id])=>id!=='condominio-teste').map(([id,c]) => {
@@ -7490,7 +7490,7 @@ function renderPortariaView(main){
       <div class="port-kpi-titulo">${c.short}</div>
       <div class="port-kpi-row">
         <div class="port-kpi-stat" title="Entradas de prestador hoje"><span class="n">${entr}</span><span class="lb">entradas</span></div>
-        <div class="port-kpi-stat ${cland?'danger':''}" title="Obras clandestinas hoje"><span class="n">${cland}</span><span class="lb">⚠ clandestinas</span></div>
+        <div class="port-kpi-stat ${cland?'danger':''}" title="Obras não autorizadas hoje"><span class="n">${cland}</span><span class="lb">⚠ não autorizadas</span></div>
       </div>
     </div>`;
   }).join('');
@@ -7503,7 +7503,7 @@ function renderPortariaView(main){
     return `<button class="port-chip${active?' active':''}" onclick="setPortariaFilter('condo','${id}')" style="${active?`background:${c.cor};color:#fff;border-color:${c.cor}`:''}">${c.short}</button>`;
   }).join('');
 
-  const tipos = [['todos','Todos'],['entrada_prestador','Entradas'],['obra_clandestina','⚠ Clandestinas'],['saida_prestador','Saídas']];
+  const tipos = [['todos','Todos'],['entrada_prestador','Entradas'],['obra_clandestina','⚠ Não autorizadas'],['saida_prestador','Saídas']];
   const chipsTipo = tipos.map(([k,lb]) => {
     const active = _portariaTipoFilter===k;
     return `<button class="port-chip${active?' active':''}" onclick="setPortariaFilter('tipo','${k}')">${lb}</button>`;
@@ -7534,7 +7534,7 @@ function renderPortariaView(main){
       <div class="port-ev-icon">${icon}</div>
       <div class="port-ev-body">
         <div class="port-ev-line1">
-          <b>${cland?'OBRA CLANDESTINA':(e.tipo_servico||'Entrada')}</b>
+          <b>${cland?'OBRA NÃO AUTORIZADA':(e.tipo_servico||'Entrada')}</b>
           <span class="port-ev-local">${c?.short||e.condo_id} · ${e.torre||'?'}·${e.apto||'?'}</span>
         </div>
         <div class="port-ev-line2">
@@ -7606,13 +7606,13 @@ async function abrirChamadoDeClandestina(eventoId){
   const ev = _portariaEventos.find(e => e.id === eventoId);
   if(!ev){ alert('Evento não encontrado'); return; }
   const c = CONDOMINIOS[ev.condo_id];
-  if(!confirm(`Abrir chamado interno para investigar obra clandestina?\n\n${c?.short}\nUnidade ${ev.torre}·${ev.apto}\nSinalizada por: ${ev.porteiro}\n${new Date(ev.hora).toLocaleString('pt-BR')}`)) return;
+  if(!confirm(`Abrir chamado interno para investigar obra não autorizada?\n\n${c?.short}\nUnidade ${ev.torre}·${ev.apto}\nSinalizada por: ${ev.porteiro}\n${new Date(ev.hora).toLocaleString('pt-BR')}`)) return;
 
   const novaDemanda = {
     condo_id: ev.condo_id,
     categoria: 'reforma',
     urgencia: 'alta',
-    titulo: `Obra clandestina em ${ev.torre}·${ev.apto}`,
+    titulo: `Obra não autorizada em ${ev.torre}·${ev.apto}`,
     descricao: `Obra não declarada sinalizada pela portaria em ${new Date(ev.hora).toLocaleString('pt-BR')} pelo porteiro ${ev.porteiro}. ${ev.observacao||''}`.trim(),
     bloco: ev.torre,
     apto: ev.apto,
