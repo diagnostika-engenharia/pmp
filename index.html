@@ -7368,19 +7368,20 @@ function _extrairLocalizacaoDemanda(r){
 
   if((!bloco || !apto) && r.morador_apto){
     const txt = r.morador_apto.toString().trim();
-    // Padrões aceitos: "A · Apto 34", "A-34", "B 304", "Apto 305", "A.123"
-    const m = txt.match(/^\s*([A-Za-z0-9]{1,4})\s*(?:[·\-\.,\/\s]+(?:apto\s*)?)?(\d{1,4})\s*$/i) ||
-              txt.match(/^\s*(?:apto|ap|apartamento)\s*(\d{1,4})\s*$/i);
+    // 1º tenta padrão "Apto 305" (só apto)
+    let m = txt.match(/^\s*(?:apto|ap|apartamento)\s*(\d{1,4})\s*$/i);
     if(m){
-      if(m.length === 3){
+      if(!apto) apto = m[1];
+    } else {
+      // 2º tenta "BLOCO · Apto NUM", "A-34", "B 304", "A.123", "15-403"
+      m = txt.match(/^\s*([A-Za-z0-9]{1,4})\s*[·\-\.,\/\s]+(?:apto\s*)?(\d{1,4})\s*$/i);
+      if(m){
         if(!bloco) bloco = m[1].toUpperCase();
         if(!apto)  apto  = m[2];
-      } else if(m.length === 2){
-        if(!apto) apto = m[1];
+      } else if(!bloco && !apto){
+        // não casou — exibe texto bruto truncado
+        return {bloco:'', apto:'', exibir:`<span style="color:#6B7280">${txt.substring(0,30)}</span>`};
       }
-    } else if(!bloco && !apto){
-      // não casou padrão — exibe texto bruto
-      return {bloco:'', apto:'', exibir:`<span style="color:#6B7280">${txt.substring(0,30)}</span>`};
     }
   }
 
