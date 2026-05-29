@@ -7886,10 +7886,43 @@ function abrirDetalheDemandaPMP(id){
     ${d.respondido_em?'<div style="font-size:10px;color:var(--text2);margin-top:5px">'+new Date(d.respondido_em).toLocaleString('pt-BR')+(d.respondido_por?' · '+d.respondido_por:'')+'</div>':''}
   </div>` : '';
 
+  // Bloco ART (só pra reformas)
+  let artHtml = '';
+  if(d.categoria === 'reforma'){
+    const temART = !!d.art_numero;
+    const rt = d.responsavel_tecnico || {};
+    const rtNome = rt.nome || '';
+    const rtCrea = rt.crea || rt.registro || '';
+    if(temART){
+      artHtml = `<div style="background:rgba(27,138,74,.10);border-left:3px solid #1B8A4A;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
+        <span style="color:#1B8A4A;font-size:11px;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;font-weight:700">📜 ART emitida — reforma autorizada</span>
+        <div><b>Nº ART:</b> ${esc(d.art_numero)}</div>
+        ${rtNome?`<div><b>RT:</b> ${esc(rtNome)}${rtCrea?` · CREA ${esc(rtCrea)}`:''}</div>`:''}
+        ${d.art_emitida_em?`<div style="font-size:10.5px;color:var(--text2);margin-top:3px">Emitida em ${new Date(d.art_emitida_em).toLocaleDateString('pt-BR')}</div>`:''}
+      </div>`;
+    } else if(d.irregular){
+      artHtml = `<div style="background:rgba(192,0,0,.08);border-left:3px solid #C00000;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
+        <span style="color:#C00000;font-size:11px;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;font-weight:700">⚠ Reforma marcada como irregular</span>
+        Aguardando regularização ou cancelamento.
+      </div>`;
+    } else {
+      artHtml = `<div style="background:rgba(213,162,76,.10);border-left:3px solid #D4A24C;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
+        <span style="color:#A87826;font-size:11px;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;font-weight:700">⏳ ART ainda não emitida</span>
+        Clique em <b>📜 Emitir ART</b> abaixo quando a documentação estiver concluída.
+      </div>`;
+    }
+  }
+
   // Botões de ação
+  const isReforma = d.categoria === 'reforma';
+  const temART = !!d.art_numero;
   let acoes = `
     <button class="dem-btn-act dem-btn-pri" onclick="responderDemandaPMP('${d.id}')">💬 ${d.resposta?'Atualizar resposta':'Responder'}</button>
     <button class="dem-btn-act dem-btn-prog" onclick="programarDemandaPMP('${d.id}')">📅 ${d.data_programada?'Reagendar':'Programar'}</button>
+    ${isReforma && !temART ? `<button class="dem-btn-act" style="background:#1B8A4A;color:#fff" onclick="emitirARTPMP('${d.id}')">📜 Emitir ART</button>` : ''}
+    ${isReforma && temART ? `<button class="dem-btn-act" style="background:#fff;color:#1B8A4A;border:1.5px solid #1B8A4A" onclick="emitirARTPMP('${d.id}')">📜 Editar ART</button>` : ''}
+    ${isReforma && !d.irregular ? `<button class="dem-btn-act" style="background:#fff;color:#C00000;border:1.5px solid #C00000" onclick="marcarIrregularPMP('${d.id}')">⚠ Marcar irregular</button>` : ''}
+    ${isReforma && d.irregular ? `<button class="dem-btn-act" style="background:#fff;color:#A87826;border:1.5px solid #D4A24C" onclick="marcarIrregularPMP('${d.id}',false)">↻ Tirar irregular</button>` : ''}
     ${d.status==='aberta'?`<button class="dem-btn-act dem-btn-start" onclick="mudarStatusDemandaPMP('${d.id}','em_andamento')">⏳ Iniciar</button>`:''}
     ${d.status!=='resolvida'?`<button class="dem-btn-act dem-btn-ok" onclick="mudarStatusDemandaPMP('${d.id}','resolvida')">✅ Resolver</button>`:''}
     ${d.status==='resolvida'?`<button class="dem-btn-act dem-btn-close" onclick="mudarStatusDemandaPMP('${d.id}','fechada')">🔒 Fechar</button>`:''}
@@ -7926,6 +7959,7 @@ function abrirDetalheDemandaPMP(id){
         ${anexosHtml}
         ${docsHtml}
         ${bannerHtml}
+        ${artHtml}
         ${respostaHtml}
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--gray2);margin-top:6px">
           ${acoes}
@@ -8181,6 +8215,114 @@ async function mudarStatusDemandaPMP(id, novo){
     if(error) throw error;
     document.getElementById('dem-pmp-detail-modal')?.remove();
     carregarDemandasProgPMP();
+  }catch(e){ alert('Erro: '+e.message); }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// F3 — Emitir ART para reforma
+// ═══════════════════════════════════════════════════════════════════════════
+function emitirARTPMP(id){
+  const d = _demandasAllPMP.find(x=>x.id===id);
+  if(!d){ alert('Demanda não encontrada'); return; }
+  const rt = d.responsavel_tecnico || {};
+  const hojeISO = new Date().toISOString().slice(0,10);
+  const modalHtml = `
+    <div id="art-modal-bg" style="position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:14px" onclick="if(event.target===this)document.getElementById('art-modal-bg').remove()">
+      <div style="background:#fff;border-radius:14px;max-width:540px;width:100%;max-height:92vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.4)">
+        <div style="background:#1B8A4A;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:10px">
+          <div style="flex:1">
+            <div style="font-size:11px;opacity:.85;font-weight:700;text-transform:uppercase;letter-spacing:.4px">${d.protocolo||'—'}</div>
+            <div style="font-size:15px;font-weight:700;margin-top:2px">📜 ${d.art_numero?'Editar':'Emitir'} ART — ${(d.titulo||'').substring(0,40)}</div>
+          </div>
+          <button onclick="document.getElementById('art-modal-bg').remove()" style="background:rgba(255,255,255,.2);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px">×</button>
+        </div>
+        <div style="padding:18px 20px">
+          <div style="background:rgba(212,162,76,.10);border-left:3px solid #D4A24C;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12px;margin-bottom:18px;color:#374151">
+            Preencha os dados da ART (Anotação de Responsabilidade Técnica) emitida no CREA/SP. Ao confirmar, a reforma será considerada <b>autorizada</b> e aparecerá em <b>verde "c/ART"</b> no mapa da Portaria.
+          </div>
+
+          <label style="font-size:11px;font-weight:700;color:#5A7A7E;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">Nº da ART *</label>
+          <input type="text" id="art-numero" placeholder="Ex: CREA-SP-1234567/2026" value="${esc(d.art_numero||'')}" style="width:100%;padding:10px 12px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px">
+
+          <label style="font-size:11px;font-weight:700;color:#5A7A7E;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">Data de emissão *</label>
+          <input type="date" id="art-data" value="${d.art_emitida_em?d.art_emitida_em.slice(0,10):hojeISO}" style="width:100%;padding:10px 12px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:14px">
+
+          <label style="font-size:11px;font-weight:700;color:#5A7A7E;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px">Responsável Técnico *</label>
+          <input type="text" id="art-rt-nome" placeholder="Nome completo do RT" value="${esc(rt.nome||'')}" style="width:100%;padding:10px 12px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px">
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+            <input type="text" id="art-rt-crea" placeholder="CREA/CAU (registro)" value="${esc(rt.crea||rt.registro||'')}" style="width:100%;padding:10px 12px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
+            <input type="text" id="art-rt-tel" placeholder="Telefone (opcional)" value="${esc(rt.telefone||'')}" style="width:100%;padding:10px 12px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;font-family:inherit;outline:none">
+          </div>
+
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;background:#F0F4F5;padding:10px 12px;border-radius:8px;margin-bottom:18px">
+            <input type="checkbox" id="art-mover-andamento" checked style="width:16px;height:16px">
+            <span>Mover para <b>"Em andamento"</b> (recomendado se obra começa agora)</span>
+          </label>
+
+          <div style="display:flex;gap:8px;justify-content:flex-end">
+            <button onclick="document.getElementById('art-modal-bg').remove()" style="background:#fff;border:1px solid #D1D5DB;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Cancelar</button>
+            <button onclick="confirmarART('${id}')" id="btn-art-ok" style="background:#1B8A4A;color:#fff;border:none;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">📜 ${d.art_numero?'Atualizar':'Emitir'} ART</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHtml);
+  setTimeout(()=>document.getElementById('art-numero')?.focus(), 100);
+}
+
+async function confirmarART(id){
+  const numero = document.getElementById('art-numero').value.trim();
+  const data   = document.getElementById('art-data').value;
+  const nome   = document.getElementById('art-rt-nome').value.trim();
+  const crea   = document.getElementById('art-rt-crea').value.trim();
+  const tel    = document.getElementById('art-rt-tel').value.trim();
+  const mover  = document.getElementById('art-mover-andamento').checked;
+
+  if(!numero){ alert('Informe o nº da ART'); return; }
+  if(!data){ alert('Informe a data de emissão'); return; }
+  if(!nome){ alert('Informe o nome do RT'); return; }
+
+  const btn = document.getElementById('btn-art-ok');
+  if(btn){ btn.disabled = true; btn.textContent = 'Salvando…'; }
+
+  const upd = {
+    art_numero: numero,
+    art_emitida_em: data + 'T00:00:00Z',
+    responsavel_tecnico: { nome, crea, telefone: tel },
+    irregular: false,
+    updated_at: new Date().toISOString()
+  };
+  if(mover) upd.status = 'em_andamento';
+
+  try{
+    const { error } = await sb.from('demandas').update(upd).eq('id', id);
+    if(error) throw error;
+    document.getElementById('art-modal-bg')?.remove();
+    document.getElementById('dem-pmp-detail-modal')?.remove();
+    typeof carregarDemandasProgPMP === 'function' ? carregarDemandasProgPMP() : render();
+    showToast?.('✅ ART registrada') || alert('ART registrada');
+  }catch(e){
+    if(btn){ btn.disabled = false; btn.textContent = 'Emitir ART'; }
+    alert('Erro: '+e.message);
+  }
+}
+
+async function marcarIrregularPMP(id, valor){
+  const novo = valor === false ? false : true;
+  const d = _demandasAllPMP.find(x=>x.id===id);
+  if(!d) return;
+  const msg = novo
+    ? `Marcar esta reforma como IRREGULAR?\n\n${d.titulo}\n\nIsso indica que a documentação não está em ordem. A unidade aparece em vermelho na Portaria.`
+    : `Tirar marcação de irregular desta reforma?`;
+  if(!confirm(msg)) return;
+  try{
+    const { error } = await sb.from('demandas').update({ irregular: novo, updated_at: new Date().toISOString() }).eq('id', id);
+    if(error) throw error;
+    document.getElementById('dem-pmp-detail-modal')?.remove();
+    typeof carregarDemandasProgPMP === 'function' ? carregarDemandasProgPMP() : render();
+    showToast?.(novo?'⚠ Marcada como irregular':'↻ Marcação removida') || alert('OK');
   }catch(e){ alert('Erro: '+e.message); }
 }
 
