@@ -7483,7 +7483,7 @@ function subscribePortariaRealtime(){
 }
 
 function atualizarBadgePortaria(){
-  // badge = clandestinas das últimas 24h não revisadas
+  // badge = obras não autorizadas das últimas 24h não revisadas
   const cutoff = Date.now() - 24*3600*1000;
   const n = _portariaEventos.filter(e =>
     e.tipo_evento === 'obra_clandestina' &&
