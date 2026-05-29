@@ -7957,6 +7957,7 @@ function abrirDetalheDemandaPMP(id){
   let acoes = `
     <button class="dem-btn-act dem-btn-pri" onclick="responderDemandaPMP('${d.id}')">💬 ${d.resposta?'Atualizar resposta':'Responder'}</button>
     <button class="dem-btn-act dem-btn-prog" onclick="programarDemandaPMP('${d.id}')">📅 ${d.data_programada?'Reagendar':'Programar'}</button>
+    ${isReforma ? `<button class="dem-btn-act" id="btn-analisar-ia" style="background:#7D3C98;color:#fff" onclick="analisarDemandaIA('${d.id}')">🤖 ${d.parecer_ia?'Re-analisar com IA':'Analisar com IA'}</button>` : ''}
     ${isReforma && !temART ? `<button class="dem-btn-act" style="background:#1B8A4A;color:#fff" onclick="emitirARTPMP('${d.id}')">📜 Emitir ART</button>` : ''}
     ${isReforma && temART ? `<button class="dem-btn-act" style="background:#fff;color:#1B8A4A;border:1.5px solid #1B8A4A" onclick="emitirARTPMP('${d.id}')">📜 Editar ART</button>` : ''}
     ${isReforma && !d.irregular ? `<button class="dem-btn-act" style="background:#fff;color:#C00000;border:1.5px solid #C00000" onclick="marcarIrregularPMP('${d.id}')">⚠ Marcar irregular</button>` : ''}
@@ -7998,6 +7999,7 @@ function abrirDetalheDemandaPMP(id){
         ${docsHtml}
         ${bannerHtml}
         ${artHtml}
+        ${renderParecerIAHTML(d)}
         ${respostaHtml}
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:6px;border-top:1px solid var(--gray2);margin-top:6px">
           ${acoes}
@@ -8345,6 +8347,145 @@ async function confirmarART(id){
     if(btn){ btn.disabled = false; btn.textContent = 'Emitir ART'; }
     alert('Erro: '+e.message);
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Task #10 — Análise IA NBR 16280
+// ═══════════════════════════════════════════════════════════════════════════
+// STUB v1: gera parecer determinístico baseado em metadados.
+// Quando provider LLM for definido (OpenAI/Claude), trocar _gerarParecerMock
+// por _chamarLLMParecer que envia documentos para Edge Function.
+//
+async function analisarDemandaIA(id){
+  const d = _demandasAllPMP.find(x => x.id === id);
+  if(!d){ alert('Demanda não encontrada'); return; }
+  if(d.categoria !== 'reforma'){ alert('Análise IA disponível só para reformas'); return; }
+
+  const docsCount = (d.fotos||[]).filter(f => f && (f.tipo==='documento' || /pdf/i.test(f.tipo||''))).length;
+  const msg = d.parecer_ia
+    ? `🤖 Re-analisar esta reforma com IA?\n\nJá existe um parecer anterior — será substituído.\n\nAnexos: ${docsCount}`
+    : `🤖 Analisar esta reforma com IA (NBR 16280)?\n\nA Diagnóstika vai gerar parecer técnico baseado nos documentos e detalhes informados.\n\nAnexos analisáveis: ${docsCount}`;
+  if(!confirm(msg)) return;
+
+  const btn = document.getElementById('btn-analisar-ia');
+  if(btn){ btn.disabled = true; btn.textContent = '🤖 Analisando…'; }
+
+  try{
+    const parecer = await _gerarParecerMock(d);
+    const { error } = await sb.from('demandas')
+      .update({ parecer_ia: parecer, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    if(error) throw error;
+    await carregarDemandasProgPMP();
+    document.getElementById('dem-pmp-detail-modal')?.remove();
+    setTimeout(() => abrirDetalheDemandaPMP(id), 200);
+    showToast?.('✅ Parecer gerado');
+  }catch(e){
+    if(btn){ btn.disabled = false; btn.textContent = '🤖 Analisar com IA'; }
+    alert('Erro: ' + e.message);
+  }
+}
+
+async function _gerarParecerMock(d){
+  // Simula latência de chamada LLM
+  await new Promise(r => setTimeout(r, 1200));
+
+  const docs = (d.fotos||[]).filter(f => f && (f.tipo==='documento' || /pdf/i.test(f.tipo||'')));
+  const fotos = (d.fotos||[]).filter(f => f && f.tipo !== 'documento');
+  const det = d.detalhes || {};
+  const temRT = !!det.tem_rt;
+  const tipos = det.tipos_servico || [];
+  const isReforma = det.subtipo_morador === 'reforma';
+  const isART = det.subtipo_morador === 'art';
+
+  // Checklist NBR 16280:2020
+  const checklist = [
+    { item: 'Plano de Reforma assinado pelo proprietário', ok: docs.length >= 1,
+      observacao: docs.length >= 1 ? 'Documento PDF identificado nos anexos' : 'Não localizado nos anexos enviados' },
+    { item: 'ART (CREA) ou RRT (CAU) do RT — Execução de Reforma', ok: temRT && !!det.rt_registro,
+      observacao: temRT ? `RT declarado: ${det.rt_nome||'?'} · CREA/CAU: ${det.rt_registro||'(não informado)'}` : 'Morador não informou RT — ofertar emissão pela Diagnóstika' },
+    { item: 'Termo de Responsabilidade do proprietário', ok: docs.length >= 2,
+      observacao: docs.length >= 2 ? 'Múltiplos documentos anexados — confirmar conteúdo' : 'Pendente — solicitar' },
+    { item: 'Memorial Descritivo dos serviços', ok: tipos.length > 0,
+      observacao: tipos.length ? `${tipos.length} tipo(s) declarado(s): ${tipos.slice(0,3).join(', ')}${tipos.length>3?'…':''}` : 'Não declarou tipos de serviço' },
+    { item: 'Identificação fotográfica da unidade (estado atual)', ok: fotos.length >= 1,
+      observacao: fotos.length ? `${fotos.length} foto(s) enviada(s)` : 'Sem registro fotográfico do estado anterior' },
+    { item: 'Autorização do(a) síndico(a) — análise prévia', ok: !!d.respondido_em || (d.mensagens||[]).length > 0,
+      observacao: d.respondido_em ? 'Síndico(a) já interagiu com o chamado' : 'Síndico(a) ainda não revisou' },
+  ];
+
+  // Alertas críticos por tipo de serviço (NBR-específicos)
+  const alertas = [];
+  if(tipos.includes('gas'))
+    alertas.push('⚠ Obra envolve GÁS — exige ART específica + Laudo de Estanqueidade (NBR 13523 / 15526). Não liberar sem documentação especializada.');
+  if(tipos.includes('eletrica'))
+    alertas.push('⚠ Obra ELÉTRICA — necessária ART de instalação elétrica conforme NBR 5410. Confirmar dimensionamento de circuitos.');
+  if(tipos.includes('hidraulica'))
+    alertas.push('⚠ Obra HIDRÁULICA — verificar compatibilidade com prumadas do prédio (NBR 5626) e impermeabilização de áreas molhadas.');
+  if(tipos.includes('ar-condicionado'))
+    alertas.push('ℹ Obra de AR-CONDICIONADO — projeto executivo deve detalhar tubulações, dreno e potência (NBR 16280 §6).');
+  if(tipos.includes('rebaixamento'))
+    alertas.push('ℹ REBAIXAMENTO de teto — verificar carga máxima e fixações compatíveis com a laje (NBR 13207).');
+  if(!temRT && isReforma)
+    alertas.push('🚨 SEM Responsável Técnico — reforma estrutural não pode ocorrer sem RT. Ofertar contratação da Diagnóstika.');
+
+  const okCount = checklist.filter(c => c.ok).length;
+  const conformidade = Math.round((okCount / checklist.length) * 100);
+
+  let status, statusLabel, statusCor;
+  if(conformidade === 100){ status = 'aprovado';                 statusLabel = '✅ Aprovado';                   statusCor = '#1B8A4A'; }
+  else if(conformidade >= 80){ status = 'aprovado_com_ressalvas'; statusLabel = '🟢 Aprovado com ressalvas';     statusCor = '#65A30D'; }
+  else if(conformidade >= 50){ status = 'complementar';           statusLabel = '🟡 Aguardando complementação'; statusCor = '#D4A24C'; }
+  else                       { status = 'reprovado';              statusLabel = '🔴 Documentação insuficiente';  statusCor = '#C00000'; }
+
+  const recomendacoes = checklist.filter(c => !c.ok).map(c => `Solicitar: ${c.item.toLowerCase()}`);
+  if(alertas.some(a => a.includes('GÁS')))      recomendacoes.unshift('Contratar profissional especializado em instalação de gás (com RRT/ART específica).');
+  if(!temRT)                                    recomendacoes.unshift('Oferecer ao morador a contratação da Diagnóstika como Responsável Técnico para emissão da ART.');
+
+  return {
+    analisado_em: new Date().toISOString(),
+    analisado_por: 'mock-v1 (heurística baseada em metadados)',
+    versao_norma: 'NBR 16280:2020',
+    documentos_analisados: docs.map(x => ({ nome: x.nome || 'documento', tipo: x.tipo })),
+    fotos_analisadas: fotos.length,
+    conformidade_geral: conformidade,
+    status, status_label: statusLabel, status_cor: statusCor,
+    checklist_nbr_16280: checklist,
+    alertas_criticos: alertas,
+    recomendacoes,
+    nota: 'Este parecer é gerado por heurística (mock). Quando o LLM real for ativado, a análise lerá o conteúdo dos PDFs e fará verificação muito mais precisa.'
+  };
+}
+
+function renderParecerIAHTML(d){
+  const p = d.parecer_ia;
+  if(!p) return '';
+  const checklist = (p.checklist_nbr_16280||[]).map(c =>
+    `<li style="margin-bottom:5px;font-size:12px;color:${c.ok?'#1B8A4A':'#C00000'};line-height:1.4">
+      ${c.ok?'✅':'❌'} <b>${c.item}</b>
+      ${c.observacao?`<div style="font-size:11px;color:var(--text2);margin-left:18px;margin-top:1px;font-weight:400">${c.observacao}</div>`:''}
+    </li>`).join('');
+  const alertasHtml = (p.alertas_criticos||[]).length ? `<div style="margin-top:10px"><b style="font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:#C00000">⚠ Alertas técnicos</b><ul style="margin:5px 0 0 18px;padding:0;font-size:12px;line-height:1.5">${p.alertas_criticos.map(a=>`<li style="margin-bottom:3px">${a}</li>`).join('')}</ul></div>` : '';
+  const recHtml = (p.recomendacoes||[]).length ? `<div style="margin-top:10px"><b style="font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:#155B67">📋 Próximos passos</b><ul style="margin:5px 0 0 18px;padding:0;font-size:12px;line-height:1.5">${p.recomendacoes.map(r=>`<li style="margin-bottom:3px">${r}</li>`).join('')}</ul></div>` : '';
+  return `<div style="background:#fff;border:2px solid ${p.status_cor||'#155B67'};border-radius:10px;padding:14px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px">
+      <div>
+        <div style="font-size:10.5px;font-weight:800;color:${p.status_cor||'#155B67'};text-transform:uppercase;letter-spacing:.4px">🤖 Parecer técnico — IA · ${p.versao_norma||'NBR 16280'}</div>
+        <div style="font-size:18px;font-weight:800;color:${p.status_cor||'#155B67'};margin-top:2px">${p.status_label||'Análise concluída'}</div>
+      </div>
+      <div style="text-align:center;background:${p.status_cor||'#155B67'};color:#fff;padding:8px 14px;border-radius:10px;min-width:80px">
+        <div style="font-size:22px;font-weight:800;line-height:1">${p.conformidade_geral||0}%</div>
+        <div style="font-size:9.5px;font-weight:700;letter-spacing:.4px">CONFORMIDADE</div>
+      </div>
+    </div>
+    <ul style="margin:0;padding:0;list-style:none">${checklist}</ul>
+    ${alertasHtml}
+    ${recHtml}
+    <div style="font-size:10.5px;color:var(--text2);margin-top:12px;padding-top:10px;border-top:1px dashed var(--gray2)">
+      Analisado em ${new Date(p.analisado_em).toLocaleString('pt-BR')} por <i>${p.analisado_por||'IA'}</i>
+      ${p.nota?`<br>${p.nota}`:''}
+    </div>
+  </div>`;
 }
 
 async function marcarIrregularPMP(id, valor){
