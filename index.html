@@ -7907,6 +7907,8 @@ function abrirDetalheDemandaPMP(id){
     const linkWA = d.morador_telefone ? linkWhatsAppPMP(d) : '';
     moradorHtml = `<div style="margin-bottom:12px;padding:10px 12px;background:rgba(125,60,152,.10);border-left:3px solid #7D3C98;border-radius:0 6px 6px 0;font-size:12.5px">
       <div><b style="color:#7D3C98">🏠 MORADOR:</b> ${d.morador_nome||'—'} · ${d.morador_apto||'—'} ${d.morador_telefone?`· <a href="${linkWA}" target="_blank" style="color:#1B8A4A;font-weight:700;text-decoration:none">📱 ${d.morador_telefone}</a>`:''}</div>
+      ${(d.morador_cpf||det.morador_cpf)?`<div style="margin-top:2px;font-size:11.5px"><b>CPF:</b> ${(d.morador_cpf||det.morador_cpf||'').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4')}</div>`:''}
+      ${det.morador_email?`<div style="margin-top:2px;font-size:11.5px"><b>E-mail:</b> <a href="mailto:${det.morador_email}" style="color:var(--teal)">${det.morador_email}</a></div>`:''}
       ${subLbl?`<div style="margin-top:3px;color:#7D3C98;font-weight:700">${subLbl}</div>`:''}
       ${extra}
     </div>`;
