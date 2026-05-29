@@ -7550,9 +7550,20 @@ function _statusUnidadePMP(condoId, torre, num){
 }
 
 function renderMapaPortariaPMP(){
-  // Só mostra mapa quando um condomínio específico está selecionado
-  if(_portariaCondoFilter === 'todos') return '';
-  const c = CONDOMINIOS[_portariaCondoFilter];
+  // Determina qual condo mostrar no mapa
+  let condoId = _portariaCondoFilter;
+  let isAuto = false;
+  if(condoId === 'todos'){
+    // Pega o condomínio com mais eventos recentes (ou Monte Carlo como fallback)
+    const counts = {};
+    (_portariaEventos||[]).forEach(e => {
+      if(e.condo_id && CONDOMINIOS[e.condo_id]) counts[e.condo_id] = (counts[e.condo_id]||0) + 1;
+    });
+    const ranked = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+    condoId = ranked.length ? ranked[0][0] : 'monte-carlo';
+    isAuto = true;
+  }
+  const c = CONDOMINIOS[condoId];
   const est = c?.estrutura;
   if(!est) return '';
 
@@ -7565,14 +7576,16 @@ function renderMapaPortariaPMP(){
 
   const cells = [];
   for(let i=1; i<=est.aptosPorTorre; i++){
-    const st = _statusUnidadePMP(_portariaCondoFilter, _portariaTorrePMP, i);
+    const st = _statusUnidadePMP(condoId, _portariaTorrePMP, i);
     cells.push(`<div class="uni-cell-pmp ${st.cls}" title="${(_portariaTorrePMP+'·'+i)+' — '+(st.title||'sem movimento')}">${i}</div>`);
   }
+
+  const autoHint = isAuto ? `<span style="font-size:10.5px;color:#9CA3AF;font-style:italic;margin-left:8px">(mais ativo · use os filtros acima pra trocar)</span>` : '';
 
   return `
     <div style="background:#fff;border:1px solid #E5E7EB;border-radius:10px;padding:14px;margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-        <h3 style="font-size:13px;font-weight:700;color:#155B67;letter-spacing:.4px;margin:0">🗺 MAPA DE UNIDADES — ${c.short}</h3>
+        <h3 style="font-size:13px;font-weight:700;color:#155B67;letter-spacing:.4px;margin:0">🗺 MAPA DE UNIDADES — ${c.short}${autoHint}</h3>
         <div style="display:flex;flex-wrap:wrap;gap:5px;align-items:center">
           <span style="font-size:10.5px;color:#6B7280;font-weight:700;letter-spacing:.4px;margin-right:4px">TORRE:</span>
           ${torresHTML}
