@@ -1429,7 +1429,7 @@ async function carregarDemandasProgPMP(){
       else badge.style.display='none';
     }
 
-    if(['home','agenda','condo-detail','demandas'].includes(currentView)) render();
+    if(['home','agenda','condo-detail','demandas','reformas','portaria'].includes(currentView)) render();
   }catch(e){ console.warn('Erro carregar demandas:',e); }
 }
 
@@ -7677,12 +7677,42 @@ async function abrirChamadoDeClandestina(eventoId){
   const c = CONDOMINIOS[ev.condo_id];
   if(!confirm(`Abrir chamado interno para investigar obra não autorizada?\n\n${c?.short}\nUnidade ${ev.torre}·${ev.apto}\nSinalizada por: ${ev.porteiro}\n${new Date(ev.hora).toLocaleString('pt-BR')}`)) return;
 
+  // Verifica se já existe um chamado pra esse mesmo evento (evita duplicatas)
+  if(sb){
+    try{
+      const { data: existentes } = await sb.from('demandas')
+        .select('id,protocolo,titulo')
+        .eq('portaria_evento_id', eventoId)
+        .is('deletada_em', null)
+        .limit(1);
+      if(existentes && existentes.length){
+        const ja = existentes[0];
+        if(!confirm(`⚠ Já existe um chamado para esta obra não autorizada:\n\n${ja.protocolo}: ${ja.titulo}\n\nCriar OUTRO?`)){
+          // Apenas marca evento como revisado e abre o chamado existente
+          await sb.from('portaria_eventos').update({revisada_em: new Date().toISOString()}).eq('id', eventoId);
+          ev.revisada_em = new Date().toISOString();
+          await carregarPortariaEventos();
+          await carregarDemandasProgPMP();
+          atualizarBadgePortaria();
+          if(currentView === 'portaria') render();
+          // abre detalhe da demanda existente
+          setTimeout(()=>abrirDetalheDemandaPMP(ja.id), 200);
+          return;
+        }
+      }
+    }catch(e){ console.warn('Check duplicata falhou:', e); }
+  }
+
+  const usuario = window.usuarioLogadoNome || getEngenheiro() || 'Diagnóstika';
+  const userId = (typeof _user !== 'undefined' && _user?.id) || null;
+
   const novaDemanda = {
     condo_id: ev.condo_id,
+    user_id: userId,
     categoria: 'reforma',
     urgencia: 'alta',
     titulo: `Obra não autorizada em ${ev.torre}·${ev.apto}`,
-    descricao: `Obra não declarada sinalizada pela portaria em ${new Date(ev.hora).toLocaleString('pt-BR')} pelo porteiro ${ev.porteiro}. ${ev.observacao||''}`.trim(),
+    descricao: `Obra não declarada sinalizada pela portaria em ${new Date(ev.hora).toLocaleString('pt-BR')} pelo porteiro ${ev.porteiro}.${ev.observacao?'\n\nObs: '+ev.observacao:''}\n\nAtendente: ${usuario}`.trim(),
     bloco: ev.torre,
     apto: ev.apto,
     status: 'aberta',
@@ -7694,14 +7724,22 @@ async function abrirChamadoDeClandestina(eventoId){
 
   if(sb){
     try{
-      const { error } = await sb.from('demandas').insert(novaDemanda);
+      const { data: inserted, error } = await sb.from('demandas').insert(novaDemanda).select().single();
       if(error) throw error;
       // marcar evento como revisado
-      await sb.from('portaria_eventos').update({revisada_em: new Date().toISOString()}).eq('id', eventoId);
+      await sb.from('portaria_eventos').update({
+        revisada_em: new Date().toISOString(),
+        revisada_por: usuario
+      }).eq('id', eventoId);
       ev.revisada_em = new Date().toISOString();
-      alert('✅ Chamado interno criado. Aparece agora na aba Reformas com status "em análise".');
+      // RECARREGA dados antes de renderizar
+      await Promise.all([
+        carregarPortariaEventos(),
+        carregarDemandasProgPMP()
+      ]);
       atualizarBadgePortaria();
-      render();
+      if(currentView === 'portaria') render();
+      alert(`✅ Chamado interno criado (${inserted?.protocolo||''}).\n\nVá na aba "Reformas" pra acompanhar.`);
     }catch(e){
       console.warn('Erro abrir chamado:', e);
       alert('❌ Erro ao criar chamado: ' + (e.message||e));
