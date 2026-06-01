@@ -1099,6 +1099,9 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
         <button class="sn-btn" id="sn-manutencoes" onclick="navigate('manutencoes')">
           <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg><span>Manutenções <span id="sn-mnt-badge" style="background:#FBC02D;color:#1A2E31;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;display:none"></span></span>
         </button>
+        <button class="sn-btn" id="sn-whatsapp-inbox" onclick="navigate('whatsapp-inbox')">
+          <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span>WhatsApp <span id="sn-wai-badge" style="background:#25D366;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;display:none"></span></span>
+        </button>
         <button class="sn-btn" id="sn-docs" onclick="navigate('docs')">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span>Documentos</span>
         </button>
@@ -2126,7 +2129,8 @@ function render(){
     case 'historico-det': setNavActive('nav-historico');setHeader('Detalhe da Visita',true);  renderHistoricoDet(main); break;
     case 'agenda':        setNavActive('nav-agenda');   setHeader('Agenda 2026',true);         renderAgendaView(main); break;
     case 'demandas':      setNavActive('nav-demandas'); setHeader('Demandas e Chamados',true); renderDemandasView(main); break;
-    case 'manutencoes':   setNavActive('nav-manutencoes'); setHeader('Manutenções registradas pelos síndicos',true); renderManutencoesPMPView(main); break;
+    case 'manutencoes':       setNavActive('nav-manutencoes'); setHeader('Manutenções registradas pelos síndicos',true); renderManutencoesPMPView(main); break;
+    case 'whatsapp-inbox':    setNavActive('nav-whatsapp-inbox'); setHeader('📱 WhatsApp — Documentos de Reforma',true); renderWhatsappInboxView(main); break;
     case 'reformas':      setNavActive('nav-reformas'); setHeader('Reformas — Mapa + Kanban',true); renderReformasView(main); break;
     case 'portaria':      setNavActive('nav-portaria'); setHeader('Portaria — Eventos em tempo real',true); renderPortariaView(main); break;
     case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
@@ -9007,6 +9011,205 @@ document.addEventListener('visibilitychange',()=>{
 
 // Keyboard shortcut: ESC = go back
 document.addEventListener('keydown',e=>{ if(e.key==='Escape') goBack(); });
+
+// ═══════════════════════════════════════════════════════════════════
+// WHATSAPP INBOX — Documentos de reforma recebidos via MegaZap
+// ═══════════════════════════════════════════════════════════════════
+let _waiItems = [];
+
+async function carregarWhatsappInbox(){
+  if(!sb) return;
+  const {data,error} = await sb
+    .from('whatsapp_inbox')
+    .select('*')
+    .order('created_at',{ascending:false})
+    .limit(100);
+  if(error){ console.warn('wai load:', error); _waiItems=[]; return; }
+  _waiItems = data || [];
+  const pendentes = _waiItems.filter(i=>i.status==='aguardando').length;
+  const badge = document.getElementById('sn-wai-badge');
+  if(badge){ badge.textContent=pendentes; badge.style.display=pendentes>0?'inline-block':'none'; }
+}
+
+function statusCorWAI(s){
+  return {aguardando:'#FBC02D',em_analise:'#1565C0',aprovado:'#1B8A4A',reprovado:'#C00000',pendente_docs:'#E65100'}[s]||'#666';
+}
+function statusLblWAI(s){
+  return {aguardando:'⏳ Aguardando',em_analise:'🔍 Em análise',aprovado:'✅ Aprovado',reprovado:'❌ Reprovado',pendente_docs:'📎 Pendente docs'}[s]||s;
+}
+function conformidadeCor(c){
+  return {conforme:'#1B8A4A',pendencias:'#E65100',nao_conforme:'#C00000'}[c]||'#666';
+}
+
+function renderWhatsappInboxView(main){
+  carregarWhatsappInbox().then(()=>{
+    const aguardando = _waiItems.filter(i=>i.status==='aguardando');
+    const outros = _waiItems.filter(i=>i.status!=='aguardando');
+
+    function card(item){
+      const ia = item.ia_raw || {};
+      const cor = statusCorWAI(item.status);
+      const conf = item.conformidade_nbr;
+      const pendencias = (item.pendencias||[]).filter(Boolean);
+      return `
+      <div style="background:#fff;border-radius:10px;padding:16px 18px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid ${cor}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:220px">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+              <span style="background:#25D366;color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">📱 WhatsApp</span>
+              <span style="background:${cor};color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">${statusLblWAI(item.status)}</span>
+              ${conf?`<span style="background:${conformidadeCor(conf)};color:#fff;padding:2px 8px;border-radius:8px;font-size:10px;font-weight:700">NBR: ${conf}</span>`:''}
+              ${item.ia_status==='processando'?'<span style="background:#666;color:#fff;padding:2px 8px;border-radius:8px;font-size:10px">⏳ IA processando…</span>':''}
+            </div>
+
+            <div style="font-weight:700;font-size:15px;color:#1A2E31;margin-bottom:4px">
+              ${item.solicitante_nome ? item.solicitante_nome : (item.nome_contato||'Contato desconhecido')}
+              ${item.solicitante_bloco||item.solicitante_apto?` · <span style="font-weight:400;font-size:13px;color:#5A7A7E">${[item.solicitante_bloco&&'Bl '+item.solicitante_bloco, item.solicitante_apto&&'Ap '+item.solicitante_apto].filter(Boolean).join(' ')}</span>`:''}
+            </div>
+
+            <div style="font-size:11.5px;color:#5A7A7E;margin-bottom:8px">
+              📞 ${item.telefone||'—'}
+              ${item.condo_id?` · 🏢 ${item.condo_id}`:'<span style="color:#E65100"> · ⚠ Condomínio não identificado</span>'}
+              · ${new Date(item.created_at).toLocaleString('pt-BR')}
+            </div>
+
+            ${item.tipo_obra||item.escopo_obra?`
+            <div style="background:#F0F4F5;padding:8px 10px;border-radius:6px;margin-bottom:8px;font-size:12px">
+              ${item.tipo_obra?`<b>Tipo:</b> ${item.tipo_obra.charAt(0).toUpperCase()+item.tipo_obra.slice(1)} &nbsp;`:''}
+              ${item.prazo_inicio||item.prazo_fim?`<b>Prazo:</b> ${item.prazo_inicio||'?'} → ${item.prazo_fim||'?'} &nbsp;`:''}
+              ${item.escopo_obra?`<br><b>Escopo:</b> ${item.escopo_obra.substring(0,200)}${item.escopo_obra.length>200?'…':''}`:''}
+            </div>`:''}
+
+            ${item.rt_nome||item.rt_crea_cau?`
+            <div style="font-size:12px;margin-bottom:8px">
+              👷 <b>RT:</b> ${item.rt_nome||'—'}
+              ${item.rt_crea_cau?' · '+item.rt_crea_cau:''}
+              ${item.rt_art_numero?' · ART: '+item.rt_art_numero:''}
+              ${item.tem_art===true?' ✅ ART presente':item.tem_art===false?' ❌ Sem ART':''}
+            </div>`:''}
+
+            ${pendencias.length?`
+            <div style="background:#FFF3E0;border-left:3px solid #E65100;padding:6px 10px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:11.5px">
+              <b style="color:#E65100">⚠ Pendências:</b><br>
+              ${pendencias.map(p=>'• '+p).join('<br>')}
+            </div>`:''}
+
+            ${ia.resumo_ia?`<div style="font-size:12px;color:#1A2E31;font-style:italic;margin-bottom:4px">💬 "${ia.resumo_ia}"</div>`:''}
+            ${ia.alerta?`<div style="font-size:11.5px;color:#C00000;font-weight:700">🚨 ${ia.alerta}</div>`:''}
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:5px;min-width:120px">
+            ${item.doc_url?`<a href="${item.doc_url}" target="_blank" style="background:#1565C0;color:#fff;padding:6px 12px;border-radius:6px;font-size:11px;font-weight:700;text-decoration:none;text-align:center">📄 Ver doc</a>`:''}
+            ${item.status==='aguardando'||item.status==='em_analise'?`
+            <button onclick="aprovarWAI('${item.id}')" style="background:#1B8A4A;color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✅ Aprovar</button>
+            <button onclick="reprovarWAI('${item.id}')" style="background:#C00000;color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">❌ Reprovar</button>
+            <button onclick="pedirDocsWAI('${item.id}')" style="background:#E65100;color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">📎 Pedir docs</button>
+            <button onclick="associarCondoWAI('${item.id}')" style="background:#fff;color:#1565C0;border:1.5px solid #1565C0;padding:5px 12px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer">🏢 Associar condo</button>
+            `:''}
+          </div>
+        </div>
+      </div>`;
+    }
+
+    // Upload manual (drag and drop)
+    const uploadManual = `
+    <div id="wai-drop" style="border:2px dashed #A8BFC2;border-radius:10px;padding:30px;text-align:center;margin-bottom:20px;cursor:pointer;transition:.2s;background:#fff"
+      onclick="document.getElementById('wai-file-input').click()"
+      ondragover="event.preventDefault();this.style.borderColor='#155B67';this.style.background='rgba(21,91,103,.04)'"
+      ondragleave="this.style.borderColor='#A8BFC2';this.style.background='#fff'"
+      ondrop="event.preventDefault();this.style.borderColor='#A8BFC2';this.style.background='#fff';processarUploadManualWAI(event.dataTransfer.files[0])">
+      <div style="font-size:36px;margin-bottom:8px">📎</div>
+      <div style="font-weight:700;color:#155B67;font-size:14px">Arraste aqui um documento recebido no WhatsApp</div>
+      <div style="font-size:12px;color:#5A7A7E;margin-top:4px">ou clique para selecionar · PDF, imagem, foto de tela</div>
+      <input type="file" id="wai-file-input" style="display:none" accept=".pdf,image/*" onchange="processarUploadManualWAI(this.files[0])">
+    </div>`;
+
+    main.innerHTML = `
+    <div style="padding:20px 24px;max-width:980px;margin:0 auto">
+      <div style="background:rgba(37,211,102,.08);border-left:4px solid #25D366;padding:10px 14px;border-radius:0 8px 8px 0;margin-bottom:18px;font-size:13px">
+        <b>📱 WhatsApp Inbox — Documentos de reforma</b><br>
+        Documentos enviados pelo WhatsApp/MegaZap são processados automaticamente pela IA.<br>
+        Você também pode arrastar documentos recebidos manualmente abaixo.
+      </div>
+      ${uploadManual}
+      <h3 style="font-size:14px;color:#155B67;margin:0 0 10px;text-transform:uppercase;letter-spacing:.5px">⏳ Aguardando análise (${aguardando.length})</h3>
+      ${aguardando.length ? aguardando.map(card).join('') : '<div style="background:#fff;padding:24px;border-radius:8px;text-align:center;color:#5A7A7E">Nenhum documento aguardando.</div>'}
+      <h3 style="font-size:14px;color:#155B67;margin:20px 0 10px;text-transform:uppercase;letter-spacing:.5px">📋 Histórico (${outros.length})</h3>
+      ${outros.length ? outros.map(card).join('') : '<div style="background:#fff;padding:16px;border-radius:8px;text-align:center;color:#5A7A7E;font-size:12px">Nenhum registro anterior.</div>'}
+    </div>`;
+  });
+}
+
+async function aprovarWAI(id){
+  const eng = (typeof engenheiro!=='undefined'&&engenheiro?.nome)?engenheiro.nome:'Diagnóstika';
+  const parecer = prompt('Parecer de aprovação (será enviado ao solicitante):');
+  if(parecer===null) return;
+  await sb.from('whatsapp_inbox').update({
+    status:'aprovado', analisado_por:eng, analisado_em:new Date().toISOString(),
+    parecer:parecer||'Reforma aprovada conforme NBR 16.280.', updated_at:new Date().toISOString()
+  }).eq('id',id);
+  alert('✅ Aprovado! O solicitante pode ser notificado.');
+  renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
+}
+
+async function reprovarWAI(id){
+  const eng = (typeof engenheiro!=='undefined'&&engenheiro?.nome)?engenheiro.nome:'Diagnóstika';
+  const motivo = prompt('Motivo da reprovação (será comunicado ao solicitante):');
+  if(!motivo) return;
+  await sb.from('whatsapp_inbox').update({
+    status:'reprovado', analisado_por:eng, analisado_em:new Date().toISOString(),
+    parecer:motivo, updated_at:new Date().toISOString()
+  }).eq('id',id);
+  alert('❌ Reprovado. Comunique o solicitante via WhatsApp.');
+  renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
+}
+
+async function pedirDocsWAI(id){
+  const docs = prompt('Quais documentos estão faltando? (será listado na pendência):');
+  if(!docs) return;
+  await sb.from('whatsapp_inbox').update({
+    status:'pendente_docs', parecer:'Documentação pendente: '+docs, updated_at:new Date().toISOString()
+  }).eq('id',id);
+  alert('📎 Marcado como pendente. Solicite os documentos via WhatsApp.');
+  renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
+}
+
+async function associarCondoWAI(id){
+  const condoIds = Object.keys(CONDOMINIOS).join(', ');
+  const condo = prompt(`Qual condomínio?\n\nOpções: ${condoIds}`);
+  if(!condo || !CONDOMINIOS[condo]){ alert('Condomínio não reconhecido.'); return; }
+  await sb.from('whatsapp_inbox').update({ condo_id:condo, updated_at:new Date().toISOString() }).eq('id',id);
+  renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
+}
+
+async function processarUploadManualWAI(file){
+  if(!file){ return; }
+  const btn = document.getElementById('wai-drop');
+  if(btn) btn.innerHTML = '<div style="font-size:24px">⏳</div><div style="font-weight:700;color:#155B67">Enviando e processando…</div>';
+
+  const ext = file.name.split('.').pop().toLowerCase();
+  const path = `manual/${Date.now()}_${file.name}`;
+
+  const {error:upErr} = await sb.storage.from('whatsapp-docs').upload(path, file);
+  if(upErr){ alert('Erro upload: '+upErr.message); renderWhatsappInboxView(document.querySelector('.main-content')||document.body); return; }
+
+  const {data:urlData} = sb.storage.from('whatsapp-docs').getPublicUrl(path);
+  const docUrl = urlData.publicUrl;
+
+  const {error:insErr} = await sb.from('whatsapp_inbox').insert({
+    telefone:'manual', nome_contato:'Upload manual PMP',
+    doc_url:docUrl, doc_nome:file.name,
+    doc_tipo:['pdf'].includes(ext)?'pdf':'imagem',
+    ia_status:'pendente', source:'manual'
+  });
+
+  if(insErr){ alert('Erro ao registrar: '+insErr.message); }
+  else { alert('✅ Documento enviado! A IA irá processar e os dados aparecerão em instantes.\n\n(Recarregue a aba em alguns segundos.)'); }
+  renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
+}
+
+// Carrega badge na sidebar ao iniciar
+setTimeout(()=>{ if(sb) carregarWhatsappInbox(); }, 2500);
 
 // ═══════════════════════════════════════════════════════════════════════════
 // MANUTENÇÕES PMP — fix auditoria 360 (achado ALTO #11)
