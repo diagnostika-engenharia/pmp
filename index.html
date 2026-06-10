@@ -2174,6 +2174,14 @@ function renderHome(main){
   ${renderBIDashboardHome()}
   ${renderChamadosPendentesHome()}
 
+  <div style="margin:0 16px 12px">
+    <button onclick="window.open('https://diagnostika-engenharia.github.io/sindico/financeiro.html','_blank')" style="width:100%;padding:13px 16px;background:linear-gradient(135deg,#155B67,#00B4AC);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(21,91,103,.25)">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+      <span>💰 Sistema Financeiro</span>
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left:auto"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+    </button>
+  </div>
+
   <div class="section-title">Próximas visitas — o que fazer</div>
   <div class="card" style="margin:0 16px 16px;overflow:hidden">
     ${proximas.map(c=>{
