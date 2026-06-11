@@ -1089,6 +1089,86 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .dem-btn-sec{background:transparent;border:1.5px solid #A8BFC2!important;color:var(--text2)}
 .dem-btn-del{background:transparent;border:1.5px solid #C00000!important;color:#C00000}
 .dem-btn-wa{background:#25D366;color:#fff;text-decoration:none}
+
+/* ═══ Central de Decisão Técnica (.cdt-*) — novo dashboard home ═══ */
+.cdt-wrap{--cdt-txt:#1A2E31;--cdt-txt2:#5A7A7E;--cdt-card:#FFFFFF;--cdt-line:#E2EAEB;
+  --cdt-alerta:#E65100;--cdt-erro:#C00000;--cdt-sucesso:#1B8A4A;
+  --cdt-shadow:0 1px 3px rgba(21,91,103,.06),0 6px 20px rgba(21,91,103,.07);
+  --cdt-shadow-sm:0 1px 2px rgba(21,91,103,.08);
+  display:flex;flex-direction:column;gap:12px;padding:14px 16px 4px;color:var(--cdt-txt)}
+.cdt-wrap *{box-sizing:border-box}
+/* faixa de filtros compacta */
+.cdt-filters{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:linear-gradient(135deg,var(--teal-dk),var(--teal));border-radius:12px;padding:10px 14px;color:#fff}
+.cdt-fg{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cdt-fg>.cdt-fl{font-size:9.5px;text-transform:uppercase;letter-spacing:.5px;color:rgba(255,255,255,.7);font-weight:700;margin-right:2px}
+.cdt-chip{background:rgba(255,255,255,.14);border:1.5px solid transparent;color:#fff;padding:5px 11px;border-radius:14px;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;transition:all .15s}
+.cdt-chip:hover{background:rgba(255,255,255,.24)}
+.cdt-chip.active{background:#fff;color:var(--teal-dk);font-weight:700;border-color:#fff}
+.cdt-chip .cdot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
+.cdt-chip .ccount{background:rgba(0,0,0,.12);font-size:9px;font-weight:800;padding:1px 6px;border-radius:8px}
+.cdt-chip.active .ccount{background:rgba(0,0,0,.08)}
+.cdt-lens{background:rgba(255,255,255,.10);border:1.5px solid transparent;color:#fff;padding:5px 10px;border-radius:9px;cursor:pointer;font-family:inherit;text-align:left;line-height:1.15;transition:all .15s}
+.cdt-lens:hover{background:rgba(255,255,255,.2)}
+.cdt-lens.active{background:#FBC02D;color:#3B2A0A;border-color:#FBC02D}
+.cdt-lens .lt{display:block;font-size:11px;font-weight:700}
+.cdt-lens .ld{display:block;font-size:9px;opacity:.85}
+/* topbar + gauge */
+.cdt-topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap}
+.cdt-topbar h2{font-size:20px;font-weight:800;color:var(--teal);letter-spacing:-.4px;margin:0}
+.cdt-topbar .sub{color:var(--cdt-txt2);font-size:11.5px;margin-top:2px}
+.cdt-topbar .ctx{margin-top:4px;font-size:11px;color:var(--cdt-txt2)}
+.cdt-topbar .ctx b{color:var(--teal)}
+.cdt-gauge-card{background:var(--cdt-card);border-radius:14px;box-shadow:var(--cdt-shadow);padding:8px 16px;display:flex;align-items:center;gap:12px;min-width:200px}
+.cdt-gauge-card .lbl{font-size:10.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--cdt-txt2);font-weight:700}
+.cdt-gauge-card .stt{font-size:11px;margin-top:2px;font-weight:600}
+/* KPIs */
+.cdt-kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+.cdt-kpi{background:var(--cdt-card);border-radius:12px;box-shadow:var(--cdt-shadow);padding:10px 13px;border-top:3px solid var(--turq);cursor:pointer;transition:transform .12s}
+.cdt-kpi:hover{transform:translateY(-2px)}
+.cdt-kpi .k-lbl{font-size:10px;color:var(--cdt-txt2);text-transform:uppercase;letter-spacing:.5px;font-weight:700}
+.cdt-kpi .k-val{font-size:24px;font-weight:800;color:var(--cdt-txt);line-height:1.1;margin-top:2px}
+.cdt-kpi .k-sub{font-size:10px;color:var(--cdt-txt2);margin-top:1px}
+.cdt-kpi.warn{border-top-color:var(--cdt-alerta)}.cdt-kpi.warn .k-val{color:var(--cdt-alerta)}
+.cdt-kpi.err{border-top-color:var(--cdt-erro)}.cdt-kpi.err .k-val{color:var(--cdt-erro)}
+.cdt-kpi.ok{border-top-color:var(--cdt-sucesso)}
+/* narrativa */
+.cdt-narrative{background:linear-gradient(120deg,#fff,#F4FAFA);border-left:4px solid var(--turq);border-radius:12px;box-shadow:var(--cdt-shadow);padding:11px 15px}
+.cdt-narrative h4{font-size:12.5px;font-weight:800;color:var(--teal);margin:0 0 4px;display:flex;align-items:center;gap:7px}
+.cdt-narrative p{font-size:12.5px;line-height:1.5;color:var(--cdt-txt);margin:0}
+.cdt-narrative b{color:var(--teal)}.cdt-narrative .hot{color:var(--cdt-erro);font-weight:700}.cdt-narrative .mid{color:var(--cdt-alerta);font-weight:700}
+.cdt-ic{width:6px;height:15px;border-radius:3px;background:var(--lima);display:inline-block;flex:0 0 auto}
+/* grid 4 painéis */
+.cdt-grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cdt-panel{background:var(--cdt-card);border-radius:14px;box-shadow:var(--cdt-shadow);padding:13px 15px;display:flex;flex-direction:column}
+.cdt-panel h4{font-size:12.5px;font-weight:800;color:var(--teal);margin:0 0 2px;display:flex;align-items:center;gap:7px}
+.cdt-panel .ph{font-size:10px;color:var(--cdt-txt2);margin-bottom:10px}
+.cdt-empty{font-size:11px;color:var(--cdt-txt2);font-style:italic;text-align:center;padding:24px 8px}
+/* semaforo */
+.cdt-sem{display:flex;flex-direction:column;gap:9px;flex:1;justify-content:center}
+.cdt-bar-row{display:flex;align-items:center;gap:8px;cursor:pointer}
+.cdt-bar-row .bl{width:92px;font-size:10.5px;font-weight:600;display:flex;align-items:center;gap:5px;flex:0 0 auto;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cdt-bar-track{flex:1;height:18px;background:#EDF3F4;border-radius:6px;overflow:hidden}
+.cdt-bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;justify-content:flex-end;padding-right:7px;color:#fff;font-size:10px;font-weight:700;min-width:20px;transition:width .5s}
+/* heat */
+.cdt-heat{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;flex:1}
+.cdt-heat-cell{border-radius:10px;padding:8px 10px;color:#fff;position:relative;overflow:hidden;min-height:50px;cursor:pointer;transition:transform .15s}
+.cdt-heat-cell:hover{transform:translateY(-2px)}
+.cdt-heat-cell .hc-n{font-size:20px;font-weight:800;line-height:1}
+.cdt-heat-cell .hc-l{font-size:9.5px;font-weight:600;margin-top:3px;opacity:.95}
+.cdt-heat-cell .hc-x{position:absolute;right:-6px;top:-10px;font-size:40px;font-weight:800;opacity:.12}
+/* funil */
+.cdt-funnel{display:flex;flex-direction:column;gap:7px;flex:1;justify-content:center}
+.cdt-fn-row{display:flex;align-items:center;gap:8px}
+.cdt-fn-lbl{font-size:10.5px;color:var(--cdt-txt2);width:96px;flex:0 0 auto;font-weight:600}
+.cdt-fn-bar{height:26px;border-radius:8px;display:flex;align-items:center;padding:0 10px;color:#fff;font-weight:700;font-size:11.5px;min-width:38px;box-shadow:var(--cdt-shadow-sm);cursor:pointer;transition:width .5s}
+/* ritmo */
+.cdt-age{display:flex;align-items:flex-end;gap:8px;flex:1;min-height:90px;padding-top:18px}
+.cdt-age-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.cdt-age-bar{width:100%;max-width:50px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--turq),var(--teal));position:relative;min-height:4px;transition:height .5s}
+.cdt-age-bar .av{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11.5px;font-weight:800;color:var(--teal)}
+.cdt-age-lbl{font-size:10px;color:var(--cdt-txt2);text-align:center;font-weight:600}
+@media(max-width:1100px){.cdt-grid4{grid-template-columns:repeat(2,1fr)}.cdt-kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.cdt-kpis{grid-template-columns:repeat(2,1fr)}.cdt-grid4{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2293,6 +2373,7 @@ function renderHome(main){
 // Filtro global do dashboard — qual condomínio está selecionado
 let _homeCondoFilter = 'todos'; // 'todos' ou id do condomínio
 let _homePeriodFilter = '30d';  // '30d', '90d', '2026'
+let _homeLensFilter = 'decisao'; // 'decisao' | 'risco' | 'pendencias' | 'execucao'
 
 function setHomeCondoFilter(id){
   _homeCondoFilter = id;
@@ -2300,6 +2381,10 @@ function setHomeCondoFilter(id){
 }
 function setHomePeriodFilter(p){
   _homePeriodFilter = p;
+  if(currentView==='home') render();
+}
+function setHomeLensFilter(l){
+  _homeLensFilter = l;
   if(currentView==='home') render();
 }
 
@@ -2723,17 +2808,315 @@ function renderBIConformidade(){
   </div>`;
 }
 
-// ─── Render principal do dashboard BI ───────────────────────────────────
-function renderBIDashboardHome(){
-  return `
-    ${renderBIHeader()}
-    <div class="bi-grid">
-      ${renderBIKPIs()}
-      ${renderBIRequerAcao()}
+// ═══════════════════════════════════════════════════════════════════════════
+// CENTRAL DE DECISÃO TÉCNICA (.cdt-*) — novo dashboard home com dados reais
+// ═══════════════════════════════════════════════════════════════════════════
+
+const CDT_CONDOS = [
+  {id:'monte-carlo',             cor:'#155B67', nome:'Monte Carlo'},
+  {id:'morada-morumbi',          cor:'#00B4AC', nome:'Morada Morumbi'},
+  {id:'portal-primavera',        cor:'#8DB72A', nome:'Portal Primavera'},
+  {id:'residencial-santa-clara', cor:'#7D3C98', nome:'Santa Clara'},
+  {id:'jardins-do-malta',        cor:'#D4A24C', nome:'Jardins do Malta'}
+];
+const CDT_CAT = {
+  reforma:   {l:'Reformas',              cor:'#155B67'},
+  art:       {l:'Documentação técnica',  cor:'#00B4AC'},
+  corretiva: {l:'Corretivas',            cor:'#E65100'},
+  laudo:     {l:'Pareceres/vistorias',   cor:'#7D3C98'},
+  duvida:    {l:'Atendimento',           cor:'#8DB72A'}
+};
+const CDT_LENTES = {
+  decisao:    'Decisão executiva',
+  risco:      'Somente alto risco',
+  pendencias: 'Pendências',
+  execucao:   'Execução técnica'
+};
+
+// Normaliza urgência (aceita 'alta'/'media'/'média'/'baixa', acentuada ou não)
+function _cdtUrg(d){
+  const u = (d.urgencia||'').toString().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  if(u==='alta') return 'alta';
+  if(u==='baixa') return 'baixa';
+  return 'media';
+}
+const _cdtResolvida = d => d.status==='resolvida' || d.status==='fechada';
+function _cdtAtrasada(d){
+  if(_cdtResolvida(d)) return false;
+  return !!d.data_programada && d.data_programada < todayStr();
+}
+function _cdtDiasDesde(s){
+  if(!s) return 0;
+  return Math.floor((new Date(todayStr()+'T00:00:00').getTime() - new Date(s).getTime())/86400000);
+}
+
+// Aplica a Lente de análise sobre uma lista já filtrada por período+condo
+function _cdtAplicarLente(arr, lente){
+  switch(lente){
+    case 'risco':      return arr.filter(d => _cdtUrg(d)==='alta');
+    case 'pendencias': return arr.filter(d => d.status==='aberta' || _cdtAtrasada(d));
+    case 'execucao':   return arr.filter(d => d.status==='em_andamento');
+    default:           return arr;
+  }
+}
+
+// Lista final do dashboard: período + condo (via helper existente) + lente
+function _cdtDemandas(){
+  return _cdtAplicarLente(_biFilteredDemandas(), _homeLensFilter);
+}
+
+// KPIs + score do gauge a partir de uma lista
+function _cdtKpis(arr){
+  const total = arr.length;
+  const ativas = arr.filter(d => !_cdtResolvida(d)).length;
+  const atrasadas = arr.filter(_cdtAtrasada).length;
+  const pendencias = arr.filter(d => d.status==='aberta').length;
+  const concluidas = arr.filter(_cdtResolvida).length;
+  const conclusao = total ? (concluidas/total*100) : 0;
+  const pesoU = {alta:3, media:2, baixa:1};
+  const riscoMedio = total ? (arr.reduce((s,d)=>s+pesoU[_cdtUrg(d)],0)/total) : 0;
+  const riscoTxt = total===0 ? '—' : (riscoMedio>=2.4?'Alto':riscoMedio>=1.7?'Médio':'Baixo');
+
+  let score = 100;
+  score -= atrasadas*9;
+  score -= pendencias*3;
+  score -= (riscoMedio-1)*18;
+  score += (conclusao-40)*0.4;
+  score = Math.max(0, Math.min(100, Math.round(score)));
+  if(total===0) score = 100;
+
+  return {total,ativas,atrasadas,pendencias,concluidas,conclusao,riscoMedio,riscoTxt,score};
+}
+
+function _cdtGaugeSvg(score){
+  const r=38, cx=46, cy=46, circ=2*Math.PI*r, off=circ*(1-score/100);
+  const cor = score>=70?'#1B8A4A':score>=45?'#E65100':'#C00000';
+  return `<svg width="84" height="84" viewBox="0 0 92 92">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#EDF3F4" stroke-width="9"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${cor}" stroke-width="9"
+      stroke-linecap="round" stroke-dasharray="${circ.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"
+      transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy+2}" text-anchor="middle" font-size="22" font-weight="800" fill="${cor}">${score}</text>
+    <text x="${cx}" y="${cy+16}" text-anchor="middle" font-size="9" fill="#5A7A7E">de 100</text>
+  </svg>`;
+}
+
+function _cdtFiltersBar(){
+  const periods = [{k:'30d',l:'30 dias'},{k:'90d',l:'90 dias'},{k:'2026',l:'Toda'}];
+  // contagens por condo no período (sem filtro de condo, sem lente)
+  const condoBkp = _homeCondoFilter; _homeCondoFilter='todos';
+  const allD = _biFilteredDemandas();
+  _homeCondoFilter = condoBkp;
+  const countBy = {}; let totalAll=0;
+  allD.forEach(d => { countBy[d.condo_id]=(countBy[d.condo_id]||0)+1; totalAll++; });
+
+  const periodBtns = periods.map(p =>
+    `<button class="cdt-chip ${_homePeriodFilter===p.k?'active':''}" onclick="setHomePeriodFilter('${p.k}')">${p.l}</button>`
+  ).join('');
+
+  const condoBtns = `<button class="cdt-chip ${_homeCondoFilter==='todos'?'active':''}" onclick="setHomeCondoFilter('todos')">
+      <span class="cdot" style="background:#9FCBD0"></span>Todos<span class="ccount">${totalAll}</span></button>` +
+    CDT_CONDOS.map(c =>
+      `<button class="cdt-chip ${_homeCondoFilter===c.id?'active':''}" onclick="setHomeCondoFilter('${c.id}')">
+        <span class="cdot" style="background:${c.cor}"></span>${esc(c.nome)}<span class="ccount">${countBy[c.id]||0}</span></button>`
+    ).join('');
+
+  const lenses = [
+    {k:'decisao',    lt:'Decisão executiva', ld:'Visão geral'},
+    {k:'risco',      lt:'Alto risco',        ld:'Urgência alta'},
+    {k:'pendencias', lt:'Pendências',        ld:'Abertas + atrasadas'},
+    {k:'execucao',   lt:'Execução',          ld:'Em andamento'}
+  ];
+  const lensBtns = lenses.map(l =>
+    `<button class="cdt-lens ${_homeLensFilter===l.k?'active':''}" onclick="setHomeLensFilter('${l.k}')">
+      <span class="lt">${l.lt}</span><span class="ld">${l.ld}</span></button>`
+  ).join('');
+
+  return `<div class="cdt-filters">
+    <div class="cdt-fg"><span class="cdt-fl">Período</span>${periodBtns}</div>
+    <div class="cdt-fg"><span class="cdt-fl">Condomínio</span>${condoBtns}</div>
+    <div class="cdt-fg" style="margin-left:auto"><span class="cdt-fl">Lente</span>${lensBtns}</div>
+  </div>`;
+}
+
+function _cdtTopbar(m){
+  const per = _homePeriodFilter==='2026'?'Toda a carteira':(_homePeriodFilter==='90d'?'Últimos 90 dias':'Últimos 30 dias');
+  const con = _homeCondoFilter==='todos'?'Todos os condomínios':(CDT_CONDOS.find(c=>c.id===_homeCondoFilter)?.nome||_homeCondoFilter);
+  const cor = m.score>=70?'#1B8A4A':m.score>=45?'#E65100':'#C00000';
+  const stt = m.total===0?'Sem demandas':(m.score>=70?'Carteira saudável':m.score>=45?'Atenção requerida':'Carteira em alerta');
+  return `<div class="cdt-topbar">
+    <div>
+      <h2>Central de Decisão Técnica</h2>
+      <div class="sub">Painel executivo da carteira de manutenção preventiva — Diagnóstika Engenharia</div>
+      <div class="ctx">Filtros: <b>${esc(per)}</b> · <b>${esc(con)}</b> · Lente: <b>${esc(CDT_LENTES[_homeLensFilter])}</b> — exibindo <b>${m.total}</b> demanda(s)</div>
     </div>
-    ${renderBITipos()}
-    ${renderBIDetalhes()}
-  `;
+    <div class="cdt-gauge-card">
+      ${_cdtGaugeSvg(m.score)}
+      <div>
+        <div class="lbl">Índice de<br>Prontidão</div>
+        <div class="stt" style="color:${cor}">${stt}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function _cdtKpiCards(m){
+  const cards = [
+    {l:'Carteira',    v:m.total,                        s:'demandas no filtro', cls:''},
+    {l:'Ativas',      v:m.ativas,                       s:'não encerradas',      cls:''},
+    {l:'Atrasadas',   v:m.atrasadas,                    s:'prazo vencido',       cls:m.atrasadas>0?'err':'ok'},
+    {l:'Pendências',  v:m.pendencias,                   s:'aguardando início',   cls:m.pendencias>0?'warn':'ok'},
+    {l:'Risco médio', v:m.riscoTxt,                     s:(m.total?m.riscoMedio.toFixed(1):'0.0')+' / 3.0', cls:m.riscoMedio>=2.4?'err':m.riscoMedio>=1.7?'warn':'ok'},
+    {l:'Conclusão',   v:Math.round(m.conclusao)+'%',    s:m.concluidas+' encerradas', cls:m.conclusao>=50?'ok':'warn'}
+  ];
+  return `<div class="cdt-kpis">${cards.map(c=>`
+    <div class="cdt-kpi ${c.cls}" onclick="navigate('demandas')">
+      <div class="k-lbl">${c.l}</div>
+      <div class="k-val">${c.v}</div>
+      <div class="k-sub">${esc(c.s)}</div>
+    </div>`).join('')}</div>`;
+}
+
+function _cdtNarrative(arr, m){
+  const clandestinas = arr.filter(d => d.clandestina && !_cdtResolvida(d)).length;
+  const altoRisco = arr.filter(d => _cdtUrg(d)==='alta' && !_cdtResolvida(d)).length;
+  let estado = m.atrasadas>=3 ? `<span class="hot">Carteira em alerta</span>`
+    : (m.atrasadas>0||altoRisco>1) ? `<span class="mid">Carteira sob atenção</span>`
+    : `<b>Carteira sob controle</b>`;
+  let t='';
+  if(m.total===0){ t='Nenhuma demanda corresponde aos filtros selecionados.'; }
+  else{
+    t = `${estado}: <b>${m.ativas}</b> demanda(s) ativa(s), `;
+    t += m.atrasadas>0 ? `<span class="hot">${m.atrasadas} atrasada(s)</span> e ` : `nenhuma atrasada e `;
+    t += `<b>${m.pendencias}</b> pendência(s) aguardando início. `;
+    if(altoRisco>0) t += `Há <span class="mid">${altoRisco} item(ns) de alto risco</span> em aberto`;
+    if(clandestinas>0) t += `${altoRisco>0?', incluindo ':', destacando '}<span class="hot">${clandestinas} reforma(s) clandestina(s)</span> sem regularização`;
+    if(altoRisco>0||clandestinas>0) t += '. ';
+    t += `Índice de conclusão em <b>${Math.round(m.conclusao)}%</b> e risco médio <b>${m.riscoTxt}</b>. `;
+    t += m.atrasadas>0 ? `Recomenda-se priorizar os itens vencidos.` : `Ritmo dentro do esperado.`;
+  }
+  return `<div class="cdt-narrative">
+    <h4><span class="cdt-ic"></span>Narrativa automática</h4>
+    <p>${t}</p>
+  </div>`;
+}
+
+function _cdtSemaforo(){
+  // por condomínio: respeita período + lente, ignora filtro de condo (p/ comparar)
+  const condoBkp = _homeCondoFilter; _homeCondoFilter='todos';
+  let base = _biFilteredDemandas();
+  _homeCondoFilter = condoBkp;
+  base = _cdtAplicarLente(base, _homeLensFilter);
+
+  let rows = CDT_CONDOS.map(c => {
+    const items = base.filter(d => d.condo_id===c.id);
+    const atr = items.filter(_cdtAtrasada).length;
+    const alto = items.filter(d => _cdtUrg(d)==='alta' && !_cdtResolvida(d)).length;
+    const clan = items.filter(d => d.clandestina && !_cdtResolvida(d)).length;
+    const aber = items.filter(d => d.status==='aberta').length;
+    const score = Math.min(100, atr*22 + alto*14 + clan*16 + aber*5);
+    return {c, score, n:items.length};
+  }).sort((a,b)=>b.score-a.score);
+
+  if(base.length===0) return `<div class="cdt-empty">Nenhuma demanda</div>`;
+  return rows.map(r => {
+    const cor = r.score>=60?'#C00000':r.score>=30?'#E65100':'#1B8A4A';
+    return `<div class="cdt-bar-row" onclick="setHomeCondoFilter('${r.c.id}')">
+      <div class="bl"><span class="cdot" style="width:9px;height:9px;border-radius:50%;display:inline-block;background:${r.c.cor}"></span>${esc(r.c.nome)}</div>
+      <div class="cdt-bar-track"><div class="cdt-bar-fill" style="width:${Math.max(r.score,7)}%;background:${cor}">${r.score}</div></div>
+    </div>`;
+  }).join('');
+}
+
+function _cdtHeat(arr){
+  if(arr.length===0) return `<div class="cdt-empty" style="grid-column:1/-1">Nenhuma demanda</div>`;
+  const cats = Object.keys(CDT_CAT);
+  let html = cats.map(k => {
+    const n = arr.filter(d => d.categoria===k).length;
+    return `<div class="cdt-heat-cell" style="background:linear-gradient(135deg,${CDT_CAT[k].cor},${CDT_CAT[k].cor}cc)" onclick="navigate('demandas')">
+      <div class="hc-x">${n}</div><div class="hc-n">${n}</div><div class="hc-l">${CDT_CAT[k].l}</div></div>`;
+  });
+  const outros = arr.filter(d => !cats.includes(d.categoria)).length;
+  html.push(`<div class="cdt-heat-cell" style="background:linear-gradient(135deg,#5A7A7E,#5A7A7Ecc)" onclick="navigate('demandas')">
+    <div class="hc-x">${outros}</div><div class="hc-n">${outros}</div><div class="hc-l">Outros</div></div>`);
+  return html.join('');
+}
+
+function _cdtFunnel(arr){
+  if(arr.length===0) return `<div class="cdt-empty">Nenhuma demanda</div>`;
+  const entradas = arr.length;
+  const triagem = arr.filter(d => d.status==='aberta').length;
+  const pendExt = arr.filter(d => d.clandestina || (d.categoria==='laudo' && !_cdtResolvida(d))).length;
+  const exec = arr.filter(d => d.status==='em_andamento').length;
+  const enc = arr.filter(_cdtResolvida).length;
+  const steps = [
+    {l:'Entradas',          n:entradas, cor:'#155B67'},
+    {l:'Em triagem',        n:triagem,  cor:'#00B4AC'},
+    {l:'Pendência externa', n:pendExt,  cor:'#E65100'},
+    {l:'Execução técnica',  n:exec,     cor:'#8DB72A'},
+    {l:'Encerradas',        n:enc,      cor:'#1B8A4A'}
+  ];
+  const max = Math.max(entradas,1);
+  return steps.map(s => `<div class="cdt-fn-row">
+    <div class="cdt-fn-lbl">${s.l}</div>
+    <div class="cdt-fn-bar" style="width:${Math.max(s.n/max*100,12)}%;background:${s.cor}" onclick="navigate('demandas')">${s.n}</div>
+  </div>`).join('');
+}
+
+function _cdtAge(arr){
+  const ativas = arr.filter(d => !_cdtResolvida(d));
+  if(ativas.length===0) return `<div class="cdt-empty">Nenhuma demanda ativa</div>`;
+  const buckets = [
+    {l:'0-15d', min:0, max:15, n:0},
+    {l:'16-30d', min:16, max:30, n:0},
+    {l:'31-60d', min:31, max:60, n:0},
+    {l:'61-90d', min:61, max:90, n:0},
+    {l:'90d+', min:91, max:99999, n:0}
+  ];
+  ativas.forEach(d => {
+    const dd = _cdtDiasDesde(d.created_at);
+    const b = buckets.find(b => dd>=b.min && dd<=b.max);
+    if(b) b.n++;
+  });
+  const max = Math.max(...buckets.map(b=>b.n),1);
+  return buckets.map(b => `<div class="cdt-age-col">
+    <div class="cdt-age-bar" style="height:${b.n/max*100}%"><span class="av">${b.n}</span></div>
+    <div class="cdt-age-lbl">${b.l}</div>
+  </div>`).join('');
+}
+
+// ─── Render principal do dashboard (Central de Decisão Técnica) ──────────
+function renderBIDashboardHome(){
+  const arr = _cdtDemandas();
+  const m = _cdtKpis(arr);
+  return `<div class="cdt-wrap">
+    ${_cdtFiltersBar()}
+    ${_cdtTopbar(m)}
+    ${_cdtKpiCards(m)}
+    ${_cdtNarrative(arr, m)}
+    <div class="cdt-grid4">
+      <div class="cdt-panel">
+        <h4><span class="cdt-ic"></span>Semáforo por condomínio</h4>
+        <div class="ph">Score de pressão (0 = tranquilo, 100 = crítico)</div>
+        <div class="cdt-sem">${_cdtSemaforo()}</div>
+      </div>
+      <div class="cdt-panel">
+        <h4><span class="cdt-ic"></span>Mapa de pressão técnica</h4>
+        <div class="ph">Volume de demandas por tema</div>
+        <div class="cdt-heat">${_cdtHeat(arr)}</div>
+      </div>
+      <div class="cdt-panel">
+        <h4><span class="cdt-ic"></span>Esteira operacional</h4>
+        <div class="ph">Fluxo até o encerramento</div>
+        <div class="cdt-funnel">${_cdtFunnel(arr)}</div>
+      </div>
+      <div class="cdt-panel">
+        <h4><span class="cdt-ic"></span>Ritmo da carteira</h4>
+        <div class="ph">Por idade do registro (ativas)</div>
+        <div class="cdt-age">${_cdtAge(arr)}</div>
+      </div>
+    </div>
+  </div>`;
 }
 
 // ─── Seção de detalhes em abas (gráficos secundários) ───────────────────
