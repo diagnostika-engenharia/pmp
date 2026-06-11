@@ -743,6 +743,23 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .bi-tipo .brk .pen{color:#E65100;font-weight:700}
 .bi-tipo .brk .ok{color:#1B8A4A;font-weight:700}
 
+/* Tira fina de tipos (Reformas & ART) — substitui os 5 cards */
+.bi-strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:#fff;border-radius:9px;padding:9px 14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.bi-strip-lbl{font-size:9.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:800;margin-right:4px}
+.bi-stat{background:#F4F6F7;border:1px solid #e6eaeb;border-radius:7px;padding:5px 11px;font-size:11.5px;color:var(--text);cursor:pointer;font-family:inherit;display:inline-flex;align-items:baseline;gap:5px}
+.bi-stat:hover{background:#eaeff0;border-color:#d6dcdd}
+.bi-stat b{font-weight:800;font-size:13px}
+.bi-stat i{font-style:normal;color:#E65100;font-weight:700;font-size:10.5px}
+.bi-stat.zero{opacity:.55}
+.bi-stat.zero i{display:none}
+
+/* Abas dos gráficos secundários */
+.bi-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:0 16px 10px}
+.bi-tab{background:#fff;border:1px solid #e0e5e6;color:var(--text2);padding:6px 13px;border-radius:8px;font-size:11.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .12s}
+.bi-tab:hover{background:#f4f6f7}
+.bi-tab.active{background:var(--teal-dk);color:#fff;border-color:var(--teal-dk)}
+.bi-detalhes-lbl{font-size:9.5px;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;font-weight:800;margin:0 0 0 16px;padding-top:2px}
+
 .bi-card{background:#fff;border-radius:9px;padding:11px 14px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
 .bi-card h3.cct{font-size:10.5px;color:var(--text);font-weight:800;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px;display:flex;align-items:center;justify-content:space-between;gap:6px}
 .bi-card h3.cct small{font-size:9.5px;color:var(--text2);font-weight:500;font-style:italic;text-transform:none;letter-spacing:0}
@@ -2416,17 +2433,13 @@ function renderBITipos(){
     {k:'corretiva', emoji:'🔧', lbl:'Corretiva', pLbl:'ab.', oLbl:'resolv.'}
   ];
 
-  return `<div class="bi-c12" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px">
+  return `<div class="bi-strip" style="margin:0 16px 12px">
+    <span class="bi-strip-lbl">Reformas &amp; ART</span>
     ${cards.map(c => {
       const t = tipos[c.k];
-      return `<div class="bi-tipo ${c.k}" onclick="navigate('demandas')" title="${c.lbl}: ${t.t} total">
-        <div class="ico-t">${c.emoji}</div>
-        <div class="info">
-          <div class="num-t">${t.t}</div>
-          <div class="lbl-t">${c.lbl}</div>
-          <div class="brk">${t.p>0?`<span class="pen">${t.p} ${c.pLbl}</span>`:''}${t.p>0&&t.o>0?' · ':''}${t.o>0?`<span class="ok">${t.o} ${c.oLbl}</span>`:''}${t.t===0?'<span style="opacity:.5">sem registros</span>':''}</div>
-        </div>
-      </div>`;
+      return `<button class="bi-stat${t.t===0?' zero':''}" onclick="navigate('demandas')" title="${c.lbl}: ${t.t} total">
+        <b>${t.t}</b> ${c.lbl}${t.p>0?`<i>· ${t.p} ${c.pLbl}</i>`:''}
+      </button>`;
     }).join('')}
   </div>`;
 }
@@ -2553,9 +2566,11 @@ function renderBIRequerAcao(){
         <div class="hinfo"><b>${h.ttl}</b><small>${esc(h.sub)}</small></div>
       </div>`).join('');
 
-  return `<div class="bi-card bi-c5">
-    <h3 class="cct">⚡ Requer ação <small>top prioridade · click abre detalhe</small></h3>
-    ${itensHtml}
+  const grid = top4.length === 0 ? itensHtml
+    : `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px">${itensHtml}</div>`;
+  return `<div class="bi-card bi-c12">
+    <h3 class="cct">⚡ Requer sua ação <small>top prioridade · click abre detalhe</small></h3>
+    ${grid}
   </div>`;
 }
 
@@ -2692,14 +2707,41 @@ function renderBIDashboardHome(){
     ${renderBIHeader()}
     <div class="bi-grid">
       ${renderBIKPIs()}
-      ${renderBITipos()}
-      ${renderBIDemandasPorCondo()}
       ${renderBIRequerAcao()}
-      ${renderBISolicEntregas()}
-      ${renderBIFunnel()}
-      ${renderBIConformidade()}
     </div>
+    ${renderBITipos()}
+    ${renderBIDetalhes()}
   `;
+}
+
+// ─── Seção de detalhes em abas (gráficos secundários) ───────────────────
+let _biTabAtiva = 'condo';
+function renderBIDetalhes(){
+  const tabs = [
+    {k:'condo',   lbl:'Por condomínio'},
+    {k:'funnel',  lbl:'Funil de chamados'},
+    {k:'conf',    lbl:'Conformidade'},
+    {k:'entreg',  lbl:'Solicitações × entregas'}
+  ];
+  const panes = {
+    condo:  renderBIDemandasPorCondo(),
+    funnel: renderBIFunnel(),
+    conf:   renderBIConformidade(),
+    entreg: renderBISolicEntregas()
+  };
+  return `
+    <div class="bi-detalhes-lbl">Detalhes</div>
+    <div class="bi-tabs">
+      ${tabs.map(t=>`<button class="bi-tab${t.k===_biTabAtiva?' active':''}" data-tab="${t.k}" onclick="switchBITab('${t.k}')">${t.lbl}</button>`).join('')}
+    </div>
+    <div class="bi-grid">
+      ${tabs.map(t=>`<div class="bi-pane bi-c12" data-pane="${t.k}" style="display:${t.k===_biTabAtiva?'block':'none'}">${panes[t.k]}</div>`).join('')}
+    </div>`;
+}
+function switchBITab(name){
+  _biTabAtiva = name;
+  document.querySelectorAll('.bi-tab').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('.bi-pane').forEach(p=>p.style.display = (p.dataset.pane===name?'block':'none'));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
