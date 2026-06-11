@@ -889,6 +889,15 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .fe-btn-cancel{background:#444;color:#fff}
 .fe-btn-save{background:#1B8A4A;color:#fff}
 .fe-hint{font-size:11px;color:#999;text-align:center;padding:4px}
+.fe-cond-row{background:#1e1e1e;padding:8px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #333}
+.fe-cond-label{font-size:11px;font-weight:700;color:#bbb;letter-spacing:.3px;white-space:nowrap}
+.fe-cond-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.fe-cond{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:16px;border:2px solid #444;background:#2a2a2a;color:#ddd;font-size:11px;font-weight:600;cursor:pointer}
+.fe-cond .fe-cond-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+.fe-cond.active{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 22%,#1e1e1e);color:#fff}
+.cl-cond-chip{display:inline-flex;align-items:center;padding:7px 11px;border-radius:16px;border:2px solid #d4dadb;background:#f6f8f8;color:#37474f;font-size:11.5px;font-weight:600;cursor:pointer}
+.cl-cond-chip.active{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 14%,#fff);color:#155B67}
+.foto-cond-badge{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 
 /* Camera capture */
 .cam-view{position:fixed;inset:0;background:#000;display:flex;flex-direction:column;z-index:1000;touch-action:none;overscroll-behavior:contain}
@@ -4040,6 +4049,21 @@ function renderChecklist(main){
     </div>`;
   })()}`;
 
+  // ── MODO LIVRE DE REGISTRO ──────────────────────────────────────────────
+  // Registrar foto livremente e classificar (área + condição) depois.
+  // A lista abaixo continua como referência/checklist — não é obrigatório percorrê-la.
+  const totalFotosLivres=Object.values(visitaAtual.itens||{}).reduce((n,it)=>n+((it&&it.fotos&&it.fotos.length)||0),0);
+  html+=`<div style="margin:12px 16px 0;padding:14px;border:2px solid var(--turq);border-radius:12px;background:linear-gradient(135deg,rgba(0,180,172,.08),rgba(141,183,42,.06))">
+    <div style="font-size:12.5px;font-weight:800;color:var(--turq-dk);display:flex;align-items:center;gap:6px;margin-bottom:4px">📷 Registro livre de fotos</div>
+    <div style="font-size:11px;color:var(--text2);line-height:1.5;margin-bottom:10px">Tire a foto da área que quiser e <b>classifique depois</b> (escolha o ponto e a condição). Não precisa seguir a ordem da lista.</div>
+    <button onclick="abrirRegistroLivre()" style="width:100%;padding:12px;border:none;border-radius:10px;background:var(--turq);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 2px 8px rgba(0,180,172,.3)">
+      📷 Registrar foto livre${totalFotosLivres?` · ${totalFotosLivres} foto(s) registrada(s)`:''}
+    </button>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:9px">
+      ${CONDICOES_FOTO.map(c=>`<span style="font-size:9.5px;color:var(--text2);display:inline-flex;align-items:center;gap:4px"><span style="width:9px;height:9px;border-radius:50%;background:${c.cor};display:inline-block"></span>${c.label}</span>`).join('')}
+    </div>
+  </div>`;
+
   Object.entries(grupos).forEach(([grp,items])=>{
     const isCritGrp = grp.includes('CRÍTICO');
     const isCustomGrp = grp.includes('Outros Itens');
@@ -4067,13 +4091,14 @@ function renderChecklist(main){
       const fotosHtml = `
         <div class="fotos-section">
           <div class="fotos-section-label">📷 Fotos da inspeção ${fotos.length?`<span style="color:var(--teal);background:var(--gray);padding:1px 7px;border-radius:10px;font-size:10px">${fotos.length}</span>`:''}</div>
-          ${fotos.length?`<div class="fotos-grid">${fotos.map((f,i)=>`
-            <div class="foto-thumb">
+          ${fotos.length?`<div class="fotos-grid">${fotos.map((f,i)=>{const cf=condFoto(f.cond);return `
+            <div class="foto-thumb"${cf?` style="box-shadow:0 0 0 3px ${cf.cor},0 1px 3px rgba(0,0,0,.15)"`:''}>
               <img src="${f.url}" alt="Foto ${i+1}" onclick="editarFoto('${item.id}',${i})">
+              ${cf?`<div class="foto-cond-badge" style="background:${cf.cor}" title="${cf.label}"></div>`:''}
               <div class="foto-time" onclick="editarDataFoto('${item.id}',${i},event)" title="Clique para corrigir data/hora">🕒 ${fmtFotoTimeShort(f.timestamp)}</div>
               <button class="foto-thumb-edit" onclick="editarFoto('${item.id}',${i})" title="Editar anotações">✎</button>
               <button class="foto-thumb-del" onclick="removerFoto('${item.id}',${i})" title="Remover">×</button>
-            </div>`).join('')}</div>`:''}
+            </div>`;}).join('')}</div>`:''}
           <button class="btn-add-foto" onclick="abrirCapturaFoto('${item.id}')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             ${fotos.length?'+ Adicionar outra foto':'Tirar / Adicionar foto com anotações'}
@@ -4108,9 +4133,8 @@ function renderChecklist(main){
   </div>`;
 
   html+=`<div class="checklist-footer">
-    <button class="btn-finish" ${filled===total?'':'disabled'} onclick="finalizarChecklist()">
-      ${filled===total?'Finalizar e Gerar Relatório ✓':'Preencha todos os itens ('+filled+'/'+total+')'}
-    </button>
+    <button class="btn-finish" onclick="finalizarChecklist()">Finalizar e Gerar Relatório ✓</button>
+    ${filled<total?`<div style="font-size:10.5px;color:var(--text2);text-align:center;margin-top:7px;line-height:1.4">A lista é uma <b>referência opcional</b> — ${filled}/${total} itens preenchidos. Você pode finalizar mesmo sem percorrer todos.</div>`:''}
   </div>`;
 
   main.innerHTML=html;
@@ -4137,6 +4161,13 @@ function setObs(itemId, obs){
 }
 
 function finalizarChecklist(){
+  // Modo livre: não exige percorrer toda a lista. Só alerta se nada foi registrado.
+  const itens=getChecklistAtivo(visitaAtual);
+  const filled=itens.filter(i=>visitaAtual.itens[i.id]?.status).length;
+  const totalFotos=Object.values(visitaAtual.itens||{}).reduce((n,it)=>n+((it&&it.fotos&&it.fotos.length)||0),0);
+  if(filled===0 && totalFotos===0){
+    if(!confirm('Nenhum item foi preenchido e nenhuma foto foi registrada.\n\nFinalizar mesmo assim?')) return;
+  }
   navigate('relatorio');
 }
 
@@ -4212,9 +4243,20 @@ function pararAutoSave(){
 window.addEventListener('online', ()=>{ if(visitaAtual && _autoSaveState==='offline') dispararAutoSave(); });
 
 // ═══════════════════════════════════════════════════════════════════════════
-// FOTOS COM ANOTAÇÕES (círculo / seta / texto · vermelho / amarelo / verde)
+// FOTOS COM ANOTAÇÕES (círculo / seta / texto · 6 cores de classificação)
 // ═══════════════════════════════════════════════════════════════════════════
-let editorState={itemId:null,bgImage:null,annotations:[],tool:'circle',color:'#C00000',drawing:false,fotoIndex:-1,selectedIdx:-1,zoom:1,dragX:0,dragY:0,pinching:false,pinchStart:0,zoomStart:1,defaultFontSize:null,resizing:false,resizeHandle:null};
+// Paleta de classificação da condição (usada na foto/registro). As 3 primeiras
+// são as originais (verde/amarelo/vermelho); azul/preto/rosa foram acrescentadas.
+const CONDICOES_FOTO=[
+  {key:'verde',    cor:'#43A047', label:'Conforme / OK'},
+  {key:'amarelo',  cor:'#FBC02D', label:'Atenção'},
+  {key:'vermelho', cor:'#E53935', label:'Crítico / Não conforme'},
+  {key:'azul',     cor:'#1E88E5', label:'Informativo / Observação'},
+  {key:'preto',    cor:'#212121', label:'Indisponível / N/A'},
+  {key:'rosa',     cor:'#EC407A', label:'Destaque / Acompanhar'}
+];
+function condFoto(key){ return CONDICOES_FOTO.find(c=>c.key===key)||null; }
+let editorState={itemId:null,bgImage:null,annotations:[],tool:'circle',color:'#C00000',cond:null,drawing:false,fotoIndex:-1,selectedIdx:-1,zoom:1,dragX:0,dragY:0,pinching:false,pinchStart:0,zoomStart:1,defaultFontSize:null,resizing:false,resizeHandle:null};
 
 // Hit-test em uma alça (handle) da anotação selecionada
 function hitTestHandle(p,a){
@@ -4552,7 +4594,13 @@ function compressarImagem(file,maxW=1280,quality=0.78){
 }
 
 function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
-  editorState={itemId,bgImage:null,annotations:[],tool:'circle',color:'#E53935',drawing:false,fotoIndex,selectedIdx:-1,zoom:1,dragX:0,dragY:0,pinching:false,pinchStart:0,zoomStart:1};
+  // Ao re-editar, preserva a classificação (cond) já existente na foto
+  let condInicial=null;
+  if(fotoIndex>=0 && itemId && itemId!=='__livre__'){
+    const fAtual=visitaAtual?.itens?.[itemId]?.fotos?.[fotoIndex];
+    if(fAtual && typeof fAtual==='object' && fAtual.cond) condInicial=fAtual.cond;
+  }
+  editorState={itemId,bgImage:null,annotations:[],tool:'circle',color:'#E53935',cond:condInicial,drawing:false,fotoIndex,selectedIdx:-1,zoom:1,dragX:0,dragY:0,pinching:false,pinchStart:0,zoomStart:1};
   const overlay=document.createElement('div');
   overlay.className='foto-editor-overlay'; overlay.id='foto-editor';
   overlay.innerHTML=`
@@ -4569,6 +4617,9 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
           <button class="fe-color active" data-color="#E53935" style="background:#E53935" title="Vermelho (crítico)"></button>
           <button class="fe-color" data-color="#FBC02D" style="background:#FBC02D" title="Amarelo (atenção)"></button>
           <button class="fe-color" data-color="#43A047" style="background:#43A047" title="Verde (OK)"></button>
+          <button class="fe-color" data-color="#1E88E5" style="background:#1E88E5" title="Azul (informativo)"></button>
+          <button class="fe-color" data-color="#212121" style="background:#212121" title="Preto (indisponível)"></button>
+          <button class="fe-color" data-color="#EC407A" style="background:#EC407A" title="Rosa (destaque)"></button>
         </div>
         <div class="fe-divider"></div>
         <button class="fe-undo" onclick="editorFonteDown()" title="Diminuir fonte do texto"><span style="font-size:10px">A</span>−</button>
@@ -4589,6 +4640,12 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
       </div>
       <div class="fe-canvas-wrap" id="fe-wrap"><canvas id="fe-canvas"></canvas></div>
       <div class="fe-hint">Desenhar: toque e arraste · Editar texto: <b>duplo toque</b> · Mover ✋: toque e arraste · <b>Redimensionar:</b> selecione com ✋ e arraste as alças turquesa · Pinça (2 dedos) = zoom</div>
+      <div class="fe-cond-row">
+        <span class="fe-cond-label">Classificação da foto:</span>
+        <div class="fe-cond-chips" id="fe-cond-chips">
+          ${CONDICOES_FOTO.map(c=>`<button class="fe-cond ${editorState.cond===c.key?'active':''}" data-cond="${c.key}" style="--cc:${c.cor}" title="${c.label}"><span class="fe-cond-dot" style="background:${c.cor}"></span>${c.label}</button>`).join('')}
+        </div>
+      </div>
       <div class="fe-footer">
         <button class="fe-btn-cancel" onclick="fecharEditorFoto()">Cancelar</button>
         <button class="fe-btn-save" onclick="salvarFotoEditor()">✓ Salvar Foto</button>
@@ -4618,6 +4675,15 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
         editorState.annotations[editorState.selectedIdx].color=editorState.color;
         redrawEditor();
       }
+    };
+  });
+  // Classificação da condição da foto (clicar de novo desmarca)
+  overlay.querySelectorAll('.fe-cond').forEach(b=>{
+    b.onclick=()=>{
+      const k=b.dataset.cond;
+      if(editorState.cond===k){ editorState.cond=null; }
+      else { editorState.cond=k; }
+      overlay.querySelectorAll('.fe-cond').forEach(x=>x.classList.toggle('active', x.dataset.cond===editorState.cond));
     };
   });
 
@@ -4873,6 +4939,14 @@ function editorClear(){ if(confirm('Apagar todas as anotações?')){editorState.
 function salvarFotoEditor(){
   const canvas=document.getElementById('fe-canvas');
   const dataURL=canvas.toDataURL('image/jpeg',0.82);
+  const cond=editorState.cond||null;
+  // MODO LIVRE: foto capturada sem item ainda — guarda pendente e abre classificação
+  if(editorState.itemId==='__livre__'){
+    _fotoLivrePendente={url:dataURL,timestamp:Date.now(),cond};
+    fecharEditorFoto();
+    abrirClassificacaoLivre();
+    return;
+  }
   if(!visitaAtual.itens[editorState.itemId]) visitaAtual.itens[editorState.itemId]={status:'',obs:'',fotos:[]};
   const item=visitaAtual.itens[editorState.itemId];
   if(!item.fotos) item.fotos=[];
@@ -4881,17 +4955,111 @@ function salvarFotoEditor(){
     // preserva timestamp original ao re-editar
     const old=fotoData(item.fotos[editorState.fotoIndex]);
     if(old.timestamp) timestamp=old.timestamp;
-    item.fotos[editorState.fotoIndex]={url:dataURL,timestamp};
+    item.fotos[editorState.fotoIndex]={url:dataURL,timestamp,cond};
   } else {
-    item.fotos.push({url:dataURL,timestamp});
+    item.fotos.push({url:dataURL,timestamp,cond});
   }
   const sid=editorState.itemId;
   fecharEditorFoto();
   renderChecklist(document.getElementById('main'));
+  dispararAutoSave();
   setTimeout(()=>document.getElementById('ci-'+sid)?.scrollIntoView({behavior:'smooth',block:'center'}),60);
 }
 
 function fecharEditorFoto(){ document.getElementById('foto-editor')?.remove(); }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MODO LIVRE DE REGISTRO — tira a foto primeiro, classifica (área + condição) depois
+// ═══════════════════════════════════════════════════════════════════════════
+let _fotoLivrePendente=null;
+function abrirRegistroLivre(){
+  // Captura usando o item sentinela __livre__ — o editor reconhece e abre a classificação ao salvar
+  abrirCapturaFoto('__livre__');
+}
+
+function abrirClassificacaoLivre(){
+  if(!_fotoLivrePendente){ return; }
+  const itens=getChecklistAtivo(visitaAtual);
+  // Agrupa para um <select> legível
+  const grupos={};
+  itens.forEach(it=>{ (grupos[it.grupo]=grupos[it.grupo]||[]).push(it); });
+  const optgroups=Object.entries(grupos).map(([g,its])=>
+    `<optgroup label="${g.replace(/"/g,'&quot;')}">${its.map(it=>`<option value="${it.id}">${(it.nome||'').replace(/</g,'&lt;')}</option>`).join('')}</optgroup>`
+  ).join('');
+  const fp=_fotoLivrePendente;
+  const condAtual=condFoto(fp.cond);
+  const ov=document.createElement('div');
+  ov.className='foto-editor-overlay'; ov.id='class-livre';
+  ov.innerHTML=`
+    <div style="background:#fff;border-radius:14px;max-width:440px;width:92%;max-height:90vh;overflow:auto;padding:0">
+      <div style="background:linear-gradient(135deg,#155B67,#00B4AC);color:#fff;padding:14px 18px;border-radius:14px 14px 0 0">
+        <div style="font-size:15px;font-weight:800">🏷️ Classificar foto</div>
+        <div style="font-size:11.5px;opacity:.9;margin-top:2px">Escolha a área/ponto e confirme a condição</div>
+      </div>
+      <div style="padding:16px 18px">
+        <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px">
+          <img src="${fp.url}" style="width:84px;height:84px;object-fit:cover;border-radius:8px;border:3px solid ${condAtual?condAtual.cor:'#ddd'};flex-shrink:0">
+          <div style="font-size:11.5px;color:#555;line-height:1.5">Foto capturada em modo livre.<br>Selecione abaixo a qual área/item ela pertence.</div>
+        </div>
+        <label style="font-size:11px;font-weight:700;color:#155B67;text-transform:uppercase;letter-spacing:.4px">Área / ponto inspecionado</label>
+        <select id="cl-item" style="width:100%;padding:11px;margin:6px 0 12px;border:1.5px solid #cbd5d8;border-radius:8px;font-size:13px;background:#fff">
+          <option value="">— selecione um item da lista —</option>
+          ${optgroups}
+          <option value="__novo__">➕ Criar novo ponto (não está na lista)…</option>
+        </select>
+        <label style="font-size:11px;font-weight:700;color:#155B67;text-transform:uppercase;letter-spacing:.4px">Classificação da condição</label>
+        <div id="cl-cond" style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 4px">
+          ${CONDICOES_FOTO.map(c=>`<button type="button" class="cl-cond-chip ${fp.cond===c.key?'active':''}" data-cond="${c.key}" style="--cc:${c.cor}"><span style="display:inline-block;width:11px;height:11px;border-radius:50%;background:${c.cor};margin-right:5px;vertical-align:-1px"></span>${c.label}</button>`).join('')}
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;padding:0 18px 18px">
+        <button onclick="cancelarClassificacaoLivre()" style="flex:1;padding:12px;border:none;border-radius:8px;background:#eceff1;color:#555;font-size:13px;font-weight:700;cursor:pointer">Cancelar</button>
+        <button onclick="confirmarClassificacaoLivre()" style="flex:2;padding:12px;border:none;border-radius:8px;background:#1B8A4A;color:#fff;font-size:13px;font-weight:700;cursor:pointer">✓ Salvar registro</button>
+      </div>
+    </div>`;
+  document.body.appendChild(ov);
+  ov.querySelectorAll('.cl-cond-chip').forEach(b=>{
+    b.onclick=()=>{
+      const k=b.dataset.cond;
+      _fotoLivrePendente.cond=(_fotoLivrePendente.cond===k)?null:k;
+      ov.querySelectorAll('.cl-cond-chip').forEach(x=>x.classList.toggle('active', x.dataset.cond===_fotoLivrePendente.cond));
+    };
+  });
+}
+
+function cancelarClassificacaoLivre(){
+  _fotoLivrePendente=null;
+  document.getElementById('class-livre')?.remove();
+}
+
+function confirmarClassificacaoLivre(){
+  if(!_fotoLivrePendente) return;
+  const sel=document.getElementById('cl-item');
+  let itemId=sel?.value||'';
+  if(!itemId){ alert('Selecione a área/ponto a que esta foto pertence.'); return; }
+  if(itemId==='__novo__'){
+    const nome=prompt('Nome do novo ponto/área inspecionado(a):','');
+    if(!nome){ return; }
+    const detalhe=prompt('Detalhe / o que foi observado (opcional):','')||'';
+    if(!visitaAtual.itensCustom) visitaAtual.itensCustom=[];
+    itemId='custom_'+Date.now().toString(36);
+    visitaAtual.itensCustom.push({
+      id:itemId, nome, detalhe,
+      grupo:'➕ Outros Itens Avaliados',
+      norma:'Item adicionado pelo engenheiro em campo (registro livre)',
+      critico:false
+    });
+  }
+  if(!visitaAtual.itens[itemId]) visitaAtual.itens[itemId]={status:'',obs:'',fotos:[]};
+  const item=visitaAtual.itens[itemId];
+  if(!item.fotos) item.fotos=[];
+  item.fotos.push({url:_fotoLivrePendente.url,timestamp:_fotoLivrePendente.timestamp||Date.now(),cond:_fotoLivrePendente.cond||null});
+  _fotoLivrePendente=null;
+  document.getElementById('class-livre')?.remove();
+  renderChecklist(document.getElementById('main'));
+  dispararAutoSave();
+  setTimeout(()=>document.getElementById('ci-'+itemId)?.scrollIntoView({behavior:'smooth',block:'center'}),60);
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // IA — Análise de patologias via Claude Vision (chave do engenheiro local)
@@ -5266,7 +5434,7 @@ function editarDataFoto(itemId,idx,ev){
   const yr=m[3].length===2?2000+parseInt(m[3]):parseInt(m[3]);
   const dt=new Date(yr,parseInt(m[2])-1,parseInt(m[1]),parseInt(m[4]),parseInt(m[5]));
   if(isNaN(dt.getTime())){ alert('Data inválida'); return; }
-  item.fotos[idx]={url:fd.url,timestamp:dt.getTime()};
+  item.fotos[idx]={url:fd.url,timestamp:dt.getTime(),cond:fd.cond||null};
   renderChecklist(document.getElementById('main'));
 }
 
@@ -5551,11 +5719,11 @@ function gerarPDF(){
   <div class="print-nc-item">
     <strong>${i.nome}${i.critico?' [CRÍTICO]':''}</strong>
     <p>${v.itens[i.id]?.obs||'Não conformidade identificada — sem observação detalhada.'}</p>
-    ${fotos.length?`<div class="print-fotos-grid">${fotos.map((f,k)=>`
+    ${fotos.length?`<div class="print-fotos-grid">${fotos.map((f,k)=>{const cf=condFoto(f.cond);return `
       <div class="print-foto">
-        <img src="${f.url}" alt="Foto ${k+1}">
-        <div class="print-foto-cap">Foto ${k+1} — ${i.nome}<br>🕒 ${fmtFotoTime(f.timestamp)}</div>
-      </div>`).join('')}</div>`:''}
+        <img src="${f.url}" alt="Foto ${k+1}"${cf?` style="border:3px solid ${cf.cor}"`:''}>
+        <div class="print-foto-cap">Foto ${k+1} — ${i.nome}${cf?` · <span style="color:${cf.cor};font-weight:700">● ${cf.label}</span>`:''}<br>🕒 ${fmtFotoTime(f.timestamp)}</div>
+      </div>`;}).join('')}</div>`:''}
   </div>`;}).join('')}`:''}
 
   ${(()=>{const fotosOutras=itens.filter(i=>v.itens[i.id]?.status!=='nao_conforme'&&(v.itens[i.id]?.fotos||[]).length);
@@ -5565,8 +5733,8 @@ function gerarPDF(){
       const fotos=(v.itens[i.id].fotos||[]).map(fotoData);
       return `<div style="margin-bottom:10pt">
         <div style="font-size:10pt;font-weight:700;color:#155B67;margin-bottom:4pt">${i.nome}</div>
-        <div class="print-fotos-grid">${fotos.map((f,k)=>`
-          <div class="print-foto"><img src="${f.url}" alt=""><div class="print-foto-cap">Foto ${k+1} · 🕒 ${fmtFotoTime(f.timestamp)}</div></div>`).join('')}</div>
+        <div class="print-fotos-grid">${fotos.map((f,k)=>{const cf=condFoto(f.cond);return `
+          <div class="print-foto"><img src="${f.url}" alt=""${cf?` style="border:3px solid ${cf.cor}"`:''}><div class="print-foto-cap">Foto ${k+1}${cf?` · <span style="color:${cf.cor};font-weight:700">● ${cf.label}</span>`:''} · 🕒 ${fmtFotoTime(f.timestamp)}</div></div>`;}).join('')}</div>
       </div>`;
     }).join('')}`;})()}
 
