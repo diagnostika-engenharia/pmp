@@ -1167,8 +1167,38 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .cdt-age-bar{width:100%;max-width:50px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--turq),var(--teal));position:relative;min-height:4px;transition:height .5s}
 .cdt-age-bar .av{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:11.5px;font-weight:800;color:var(--teal)}
 .cdt-age-lbl{font-size:10px;color:var(--cdt-txt2);text-align:center;font-weight:600}
+/* abas de painel — só aparecem no mobile */
+.cdt-ptabs{display:none;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:2px}
+.cdt-ptabs::-webkit-scrollbar{display:none}
+.cdt-ptab{flex:0 0 auto;background:var(--cdt-card);border:1.5px solid var(--cdt-line);color:var(--cdt-txt2);padding:8px 14px;border-radius:10px;font-size:12.5px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap}
+.cdt-ptab.active{background:var(--teal);border-color:var(--teal);color:#fff}
 @media(max-width:1100px){.cdt-grid4{grid-template-columns:repeat(2,1fr)}.cdt-kpis{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:560px){.cdt-kpis{grid-template-columns:repeat(2,1fr)}.cdt-grid4{grid-template-columns:1fr}}
+@media(max-width:680px){
+  /* faixa de filtros: cada grupo desliza na horizontal em vez de quebrar linha */
+  .cdt-filters{gap:8px;padding:9px 11px}
+  .cdt-fg{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;width:100%}
+  .cdt-fg::-webkit-scrollbar{display:none}
+  .cdt-lens{min-width:118px}
+  /* topbar empilha e gauge ocupa largura toda */
+  .cdt-topbar{flex-direction:column;gap:10px}
+  .cdt-topbar h2{font-size:18px}
+  .cdt-gauge-card{width:100%;min-width:0}
+  /* KPIs viram faixa deslizante (1 linha, sem empilhar) */
+  .cdt-kpis{display:flex;gap:8px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;grid-template-columns:none}
+  .cdt-kpis::-webkit-scrollbar{display:none}
+  .cdt-kpi{flex:0 0 39%;min-width:128px}
+  .cdt-kpi .k-val{font-size:22px}
+  /* 4 painéis viram abas: mostra só o ativo */
+  .cdt-ptabs{display:flex}
+  .cdt-grid4{display:block}
+  .cdt-grid4 .cdt-panel{display:none;margin-bottom:0}
+  .cdt-grid4[data-active="sem"] .cdt-panel[data-p="sem"],
+  .cdt-grid4[data-active="heat"] .cdt-panel[data-p="heat"],
+  .cdt-grid4[data-active="funnel"] .cdt-panel[data-p="funnel"],
+  .cdt-grid4[data-active="age"] .cdt-panel[data-p="age"]{display:flex}
+  .cdt-bar-row .bl{width:84px}
+  .cdt-fn-lbl{width:84px}
+}
 </style>
 </head>
 <body>
@@ -3094,29 +3124,43 @@ function renderBIDashboardHome(){
     ${_cdtTopbar(m)}
     ${_cdtKpiCards(m)}
     ${_cdtNarrative(arr, m)}
-    <div class="cdt-grid4">
-      <div class="cdt-panel">
+    <div class="cdt-ptabs" role="tablist">
+      <button class="cdt-ptab active" data-go="sem" onclick="setCdtPanel('sem')">🚦 Semáforo</button>
+      <button class="cdt-ptab" data-go="heat" onclick="setCdtPanel('heat')">🗺️ Pressão</button>
+      <button class="cdt-ptab" data-go="funnel" onclick="setCdtPanel('funnel')">⛓️ Esteira</button>
+      <button class="cdt-ptab" data-go="age" onclick="setCdtPanel('age')">📈 Ritmo</button>
+    </div>
+    <div class="cdt-grid4" data-active="${_cdtMobilePanel}">
+      <div class="cdt-panel" data-p="sem">
         <h4><span class="cdt-ic"></span>Semáforo por condomínio</h4>
         <div class="ph">Score de pressão (0 = tranquilo, 100 = crítico)</div>
         <div class="cdt-sem">${_cdtSemaforo()}</div>
       </div>
-      <div class="cdt-panel">
+      <div class="cdt-panel" data-p="heat">
         <h4><span class="cdt-ic"></span>Mapa de pressão técnica</h4>
         <div class="ph">Volume de demandas por tema</div>
         <div class="cdt-heat">${_cdtHeat(arr)}</div>
       </div>
-      <div class="cdt-panel">
+      <div class="cdt-panel" data-p="funnel">
         <h4><span class="cdt-ic"></span>Esteira operacional</h4>
         <div class="ph">Fluxo até o encerramento</div>
         <div class="cdt-funnel">${_cdtFunnel(arr)}</div>
       </div>
-      <div class="cdt-panel">
+      <div class="cdt-panel" data-p="age">
         <h4><span class="cdt-ic"></span>Ritmo da carteira</h4>
         <div class="ph">Por idade do registro (ativas)</div>
         <div class="cdt-age">${_cdtAge(arr)}</div>
       </div>
     </div>
   </div>`;
+}
+// Mobile: alterna qual dos 4 painéis aparece (1 por vez, sem rolagem)
+let _cdtMobilePanel = 'sem';
+function setCdtPanel(p){
+  _cdtMobilePanel = p;
+  const grid = document.querySelector('.cdt-grid4');
+  if(grid) grid.dataset.active = p;
+  document.querySelectorAll('.cdt-ptab').forEach(b=>b.classList.toggle('active', b.dataset.go===p));
 }
 
 // ─── Seção de detalhes em abas (gráficos secundários) ───────────────────
