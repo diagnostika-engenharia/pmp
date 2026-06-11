@@ -9149,6 +9149,7 @@ function renderWhatsappInboxView(main){
             <button onclick="pedirDocsWAI('${item.id}')" style="background:#E65100;color:#fff;border:none;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">📎 Pedir docs</button>
             <button onclick="associarCondoWAI('${item.id}')" style="background:#fff;color:#1565C0;border:1.5px solid #1565C0;padding:5px 12px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer">🏢 Associar condo</button>
             `:''}
+            <button onclick="excluirWAI('${item.id}')" title="Excluir registro" style="background:#fff;color:#C00000;border:1.5px solid #E0A0A0;padding:5px 12px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;margin-top:2px">🗑️ Excluir</button>
           </div>
         </div>
       </div>`;
@@ -9214,6 +9215,25 @@ async function pedirDocsWAI(id){
     status:'pendente_docs', parecer:'Documentação pendente: '+docs, updated_at:new Date().toISOString()
   }).eq('id',id);
   alert('📎 Marcado como pendente. Solicite os documentos via WhatsApp.');
+  renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
+}
+
+async function excluirWAI(id){
+  if(!confirm('Excluir este registro permanentemente?\n\nO documento também será removido do armazenamento. Esta ação não pode ser desfeita.')) return;
+  const item = (_waiItems||[]).find(i=>i.id===id);
+  // remove o arquivo do storage (best-effort)
+  if(item && item.doc_url){
+    try{
+      const marker = '/whatsapp-docs/';
+      const idx = item.doc_url.indexOf(marker);
+      if(idx>=0){
+        const path = decodeURIComponent(item.doc_url.substring(idx+marker.length));
+        await sb.storage.from('whatsapp-docs').remove([path]);
+      }
+    }catch(e){ console.warn('Falha ao remover arquivo do storage:', e); }
+  }
+  const {error} = await sb.from('whatsapp_inbox').delete().eq('id',id);
+  if(error){ alert('Erro ao excluir: '+error.message); return; }
   renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
 }
 
