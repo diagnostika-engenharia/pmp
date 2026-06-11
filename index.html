@@ -873,26 +873,39 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 
 .foto-editor-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:0}
 .foto-editor{width:100%;height:100%;display:flex;flex-direction:column;background:#1a1a1a}
-.fe-toolbar{background:#222;padding:8px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-bottom:1px solid #333}
-.fe-tools,.fe-colors{display:flex;gap:5px;align-items:center}
-.fe-tool,.fe-color{width:38px;height:38px;border-radius:8px;border:2px solid transparent;background:#333;color:#fff;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0}
+.fe-tools,.fe-colors{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.fe-tool,.fe-color{width:40px;height:40px;border-radius:8px;border:2px solid transparent;background:#333;color:#fff;cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0}
 .fe-tool.active{border-color:#00B4AC;background:#155B67}
 .fe-color{padding:0}
 .fe-color.active{border-color:#fff;box-shadow:0 0 0 2px #155B67}
-.fe-undo,.fe-clear{padding:8px 12px;border:none;border-radius:6px;background:#444;color:#fff;cursor:pointer;font-size:12px;font-weight:600}
-.fe-clear{background:#5C2020}
-.fe-divider{width:1px;height:28px;background:#444}
-.fe-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:10px;background:#0a0a0a;touch-action:none}
+.fe-canvas-wrap{flex:1;overflow:auto;display:flex;align-items:center;justify-content:center;padding:8px;background:#0a0a0a;touch-action:none;min-height:0}
 #fe-canvas{max-width:100%;max-height:100%;cursor:crosshair;box-shadow:0 4px 20px rgba(0,0,0,.5);background:#fff;touch-action:none}
 .fe-footer{background:#222;padding:10px;display:flex;gap:10px;border-top:1px solid #333}
 .fe-btn-cancel,.fe-btn-save{flex:1;padding:13px;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
 .fe-btn-cancel{background:#444;color:#fff}
 .fe-btn-save{background:#1B8A4A;color:#fff}
-.fe-hint{font-size:11px;color:#999;text-align:center;padding:4px}
-.fe-cond-row{background:#1e1e1e;padding:8px 10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #333}
-.fe-cond-label{font-size:11px;font-weight:700;color:#bbb;letter-spacing:.3px;white-space:nowrap}
-.fe-cond-chips{display:flex;gap:6px;flex-wrap:wrap;flex:1}
-.fe-cond{display:inline-flex;align-items:center;gap:5px;padding:6px 10px;border-radius:16px;border:2px solid #444;background:#2a2a2a;color:#ddd;font-size:11px;font-weight:600;cursor:pointer}
+/* Barra fina de ícones */
+.fe-iconbar{background:#222;border-top:1px solid #333;padding:6px 8px;display:flex;align-items:center;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.fe-ic{flex:0 0 auto;width:44px;height:44px;border-radius:10px;border:2px solid transparent;background:#333;color:#fff;cursor:pointer;font-size:19px;display:flex;align-items:center;justify-content:center;padding:0;position:relative}
+.fe-ic.active{border-color:#00B4AC;background:#155B67}
+.fe-ic-danger{background:#5C2020}
+.fe-ic-ai{background:linear-gradient(135deg,#7B1FA2,#5B0F87)}
+.fe-ic-ai.ai-active{box-shadow:0 0 0 2px #FBC02D}
+.fe-ic-ai.ai-loading{animation:pulse 1.4s infinite}
+.fe-ic-swatch{width:20px;height:20px;border-radius:50%;border:2px solid #fff}
+.fe-ic-cond-dot{position:absolute;top:5px;right:5px;width:11px;height:11px;border-radius:50%;border:1.5px solid #222;display:none}
+/* Painéis recolhíveis */
+.fe-panels{background:#1e1e1e}
+.fe-panel{display:none;padding:10px 12px;border-top:1px solid #333;animation:feSlide .15s ease}
+.fe-panel.open{display:block}
+@keyframes feSlide{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.fe-panel-title{font-size:10.5px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.fe-panel-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.fe-panel-hint{font-size:10.5px;color:#888;margin-top:8px;line-height:1.4}
+.fe-pbtn{padding:9px 13px;border:none;border-radius:8px;background:#444;color:#fff;cursor:pointer;font-size:13px;font-weight:600}
+.fe-pbtn-danger{background:#5C2020}
+.fe-cond-chips{display:flex;gap:6px;flex-wrap:wrap}
+.fe-cond{display:inline-flex;align-items:center;gap:5px;padding:7px 11px;border-radius:16px;border:2px solid #444;background:#2a2a2a;color:#ddd;font-size:11.5px;font-weight:600;cursor:pointer}
 .fe-cond .fe-cond-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 .fe-cond.active{border-color:var(--cc);background:color-mix(in srgb,var(--cc) 22%,#1e1e1e);color:#fff}
 .cl-cond-chip{display:inline-flex;align-items:center;padding:7px 11px;border-radius:16px;border:2px solid #d4dadb;background:#f6f8f8;color:#37474f;font-size:11.5px;font-weight:600;cursor:pointer}
@@ -4593,6 +4606,31 @@ function compressarImagem(file,maxW=1280,quality=0.78){
   });
 }
 
+// Abre/fecha um painel de ferramentas (só um aberto por vez)
+function editorTogglePainel(nome){
+  const wrap=document.getElementById('fe-panels');
+  const iconbar=document.getElementById('fe-iconbar');
+  if(!wrap) return;
+  const alvo=wrap.querySelector('.fe-panel[data-panel="'+nome+'"]');
+  const jaAberto=alvo && alvo.classList.contains('open');
+  // fecha todos
+  wrap.querySelectorAll('.fe-panel').forEach(p=>p.classList.remove('open'));
+  if(iconbar) iconbar.querySelectorAll('.fe-ic[data-open]').forEach(i=>i.classList.remove('active'));
+  // se não estava aberto, abre o alvo
+  if(alvo && !jaAberto){
+    alvo.classList.add('open');
+    const ic=iconbar&&iconbar.querySelector('.fe-ic[data-open="'+nome+'"]');
+    if(ic) ic.classList.add('active');
+  }
+}
+// Mostra um ponto colorido no ícone de classificação quando há condição escolhida
+function _atualizarCondIcon(){
+  const dot=document.getElementById('fe-ic-cond-dot');
+  if(!dot) return;
+  const cf=condFoto(editorState&&editorState.cond);
+  if(cf){ dot.style.background=cf.cor; dot.style.display='block'; }
+  else { dot.style.display='none'; }
+}
 function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
   // Ao re-editar, preserva a classificação (cond) já existente na foto
   let condInicial=null;
@@ -4605,47 +4643,74 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
   overlay.className='foto-editor-overlay'; overlay.id='foto-editor';
   overlay.innerHTML=`
     <div class="foto-editor">
-      <div class="fe-toolbar">
-        <div class="fe-tools">
-          <button class="fe-tool active" data-tool="circle" title="Círculo">⭕</button>
-          <button class="fe-tool" data-tool="arrow" title="Seta">➜</button>
-          <button class="fe-tool" data-tool="text" title="Texto">T</button>
-          <button class="fe-tool" data-tool="move" title="Mover / Selecionar">✋</button>
-        </div>
-        <div class="fe-divider"></div>
-        <div class="fe-colors">
-          <button class="fe-color active" data-color="#E53935" style="background:#E53935" title="Vermelho (crítico)"></button>
-          <button class="fe-color" data-color="#FBC02D" style="background:#FBC02D" title="Amarelo (atenção)"></button>
-          <button class="fe-color" data-color="#43A047" style="background:#43A047" title="Verde (OK)"></button>
-          <button class="fe-color" data-color="#1E88E5" style="background:#1E88E5" title="Azul (informativo)"></button>
-          <button class="fe-color" data-color="#212121" style="background:#212121" title="Preto (indisponível)"></button>
-          <button class="fe-color" data-color="#EC407A" style="background:#EC407A" title="Rosa (destaque)"></button>
-        </div>
-        <div class="fe-divider"></div>
-        <button class="fe-undo" onclick="editorFonteDown()" title="Diminuir fonte do texto"><span style="font-size:10px">A</span>−</button>
-        <span class="fe-zoom-info" id="fe-font-info" style="min-width:46px">—</span>
-        <button class="fe-undo" onclick="editorFonteUp()" title="Aumentar fonte do texto"><span style="font-size:14px">A</span>+</button>
-        <button class="fe-undo" onclick="editorEditarTexto()" title="Editar texto selecionado">✎T</button>
-        <div class="fe-divider"></div>
-        <button class="fe-undo" onclick="editorZoomOut()" title="Diminuir zoom">🔍−</button>
-        <span class="fe-zoom-info" id="fe-zoom-info">100%</span>
-        <button class="fe-undo" onclick="editorZoomIn()" title="Aumentar zoom">🔍+</button>
-        <button class="fe-undo" onclick="editorZoomReset()" title="100%">⟲</button>
-        <div class="fe-divider"></div>
-        <button class="fe-undo" onclick="editorUndo()">↶ Desfazer</button>
-        <button class="fe-undo" onclick="editorRemoverSelecionada()" title="Excluir selecionada">⊘</button>
-        <button class="fe-clear" onclick="editorClear()">🗑 Limpar</button>
-        <div class="fe-divider"></div>
-        <button class="fe-tool fe-ai ${iaAtivada()?'ai-active':''}" onclick="editorAnalisarIA()" title="${iaAtivada()?'Analisar com IA':'IA desativada — ative em Configurações'}">🤖 IA</button>
-      </div>
       <div class="fe-canvas-wrap" id="fe-wrap"><canvas id="fe-canvas"></canvas></div>
-      <div class="fe-hint">Desenhar: toque e arraste · Editar texto: <b>duplo toque</b> · Mover ✋: toque e arraste · <b>Redimensionar:</b> selecione com ✋ e arraste as alças turquesa · Pinça (2 dedos) = zoom</div>
-      <div class="fe-cond-row">
-        <span class="fe-cond-label">Classificação da foto:</span>
-        <div class="fe-cond-chips" id="fe-cond-chips">
-          ${CONDICOES_FOTO.map(c=>`<button class="fe-cond ${editorState.cond===c.key?'active':''}" data-cond="${c.key}" style="--cc:${c.cor}" title="${c.label}"><span class="fe-cond-dot" style="background:${c.cor}"></span>${c.label}</button>`).join('')}
+
+      <!-- Painéis recolhíveis (abrem acima da barra de ícones) -->
+      <div class="fe-panels" id="fe-panels">
+        <div class="fe-panel" id="fe-panel-draw" data-panel="draw">
+          <div class="fe-panel-title">Ferramenta de desenho</div>
+          <div class="fe-tools" id="fe-tools-row">
+            <button class="fe-tool active" data-tool="circle" title="Círculo">⭕</button>
+            <button class="fe-tool" data-tool="arrow" title="Seta">➜</button>
+            <button class="fe-tool" data-tool="text" title="Texto">T</button>
+            <button class="fe-tool" data-tool="move" title="Mover / Selecionar">✋</button>
+          </div>
+          <div class="fe-panel-hint">Desenhar: toque e arraste · <b>Duplo toque</b> edita texto · ✋ move/redimensiona (alças turquesa) · Pinça = zoom</div>
+        </div>
+
+        <div class="fe-panel" id="fe-panel-color" data-panel="color">
+          <div class="fe-panel-title">Cor</div>
+          <div class="fe-colors">
+            <button class="fe-color active" data-color="#E53935" style="background:#E53935" title="Vermelho (crítico)"></button>
+            <button class="fe-color" data-color="#FBC02D" style="background:#FBC02D" title="Amarelo (atenção)"></button>
+            <button class="fe-color" data-color="#43A047" style="background:#43A047" title="Verde (OK)"></button>
+            <button class="fe-color" data-color="#1E88E5" style="background:#1E88E5" title="Azul (informativo)"></button>
+            <button class="fe-color" data-color="#212121" style="background:#212121" title="Preto (indisponível)"></button>
+            <button class="fe-color" data-color="#EC407A" style="background:#EC407A" title="Rosa (destaque)"></button>
+          </div>
+        </div>
+
+        <div class="fe-panel" id="fe-panel-text" data-panel="text">
+          <div class="fe-panel-title">Texto selecionado</div>
+          <div class="fe-panel-controls">
+            <button class="fe-pbtn" onclick="editorFonteDown()" title="Diminuir fonte"><span style="font-size:11px">A</span>−</button>
+            <span class="fe-zoom-info" id="fe-font-info" style="min-width:46px">—</span>
+            <button class="fe-pbtn" onclick="editorFonteUp()" title="Aumentar fonte"><span style="font-size:15px">A</span>+</button>
+            <button class="fe-pbtn" onclick="editorEditarTexto()" title="Editar texto selecionado">✎ Editar</button>
+            <button class="fe-pbtn fe-pbtn-danger" onclick="editorRemoverSelecionada()" title="Excluir selecionada">⊘ Excluir</button>
+          </div>
+        </div>
+
+        <div class="fe-panel" id="fe-panel-zoom" data-panel="zoom">
+          <div class="fe-panel-title">Zoom</div>
+          <div class="fe-panel-controls">
+            <button class="fe-pbtn" onclick="editorZoomOut()" title="Diminuir zoom">🔍−</button>
+            <span class="fe-zoom-info" id="fe-zoom-info">100%</span>
+            <button class="fe-pbtn" onclick="editorZoomIn()" title="Aumentar zoom">🔍+</button>
+            <button class="fe-pbtn" onclick="editorZoomReset()" title="100%">⟲ 100%</button>
+          </div>
+        </div>
+
+        <div class="fe-panel" id="fe-panel-cond" data-panel="cond">
+          <div class="fe-panel-title">Classificação da foto</div>
+          <div class="fe-cond-chips" id="fe-cond-chips">
+            ${CONDICOES_FOTO.map(c=>`<button class="fe-cond ${editorState.cond===c.key?'active':''}" data-cond="${c.key}" style="--cc:${c.cor}" title="${c.label}"><span class="fe-cond-dot" style="background:${c.cor}"></span>${c.label}</button>`).join('')}
+          </div>
         </div>
       </div>
+
+      <!-- Barra fina de ícones -->
+      <div class="fe-iconbar" id="fe-iconbar">
+        <button class="fe-ic" data-open="draw" title="Desenho">✏️</button>
+        <button class="fe-ic" data-open="color" title="Cor"><span class="fe-ic-swatch" id="fe-ic-swatch" style="background:#E53935"></span></button>
+        <button class="fe-ic" data-open="text" title="Texto">T</button>
+        <button class="fe-ic" data-open="zoom" title="Zoom">🔍</button>
+        <button class="fe-ic" onclick="editorUndo()" title="Desfazer">↩️</button>
+        <button class="fe-ic fe-ic-danger" onclick="editorClear()" title="Limpar tudo">🗑️</button>
+        <button class="fe-ic" data-open="cond" title="Classificação" id="fe-ic-cond"><span class="fe-ic-cond-dot" id="fe-ic-cond-dot"></span>🏷️</button>
+        <button class="fe-ic fe-ic-ai ${iaAtivada()?'ai-active':''}" onclick="editorAnalisarIA()" title="${iaAtivada()?'Analisar com IA':'IA desativada — ative em Configurações'}">🤖</button>
+      </div>
+
       <div class="fe-footer">
         <button class="fe-btn-cancel" onclick="fecharEditorFoto()">Cancelar</button>
         <button class="fe-btn-save" onclick="salvarFotoEditor()">✓ Salvar Foto</button>
@@ -4657,6 +4722,13 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
   const img=new Image();
   img.onload=()=>{ canvas.width=img.width; canvas.height=img.height; editorState.bgImage=img; redrawEditor(); aplicarZoom(); _atualizarIndicadorFonte(); };
   img.src=dataURL;
+
+  // Barra de ícones: cada ícone com data-open abre/fecha seu painel (só um por vez)
+  overlay.querySelectorAll('.fe-ic[data-open]').forEach(b=>{
+    b.onclick=()=>editorTogglePainel(b.dataset.open);
+  });
+  // Atualiza indicador de classificação na barra de ícones
+  _atualizarCondIcon();
 
   overlay.querySelectorAll('.fe-tool[data-tool]').forEach(b=>{
     b.onclick=()=>{
@@ -4670,6 +4742,8 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
     b.onclick=()=>{
       overlay.querySelectorAll('.fe-color').forEach(x=>x.classList.remove('active'));
       b.classList.add('active'); editorState.color=b.dataset.color;
+      // sincroniza o swatch da barra de ícones
+      const sw=document.getElementById('fe-ic-swatch'); if(sw) sw.style.background=editorState.color;
       // se tem seleção, recolore
       if(editorState.selectedIdx>=0){
         editorState.annotations[editorState.selectedIdx].color=editorState.color;
@@ -4684,6 +4758,7 @@ function abrirEditorFoto(itemId,dataURL,fotoIndex=-1){
       if(editorState.cond===k){ editorState.cond=null; }
       else { editorState.cond=k; }
       overlay.querySelectorAll('.fe-cond').forEach(x=>x.classList.toggle('active', x.dataset.cond===editorState.cond));
+      _atualizarCondIcon();
     };
   });
 
