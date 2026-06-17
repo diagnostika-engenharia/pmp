@@ -25,6 +25,12 @@
   --r:14px;--r-sm:8px;
   --nav-h:64px;--header-h:56px;
 }
+[data-theme="dark"]{
+  --white:#1E2A2C;--gray:#151E20;--gray2:#253235;--gray3:#2E3E42;--gray4:#5A7478;
+  --text:#E8F0F1;--text2:#8AACB0;
+  --red-lt:#2A1A1A;--green-lt:#162415;--turq-lt:#0a2e2d;--lime-lt:#1a2610;
+  --shadow:0 2px 12px rgba(0,0,0,.35);--shadow-lg:0 8px 32px rgba(0,0,0,.5);
+}
 html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--gray);color:var(--text);font-size:15px}
 #app{display:flex;flex-direction:column;height:100%;max-width:480px;margin:0 auto;background:var(--white);position:relative;overflow:hidden}
 
@@ -1200,6 +1206,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
   .cdt-fn-lbl{width:84px}
 }
 </style>
+<script>(function(){if(localStorage.getItem('dk-theme')==='dark')document.documentElement.setAttribute('data-theme','dark');})()</script>
 </head>
 <body>
 <div id="app">
@@ -1253,6 +1260,9 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
         </button>
         <button class="sn-btn" id="sn-docs" onclick="navigate('docs')">
           <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="13" x2="15" y2="13"/><line x1="9" y1="17" x2="15" y2="17"/></svg><span>Documentos</span>
+        </button>
+        <button class="sn-btn" id="sn-laudos" onclick="navigate('laudos')">
+          <svg viewBox="0 0 24 24"><path d="M9 2h6a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h2V4a2 2 0 0 1 2-2z"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg><span>Laudos <span id="sn-laudos-badge" style="background:#7D3C98;color:#fff;font-size:9px;padding:1px 5px;border-radius:8px;margin-left:4px;display:none"></span></span>
         </button>
 
         <!-- Fase Z1 — Separador + lista de condomínios (preenchido por renderSidebarDyn) -->
@@ -2284,6 +2294,7 @@ function render(){
     case 'portaria':      setNavActive('nav-portaria'); setHeader('Portaria — Eventos em tempo real',true); renderPortariaView(main); break;
     case 'plano':         setNavActive('nav-plano');    setHeader('Plano de Manutenção',true); renderPlano(main); break;
     case 'docs':          setNavActive('nav-plano');    setHeader('📚 Documentos dos Condomínios',true); renderDocsView(main); break;
+    case 'laudos':        setNavActive('sn-laudos');    setHeader('📋 Laudos e Pareceres Técnicos',true); renderLaudosView(main); break;
   }
   aplicarSpellcheckPtBR();
 }
@@ -9485,6 +9496,271 @@ async function carregarDocsDoCondo(condoId){
 
 function urlPublicaDoc(storagePath){
   return 'https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/public/docs-condos/' + storagePath.split('/').map(encodeURIComponent).join('/');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER — LAUDOS E PARECERES TÉCNICOS  (gestão / ciclo de vida)
+// ═══════════════════════════════════════════════════════════════════════════
+const LAUDO_TIPOS = {
+  laudo:    {lbl:'Laudo Técnico',     pref:'LT',    cor:'#155B67'},
+  parecer:  {lbl:'Parecer Técnico',   pref:'PT-AD', cor:'#7D3C98'},
+  relatorio:{lbl:'Relatório Técnico', pref:'RT',    cor:'#0E6BA8'},
+  vistoria: {lbl:'Vistoria',          pref:'VT',    cor:'#00897B'},
+  art:      {lbl:'ART',               pref:'ART',   cor:'#8DB72A'}
+};
+const LAUDO_STATUS = {
+  rascunho:  {lbl:'Rascunho',    cor:'#9CA3AF', bg:'#F3F4F6', ico:'✏️'},
+  em_revisao:{lbl:'Em revisão',  cor:'#D97706', bg:'#FEF3C7', ico:'🔍'},
+  emitido:   {lbl:'Emitido',     cor:'#7D3C98', bg:'#F3E8FB', ico:'📋'},
+  entregue:  {lbl:'Entregue',    cor:'#1B8A4A', bg:'#DCFCE7', ico:'✅'}
+};
+let _laudosCache = [];
+let _laudosFiltroCondo = 'todos';
+let _laudosFiltroStatus = 'todos';
+let _laudosBusca = '';
+
+function urlPublicaLaudo(path){
+  if(!path) return '';
+  return 'https://fimmjgdwhifsrrbreche.supabase.co/storage/v1/object/public/laudos/' + path.split('/').map(encodeURIComponent).join('/');
+}
+
+async function carregarLaudos(){
+  const {data,error} = await sb.from('laudos').select('*').order('created_at',{ascending:false});
+  if(error) throw error;
+  _laudosCache = data || [];
+  return _laudosCache;
+}
+
+async function renderLaudosView(main){
+  main.innerHTML = '<div style="padding:60px 20px;text-align:center;color:var(--text2)">⏳ Carregando laudos…</div>';
+  let laudos;
+  try{
+    laudos = await carregarLaudos();
+  }catch(e){
+    const semTabela = /relation|does not exist|schema cache|table/i.test(e.message||'');
+    main.innerHTML = `<div style="padding:40px 20px;max-width:560px;margin:0 auto;text-align:center">
+      <div style="font-size:48px;margin-bottom:10px">📋</div>
+      <h3 style="color:var(--text);font-size:18px;margin-bottom:8px">${semTabela?'Módulo de Laudos quase pronto':'Erro ao carregar'}</h3>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5">${semTabela?'A tabela <code>laudos</code> ainda não foi criada no banco. O frontend já está pronto — falta rodar a migração no Supabase.':'❌ '+e.message}</p>
+    </div>`;
+    return;
+  }
+
+  // Filtros aplicados
+  let lista = laudos.slice();
+  if(_laudosFiltroCondo!=='todos') lista = lista.filter(l=>l.condo_id===_laudosFiltroCondo);
+  if(_laudosFiltroStatus!=='todos') lista = lista.filter(l=>l.status===_laudosFiltroStatus);
+  if(_laudosBusca.trim()){
+    const q = _laudosBusca.toLowerCase();
+    lista = lista.filter(l=>((l.codigo||'')+' '+(l.titulo||'')+' '+(l.responsavel||'')+' '+(l.norma_ref||'')).toLowerCase().includes(q));
+  }
+
+  // KPIs (sobre todos, respeitando só o filtro de condomínio)
+  const baseKpi = _laudosFiltroCondo==='todos'?laudos:laudos.filter(l=>l.condo_id===_laudosFiltroCondo);
+  const cont = k=>baseKpi.filter(l=>l.status===k).length;
+
+  const condoOpts = `<option value="todos" ${_laudosFiltroCondo==='todos'?'selected':''}>Todos os condomínios</option>` +
+    Object.entries(CONDOMINIOS).map(([k,cc])=>`<option value="${k}" ${k===_laudosFiltroCondo?'selected':''}>${cc.short||cc.nome}</option>`).join('');
+  const statusOpts = `<option value="todos" ${_laudosFiltroStatus==='todos'?'selected':''}>Todos os status</option>` +
+    Object.entries(LAUDO_STATUS).map(([k,s])=>`<option value="${k}" ${k===_laudosFiltroStatus?'selected':''}>${s.ico} ${s.lbl}</option>`).join('');
+
+  let html = `
+  <div style="padding:14px 16px;background:#fff;border-bottom:1px solid var(--gray2);display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+    <select onchange="_laudosFiltroCondo=this.value;renderLaudosView(document.getElementById('main'))" style="padding:8px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13px;font-weight:600;flex:1;min-width:150px">${condoOpts}</select>
+    <select onchange="_laudosFiltroStatus=this.value;renderLaudosView(document.getElementById('main'))" style="padding:8px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13px;font-weight:600;flex:1;min-width:140px">${statusOpts}</select>
+    <input id="laudos-busca" type="text" placeholder="🔍 Buscar código, título, norma…" value="${(_laudosBusca||'').replace(/"/g,'&quot;')}" oninput="_laudosBusca=this.value;clearTimeout(window._lbT);window._lbT=setTimeout(()=>renderLaudosView(document.getElementById('main')),250)" style="padding:8px 12px;border:1.5px solid var(--gray2);border-radius:7px;font-size:13px;flex:2;min-width:180px">
+    <button onclick="abrirFormLaudo()" style="background:#7D3C98;color:#fff;border:none;padding:9px 16px;border-radius:7px;font-weight:700;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:5px;white-space:nowrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Novo laudo
+    </button>
+  </div>
+
+  <div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;background:linear-gradient(135deg,rgba(125,60,152,.04),rgba(0,180,172,.04));border-bottom:1px solid var(--gray2)">
+    ${Object.entries(LAUDO_STATUS).map(([k,s])=>`
+      <div onclick="_laudosFiltroStatus='${k}';renderLaudosView(document.getElementById('main'))" style="flex:1;min-width:90px;background:#fff;border:1.5px solid ${_laudosFiltroStatus===k?s.cor:'var(--gray2)'};border-radius:10px;padding:10px 12px;cursor:pointer;text-align:center">
+        <div style="font-size:22px;font-weight:800;color:${s.cor}">${cont(k)}</div>
+        <div style="font-size:10.5px;color:var(--text2);font-weight:600;margin-top:2px">${s.ico} ${s.lbl}</div>
+      </div>`).join('')}
+  </div>`;
+
+  if(!lista.length){
+    html += `<div style="padding:60px 20px;text-align:center;color:var(--text2)">
+      <div style="font-size:54px;margin-bottom:10px">📋</div>
+      <h3 style="color:var(--text);font-size:17px;margin-bottom:6px">${laudos.length?'Nenhum laudo neste filtro':'Nenhum laudo cadastrado ainda'}</h3>
+      <p style="font-size:13px">Clique em <b>Novo laudo</b> para registrar um laudo, parecer ou relatório técnico.</p>
+    </div>`;
+  } else {
+    html += '<div style="padding:14px 16px 30px">';
+    lista.forEach(l=>{
+      const tp = LAUDO_TIPOS[l.tipo]||LAUDO_TIPOS.laudo;
+      const st = LAUDO_STATUS[l.status]||LAUDO_STATUS.rascunho;
+      const c = CONDOMINIOS[l.condo_id]||{short:l.condo_id,cor:'#155B67'};
+      const dataEm = l.data_emissao?new Date(l.data_emissao+'T12:00:00').toLocaleDateString('pt-BR'):'';
+      const valor = (l.valor!=null && l.valor!=='')?Number(l.valor).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}):'';
+      html += `<div style="background:#fff;margin-bottom:10px;border-radius:11px;padding:14px;border-left:4px solid ${st.cor};box-shadow:0 1px 3px rgba(0,0,0,.05)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:4px">
+              <span style="background:${tp.cor};color:#fff;font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:5px;letter-spacing:.3px">${tp.lbl}</span>
+              ${l.codigo?`<span style="font-family:monospace;font-size:11px;font-weight:700;color:var(--text2)">${l.codigo}</span>`:''}
+              <span style="background:${st.bg};color:${st.cor};font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px">${st.ico} ${st.lbl}</span>
+            </div>
+            <div style="font-size:14.5px;font-weight:700;color:var(--text);line-height:1.3">${l.titulo||'(sem título)'}</div>
+            <div style="font-size:11px;color:var(--text2);margin-top:4px;display:flex;gap:10px;flex-wrap:wrap">
+              <span>🏢 ${c.short||c.nome}</span>
+              ${l.responsavel?`<span>👤 ${l.responsavel}</span>`:''}
+              ${l.norma_ref?`<span>📐 ${l.norma_ref}</span>`:''}
+              ${dataEm?`<span>📅 ${dataEm}</span>`:''}
+              ${valor?`<span style="color:#1B8A4A;font-weight:700">${valor}</span>`:''}
+            </div>
+            ${l.observacoes?`<div style="font-size:11.5px;color:var(--text2);margin-top:6px;line-height:1.4;background:#FAFAFA;padding:6px 9px;border-radius:6px">${l.observacoes}</div>`:''}
+          </div>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          ${l.pdf_path?`<a href="${urlPublicaLaudo(l.pdf_path)}" target="_blank" style="background:#7D3C98;color:#fff;padding:6px 12px;border-radius:6px;font-size:11.5px;font-weight:700;text-decoration:none">👁 Abrir PDF</a>`:'<span style="font-size:11px;color:var(--gray4);font-style:italic">sem arquivo anexado</span>'}
+          <select onchange="mudarStatusLaudo('${l.id}',this.value)" style="padding:5px 8px;border:1.5px solid var(--gray2);border-radius:6px;font-size:11.5px;font-weight:600;cursor:pointer">
+            ${Object.entries(LAUDO_STATUS).map(([k,s])=>`<option value="${k}" ${k===l.status?'selected':''}>${s.ico} ${s.lbl}</option>`).join('')}
+          </select>
+          <button onclick="abrirFormLaudo('${l.id}')" style="background:#fff;border:1.5px solid var(--gray3);color:var(--text2);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✎ Editar</button>
+          <button onclick="excluirLaudo('${l.id}')" style="background:#fff;border:1.5px solid var(--red);color:var(--red);padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;margin-left:auto">🗑</button>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+  }
+  main.innerHTML = html;
+}
+
+function abrirFormLaudo(id){
+  const l = id ? (_laudosCache.find(x=>x.id===id)||{}) : {};
+  const ehEdit = !!id;
+  const condoOpts = Object.entries(CONDOMINIOS).map(([k,cc])=>`<option value="${k}" ${k===l.condo_id?'selected':''}>${cc.short||cc.nome}</option>`).join('');
+  const tipoOpts = Object.entries(LAUDO_TIPOS).map(([k,t])=>`<option value="${k}" ${k===(l.tipo||'laudo')?'selected':''}>${t.lbl}</option>`).join('');
+  const statusOpts = Object.entries(LAUDO_STATUS).map(([k,s])=>`<option value="${k}" ${k===(l.status||'rascunho')?'selected':''}>${s.ico} ${s.lbl}</option>`).join('');
+  const respDefault = l.responsavel || (typeof getEngenheiro==='function'?getEngenheiro():'') || '';
+  const ov = document.createElement('div');
+  ov.id = 'laudo-form-ov';
+  ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9999;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto';
+  ov.onclick = e => { if(e.target===ov) ov.remove(); };
+  const fld = 'width:100%;padding:9px 11px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13.5px;margin-bottom:11px;box-sizing:border-box';
+  const lbl = 'font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;display:block;margin-bottom:4px;letter-spacing:.3px';
+  ov.innerHTML = `
+    <div style="background:#fff;border-radius:14px;max-width:520px;width:100%;padding:22px;margin:auto;box-shadow:0 12px 40px rgba(0,0,0,.35);position:relative">
+      <button onclick="document.getElementById('laudo-form-ov').remove()" style="position:absolute;top:10px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;color:#5A7A7E">×</button>
+      <h2 style="color:#7D3C98;font-size:18px;margin-bottom:14px">📋 ${ehEdit?'Editar laudo':'Novo laudo / parecer'}</h2>
+      <input type="hidden" id="lf-id" value="${id||''}">
+      <input type="hidden" id="lf-pdf-path" value="${l.pdf_path||''}">
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="${lbl}">Tipo *</label><select id="lf-tipo" onchange="lfSugerirCodigo()" style="${fld}">${tipoOpts}</select></div>
+        <div style="flex:1"><label style="${lbl}">Condomínio *</label><select id="lf-condo" onchange="lfSugerirCodigo()" style="${fld}">${condoOpts}</select></div>
+      </div>
+
+      <label style="${lbl}">Código <span style="text-transform:none;font-weight:500;color:var(--gray4)">(ex: DK-LT-MC-001-2026)</span></label>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:11px">
+        <input id="lf-codigo" type="text" value="${l.codigo||''}" placeholder="Auto-sugerido" style="${fld};margin-bottom:0">
+        <button type="button" onclick="lfSugerirCodigo(true)" title="Gerar próximo código" style="background:#F3E8FB;border:1.5px solid #7D3C98;color:#7D3C98;padding:8px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">↻ Gerar</button>
+      </div>
+
+      <label style="${lbl}">Título *</label>
+      <input id="lf-titulo" type="text" value="${(l.titulo||'').replace(/"/g,'&quot;')}" placeholder="Ex: Laudo de não conformidades — fachada Bloco A" style="${fld}">
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="${lbl}">Status</label><select id="lf-status" style="${fld}">${statusOpts}</select></div>
+        <div style="flex:1"><label style="${lbl}">Responsável técnico</label><input id="lf-resp" type="text" value="${(respDefault).replace(/"/g,'&quot;')}" style="${fld}"></div>
+      </div>
+
+      <div style="display:flex;gap:10px">
+        <div style="flex:1"><label style="${lbl}">Norma de referência</label><input id="lf-norma" type="text" value="${(l.norma_ref||'').replace(/"/g,'&quot;')}" placeholder="Ex: NBR 16280:2015" style="${fld}"></div>
+        <div style="flex:1"><label style="${lbl}">Data de emissão</label><input id="lf-data" type="date" value="${l.data_emissao||''}" style="${fld}"></div>
+      </div>
+
+      <label style="${lbl}">Observações</label>
+      <textarea id="lf-obs" rows="2" placeholder="Notas internas, escopo, pendências…" style="${fld};resize:vertical">${l.observacoes||''}</textarea>
+
+      <label style="${lbl}">Arquivo PDF do laudo ${l.pdf_path?'<span style="text-transform:none;color:#1B8A4A">(já anexado — envie outro para substituir)</span>':''}</label>
+      <input id="lf-file" type="file" accept="application/pdf" style="${fld}">
+
+      <div id="lf-erro" style="color:var(--red);font-size:12px;margin-bottom:8px;display:none"></div>
+      <button id="lf-salvar" onclick="salvarLaudo()" style="width:100%;background:#7D3C98;color:#fff;border:none;padding:12px;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer">💾 Salvar laudo</button>
+    </div>`;
+  document.body.appendChild(ov);
+  if(!ehEdit) lfSugerirCodigo();
+}
+
+function lfSugerirCodigo(forcar){
+  const tipo = document.getElementById('lf-tipo').value;
+  const condo = document.getElementById('lf-condo').value;
+  const campo = document.getElementById('lf-codigo');
+  if(campo.value.trim() && !forcar) return;
+  const tp = LAUDO_TIPOS[tipo]||LAUDO_TIPOS.laudo;
+  const sigCondo = (CONDOMINIOS[condo]?.short||condo).split(/\s+/).map(w=>w[0]).join('').toUpperCase().slice(0,3);
+  const ano = new Date().getFullYear();
+  // próximo sequencial deste tipo+condo+ano
+  const prefixoBusca = `DK-${tp.pref}-${sigCondo}-`;
+  let maxSeq = 0;
+  _laudosCache.forEach(l=>{
+    const m = (l.codigo||'').match(new RegExp('^'+prefixoBusca.replace(/[-]/g,'\\-')+'(\\d+)-'+ano));
+    if(m) maxSeq = Math.max(maxSeq, parseInt(m[1],10));
+  });
+  const seq = String(maxSeq+1).padStart(3,'0');
+  campo.value = `DK-${tp.pref}-${sigCondo}-${seq}-${ano}`;
+}
+
+async function salvarLaudo(){
+  const btn = document.getElementById('lf-salvar');
+  const erro = document.getElementById('lf-erro');
+  const showErr = m => { erro.textContent='⚠️ '+m; erro.style.display='block'; btn.disabled=false; btn.textContent='💾 Salvar laudo'; };
+  erro.style.display='none';
+  const titulo = document.getElementById('lf-titulo').value.trim();
+  if(!titulo) return showErr('Informe o título do laudo.');
+  btn.disabled=true; btn.textContent='⏳ Salvando…';
+  const id = document.getElementById('lf-id').value;
+  let pdf_path = document.getElementById('lf-pdf-path').value || null;
+  const file = document.getElementById('lf-file').files[0];
+  try{
+    if(file){
+      if(file.size > 25*1024*1024) return showErr('Arquivo acima de 25MB.');
+      const condo = document.getElementById('lf-condo').value;
+      const cod = (document.getElementById('lf-codigo').value.trim()||'laudo').replace(/[^a-zA-Z0-9\-]/g,'_');
+      const path = `${condo}/${cod}_${Date.now()}.pdf`;
+      const {error:upErr} = await sb.storage.from('laudos').upload(path, file, {cacheControl:'3600', upsert:true, contentType:'application/pdf'});
+      if(upErr) return showErr('Upload falhou: '+upErr.message);
+      pdf_path = path;
+    }
+    const reg = {
+      codigo: document.getElementById('lf-codigo').value.trim()||null,
+      titulo, tipo: document.getElementById('lf-tipo').value,
+      condo_id: document.getElementById('lf-condo').value,
+      status: document.getElementById('lf-status').value,
+      responsavel: document.getElementById('lf-resp').value.trim()||null,
+      norma_ref: document.getElementById('lf-norma').value.trim()||null,
+      data_emissao: document.getElementById('lf-data').value||null,
+      observacoes: document.getElementById('lf-obs').value.trim()||null,
+      pdf_path, updated_at: new Date().toISOString()
+    };
+    let res;
+    if(id) res = await sb.from('laudos').update(reg).eq('id',id);
+    else   res = await sb.from('laudos').insert(reg);
+    if(res.error) return showErr(res.error.message);
+    document.getElementById('laudo-form-ov').remove();
+    renderLaudosView(document.getElementById('main'));
+  }catch(e){ showErr(e.message); }
+}
+
+async function mudarStatusLaudo(id,status){
+  const {error} = await sb.from('laudos').update({status, updated_at:new Date().toISOString()}).eq('id',id);
+  if(error){ alert('Erro: '+error.message); return; }
+  const l = _laudosCache.find(x=>x.id===id); if(l) l.status=status;
+  renderLaudosView(document.getElementById('main'));
+}
+
+async function excluirLaudo(id){
+  const l = _laudosCache.find(x=>x.id===id);
+  if(!confirm(`Remover o laudo "${l?.titulo||''}"? Esta ação não pode ser desfeita.`)) return;
+  if(l?.pdf_path){ try{ await sb.storage.from('laudos').remove([l.pdf_path]); }catch(e){} }
+  const {error} = await sb.from('laudos').delete().eq('id',id);
+  if(error){ alert('Erro: '+error.message); return; }
+  renderLaudosView(document.getElementById('main'));
 }
 
 async function renderDocsView(main){
