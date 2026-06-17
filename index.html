@@ -2106,7 +2106,7 @@ async function sairSistemaPMP(){
     try{ localStorage.removeItem('usuarioLogadoNome'); }catch(e){}
     window.location.reload();
   }catch(e){
-    alert('Erro ao sair: '+(e?.message||e));
+    console.error('Falha ao sair:', e); alert('Não foi possível sair corretamente. A página será recarregada.');
     window.location.reload();
   }
 }
@@ -3772,7 +3772,7 @@ async function marcarDemandaResolvida(id){
     document.getElementById('dem-pmp-overlay')?.remove();
     carregarDemandasProgPMP();
     showToast('✓ Demanda marcada como resolvida');
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ console.error('Falha ao marcar demanda como resolvida:', e); alert('Não foi possível atualizar a demanda. Verifique sua conexão e tente novamente.'); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -5017,7 +5017,7 @@ function abrirSeletorArquivo(itemId){
     try{
       const dataURL=await compressarImagem(f);
       abrirEditorFoto(itemId,dataURL);
-    }catch(err){ alert('Erro ao carregar imagem: '+err.message); }
+    }catch(err){ console.error('Falha ao carregar imagem:', err); alert('Não foi possível carregar a imagem. Tente novamente.'); }
     inp.remove();
   };
   document.body.appendChild(inp);
@@ -5879,7 +5879,8 @@ INSTRUÇÕES:
     }
     renderResultadoIA(panel,r);
   }catch(e){
-    panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ ${e.message}</div>`;
+    console.error('Falha na análise por IA:', e);
+    panel.innerHTML=`<div class="ai-panel-header">🤖 Análise IA</div><div class="ai-error">❌ Não foi possível gerar a análise agora. Tente novamente em instantes.</div>`;
   }
 }
 
@@ -8677,7 +8678,7 @@ async function abrirChamadoDeClandestina(eventoId){
       alert(`✅ Chamado interno criado (${inserted?.protocolo||''}).\n\nVá na aba "Reformas" pra acompanhar.`);
     }catch(e){
       console.warn('Erro abrir chamado:', e);
-      alert('❌ Erro ao criar chamado: ' + (e.message||e));
+      alert('❌ Não foi possível criar o chamado interno. Verifique sua conexão e tente novamente.');
     }
   }
 }
@@ -9052,7 +9053,7 @@ async function anexarRespPMP(input){
       const { error } = await sb.storage.from('chamados-morador').upload(path, f, {cacheControl:'3600', upsert:false});
       if(error) throw error;
       _anexosNovaResposta.push({nome:f.name, storage_path:path, tipo:f.type, tamanho:f.size, origem:'diagnostika'});
-    }catch(e){ console.warn('Falha upload:', e); alert('Falha em '+f.name+': '+e.message); }
+    }catch(e){ console.warn('Falha upload:', e); alert('Não foi possível enviar o arquivo "'+f.name+'". Verifique sua conexão e tente novamente.'); }
   }
   if(info) info.textContent = _anexosNovaResposta.length+' anexo(s) prontos';
 }
@@ -9093,7 +9094,7 @@ async function enviarRespostaPMP(id){
     showToast?.('✓ Resposta enviada') || alert('Resposta enviada');
   }catch(e){
     if(btn){ btn.disabled = false; btn.textContent = 'Enviar'; }
-    alert('Erro ao enviar: '+e.message);
+    console.error('Falha ao enviar resposta:', e); alert('Não foi possível enviar a resposta. Verifique sua conexão e tente novamente.');
   }
 }
 
@@ -9181,7 +9182,7 @@ async function programarDemandaPMP(id){
       document.getElementById('dem-pmp-detail-modal')?.remove();
       carregarDemandasProgPMP();
       showToast?.('✓ Programado') || alert('Demanda programada');
-    }catch(e){ alert('Erro: '+e.message); }
+    }catch(e){ console.error('Falha ao programar demanda:', e); alert('Não foi possível programar a demanda. Verifique sua conexão e tente novamente.'); }
   };
 }
 
@@ -9192,7 +9193,7 @@ async function mudarStatusDemandaPMP(id, novo){
     if(error) throw error;
     document.getElementById('dem-pmp-detail-modal')?.remove();
     carregarDemandasProgPMP();
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ console.error('Falha ao alterar status da demanda:', e); alert('Não foi possível alterar o status. Verifique sua conexão e tente novamente.'); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9281,8 +9282,9 @@ async function confirmarART(id){
     typeof carregarDemandasProgPMP === 'function' ? carregarDemandasProgPMP() : render();
     showToast?.('✅ ART registrada') || alert('ART registrada');
   }catch(e){
+    console.error('Falha ao registrar ART:', e);
     if(btn){ btn.disabled = false; btn.textContent = 'Emitir ART'; }
-    alert('Erro: '+e.message);
+    alert('Não foi possível registrar a ART. Verifique os dados e tente novamente.');
   }
 }
 
@@ -9333,8 +9335,9 @@ async function analisarDemandaIA(id){
     setTimeout(() => abrirDetalheDemandaPMP(id), 200);
     showToast?.(usedMock ? '✅ Parecer gerado (modo offline)' : '✅ Parecer gerado pela OpenAI');
   }catch(e){
+    console.error('Falha ao gerar parecer com IA:', e);
     if(btn){ btn.disabled = false; btn.textContent = '🤖 Analisar com IA'; }
-    alert('Erro: ' + e.message);
+    alert('Não foi possível gerar o parecer com IA agora. Tente novamente em instantes.');
   }
 }
 
@@ -9454,7 +9457,7 @@ async function marcarIrregularPMP(id, valor){
     document.getElementById('dem-pmp-detail-modal')?.remove();
     typeof carregarDemandasProgPMP === 'function' ? carregarDemandasProgPMP() : render();
     showToast?.(novo?'⚠ Marcada como irregular':'↻ Marcação removida') || alert('OK');
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ console.error('Falha ao atualizar marcação de irregularidade:', e); alert('Não foi possível atualizar a marcação. Verifique sua conexão e tente novamente.'); }
 }
 
 // ─── Fase X — Excluir chamado (soft-delete) ────────────────────────────────
@@ -9477,7 +9480,7 @@ async function excluirChamadoPMP(id){
     document.getElementById('dem-pmp-detail-modal')?.remove();
     carregarDemandasProgPMP();
     showToast?.('🗑 Chamado excluído (recuperável via banco)') || alert('Chamado excluído.');
-  }catch(e){ alert('Erro ao excluir: '+e.message); }
+  }catch(e){ console.error('Falha ao excluir chamado:', e); alert('Não foi possível excluir o chamado. Verifique sua conexão e tente novamente.'); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -9537,11 +9540,12 @@ async function renderLaudosView(main){
   try{
     laudos = await carregarLaudos();
   }catch(e){
+    console.error('Falha ao carregar laudos:', e);
     const semTabela = /relation|does not exist|schema cache|table/i.test(e.message||'');
     main.innerHTML = `<div style="padding:40px 20px;max-width:560px;margin:0 auto;text-align:center">
       <div style="font-size:48px;margin-bottom:10px">📋</div>
       <h3 style="color:var(--text);font-size:18px;margin-bottom:8px">${semTabela?'Módulo de Laudos quase pronto':'Erro ao carregar'}</h3>
-      <p style="font-size:13px;color:var(--text2);line-height:1.5">${semTabela?'A tabela <code>laudos</code> ainda não foi criada no banco. O frontend já está pronto — falta rodar a migração no Supabase.':'❌ '+e.message}</p>
+      <p style="font-size:13px;color:var(--text2);line-height:1.5">${semTabela?'A tabela <code>laudos</code> ainda não foi criada no banco. O frontend já está pronto — falta rodar a migração no Supabase.':'❌ Não foi possível carregar os laudos. Verifique sua conexão e tente novamente.'}</p>
     </div>`;
     return;
   }
@@ -9724,7 +9728,7 @@ async function salvarLaudo(){
       const cod = (document.getElementById('lf-codigo').value.trim()||'laudo').replace(/[^a-zA-Z0-9\-]/g,'_');
       const path = `${condo}/${cod}_${Date.now()}.pdf`;
       const {error:upErr} = await sb.storage.from('laudos').upload(path, file, {cacheControl:'3600', upsert:true, contentType:'application/pdf'});
-      if(upErr) return showErr('Upload falhou: '+upErr.message);
+      if(upErr){ console.error('Falha no upload do PDF do laudo:', upErr); return showErr('Não foi possível enviar o PDF. Verifique sua conexão e tente novamente.'); }
       pdf_path = path;
     }
     const reg = {
@@ -9741,15 +9745,15 @@ async function salvarLaudo(){
     let res;
     if(id) res = await sb.from('laudos').update(reg).eq('id',id);
     else   res = await sb.from('laudos').insert(reg);
-    if(res.error) return showErr(res.error.message);
+    if(res.error){ console.error('Falha ao salvar laudo:', res.error); return showErr('Não foi possível salvar o laudo. Verifique os dados e tente novamente.'); }
     document.getElementById('laudo-form-ov').remove();
     renderLaudosView(document.getElementById('main'));
-  }catch(e){ showErr(e.message); }
+  }catch(e){ console.error('Falha ao salvar laudo:', e); showErr('Não foi possível salvar o laudo. Verifique sua conexão e tente novamente.'); }
 }
 
 async function mudarStatusLaudo(id,status){
   const {error} = await sb.from('laudos').update({status, updated_at:new Date().toISOString()}).eq('id',id);
-  if(error){ alert('Erro: '+error.message); return; }
+  if(error){ console.error('Falha ao mudar status do laudo:', error); alert('Não foi possível atualizar o status do laudo. Tente novamente.'); return; }
   const l = _laudosCache.find(x=>x.id===id); if(l) l.status=status;
   renderLaudosView(document.getElementById('main'));
 }
@@ -9759,7 +9763,7 @@ async function excluirLaudo(id){
   if(!confirm(`Remover o laudo "${l?.titulo||''}"? Esta ação não pode ser desfeita.`)) return;
   if(l?.pdf_path){ try{ await sb.storage.from('laudos').remove([l.pdf_path]); }catch(e){} }
   const {error} = await sb.from('laudos').delete().eq('id',id);
-  if(error){ alert('Erro: '+error.message); return; }
+  if(error){ console.error('Falha ao excluir laudo:', error); alert('Não foi possível excluir o laudo. Tente novamente.'); return; }
   renderLaudosView(document.getElementById('main'));
 }
 
@@ -9831,7 +9835,8 @@ async function renderDocsView(main){
 
     main.innerHTML = html;
   }catch(e){
-    main.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--red)">❌ Erro: ${e.message}</div>`;
+    console.error('Falha ao carregar documentos:', e);
+    main.innerHTML = `<div style="padding:40px 20px;text-align:center;color:var(--red)">❌ Não foi possível carregar os documentos. Verifique sua conexão e tente novamente.</div>`;
   }
 }
 
@@ -9916,7 +9921,8 @@ async function enviarDoc(){
     delete _docsCache[_docsCondoSel];
     renderDocsView(document.getElementById('main'));
   }catch(e){
-    status.textContent = '❌ '+e.message;
+    console.error('Falha ao enviar documento:', e);
+    status.textContent = '❌ Não foi possível enviar o documento. Verifique sua conexão e tente novamente.';
     btn.disabled = false; btn.textContent = '📤 Enviar documento';
   }
 }
@@ -9927,7 +9933,7 @@ async function toggleVisivelDoc(id, novo){
     if(error) throw error;
     delete _docsCache[_docsCondoSel];
     renderDocsView(document.getElementById('main'));
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ console.error('Falha ao alterar visibilidade do documento:', e); alert('Não foi possível alterar a visibilidade do documento. Tente novamente.'); }
 }
 
 async function excluirDoc(id, storagePath){
@@ -9943,7 +9949,7 @@ async function excluirDoc(id, storagePath){
     if(error) throw error;
     delete _docsCache[_docsCondoSel];
     renderDocsView(document.getElementById('main'));
-  }catch(e){ alert('Erro: '+e.message); }
+  }catch(e){ console.error('Falha ao excluir documento:', e); alert('Não foi possível excluir o documento. Tente novamente.'); }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -10179,7 +10185,7 @@ async function excluirWAI(id){
     }catch(e){ console.warn('Falha ao remover arquivo do storage:', e); }
   }
   const {error} = await sb.from('whatsapp_inbox').delete().eq('id',id);
-  if(error){ alert('Erro ao excluir: '+error.message); return; }
+  if(error){ console.error('Falha ao excluir item do inbox:', error); alert('Não foi possível excluir o item. Tente novamente.'); return; }
   renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
 }
 
@@ -10200,7 +10206,7 @@ async function processarUploadManualWAI(file){
   const path = `manual/${Date.now()}_${file.name}`;
 
   const {error:upErr} = await sb.storage.from('whatsapp-docs').upload(path, file);
-  if(upErr){ alert('Erro upload: '+upErr.message); renderWhatsappInboxView(document.querySelector('.main-content')||document.body); return; }
+  if(upErr){ console.error('Falha no upload do documento:', upErr); alert('Não foi possível enviar o documento. Verifique sua conexão e tente novamente.'); renderWhatsappInboxView(document.querySelector('.main-content')||document.body); return; }
 
   const {data:urlData} = sb.storage.from('whatsapp-docs').getPublicUrl(path);
   const docUrl = urlData.publicUrl;
@@ -10212,7 +10218,7 @@ async function processarUploadManualWAI(file){
     ia_status:'pendente', source:'manual'
   });
 
-  if(insErr){ alert('Erro ao registrar: '+insErr.message); }
+  if(insErr){ console.error('Falha ao registrar documento:', insErr); alert('Não foi possível registrar o documento. Tente novamente.'); }
   else { alert('✅ Documento enviado! A IA irá processar e os dados aparecerão em instantes.\n\n(Recarregue a aba em alguns segundos.)'); }
   renderWhatsappInboxView(document.querySelector('.main-content')||document.body);
 }
@@ -10299,7 +10305,7 @@ function renderManutencoesPMPView(main){
 }
 
 async function validarManutencao(id){
-  if(!confirm('Validar esta manutenção?\n\nApós validar, a síndica não poderá mais editar nem excluir o registro — ele fica consolidado no Livro de Manutenção do condomínio.')) return;
+  if(!confirm('Validar esta manutenção?\n\nApós validar, o(a) síndico(a) não poderá mais editar nem excluir o registro — ele fica consolidado no Livro de Manutenção do condomínio.')) return;
   const eng = (typeof engenheiro !== 'undefined' && engenheiro?.nome) ? engenheiro.nome : 'Diagnóstika Engenharia';
   const {error}=await sb.from('manutencoes').update({
     validada_pela_equipe:true,
@@ -10307,13 +10313,13 @@ async function validarManutencao(id){
     validada_por:eng,
     updated_at:new Date().toISOString()
   }).eq('id',id);
-  if(error){ alert('Erro: '+error.message); return; }
+  if(error){ console.error('Falha ao validar manutenção:', error); alert('Não foi possível validar a manutenção. Verifique sua conexão e tente novamente.'); return; }
   alert('✓ Manutenção validada e consolidada no Livro de Manutenção.');
   carregarManutencoesPMP().then(()=>renderManutencoesPMPView(document.querySelector('.main-content')||document.querySelector('main')||document.body));
 }
 
 async function emitirParecerManutencao(id){
-  const parecer = prompt('Parecer técnico da Diagnóstika sobre esta manutenção:\n\n(O parecer fica visível para a síndica no Livro de Manutenção.)');
+  const parecer = prompt('Parecer técnico da Diagnóstika sobre esta manutenção:\n\n(O parecer fica visível para o(a) síndico(a) no Livro de Manutenção.)');
   if(!parecer || parecer.trim().length<5) return;
   const eng = (typeof engenheiro !== 'undefined' && engenheiro?.nome) ? engenheiro.nome : 'Diagnóstika Engenharia';
   const {error}=await sb.from('manutencoes').update({
@@ -10323,9 +10329,10 @@ async function emitirParecerManutencao(id){
     updated_at:new Date().toISOString()
   }).eq('id',id);
   if(error){
+    console.error('Falha ao registrar parecer técnico:', error);
     if(/parecer_tecnico|parecer_emitido/i.test(error.message)){
-      alert('Migração pendente — execute sql/manutencao_audit.sql no Supabase para habilitar o parecer técnico.');
-    } else alert('Erro: '+error.message);
+      alert('Não foi possível registrar o parecer agora. Esta função ainda está sendo habilitada no sistema — fale com a equipe Diagnóstika.');
+    } else alert('Não foi possível registrar o parecer. Verifique sua conexão e tente novamente.');
     return;
   }
   alert('✓ Parecer registrado.');
