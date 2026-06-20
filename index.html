@@ -1771,6 +1771,16 @@ const CONDOMINIOS = {
       // ── Forros Gesso ──
       {grupo:'Forros Gesso', nome:'Forros gesso áreas comuns — calafetação de rufos, para-raios, antenas, elementos decorativos', periodicidade:'Trienal', intervalo_anos:3, ano_base:2026, norma:'Manual Planalto', prioridade:'Média', responsavel:'empresa especializada', pagina_manual:26},
 
+      // ── Elevadores ──
+      {grupo:'Elevadores', nome:'Manutenção preventiva mensal (RMP)', periodicidade:'Mensal', norma:'NBR 16083:2012 / NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Inspeção anual de segurança', periodicidade:'Anual', norma:'NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Modernização — revisão completa', periodicidade:'Quinquenal', intervalo_anos:5, ano_base:2026, norma:'NBR 16858:2020', prioridade:'Média', responsavel:'empresa especializada'},
+
+      // ── Gerador ──
+      {grupo:'Gerador', nome:'Teste mensal de funcionamento com carga', periodicidade:'Mensal', norma:'NBR ISO 8528', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Gerador', nome:'Manutenção preventiva (óleo, filtros, bateria)', periodicidade:'Semestral', norma:'NBR ISO 8528 / Fabricante', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Gerador', nome:'Análise de combustível (diesel)', periodicidade:'Anual', norma:'NBR ISO 8528', prioridade:'Média', responsavel:'empresa especializada'},
+
       // ── Gestão (do manual) ──
       {grupo:'Gestão', nome:'Atualização do programa de manutenção', periodicidade:'Anual', norma:'NBR 5674', prioridade:'Média', responsavel:'síndico', pagina_manual:39},
 
@@ -1841,6 +1851,10 @@ const CONDOMINIOS = {
       {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta', obs:'Inspecionar equipamentos e piso de impacto — interditar equipamentos com risco'},
       {grupo:'Gestão e Documentação', nome:'Relatório de visita quinzenal', periodicidade:'Quinzenal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Elaborar relatório técnico após cada visita — enviar ao síndico(a) em até 48h'},
       {grupo:'Gestão e Documentação', nome:'Registro fotográfico', periodicidade:'Quinzenal (cada visita)', norma:'NBR 5674:2012', prioridade:'Alta', obs:'Documentar todos os sistemas em cada visita — nomear arquivos com data e local'},
+      {grupo:'Elevadores', nome:'Manutenção preventiva mensal (RMP)', periodicidade:'Mensal', norma:'NBR 16083:2012 / NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Inspeção anual de segurança', periodicidade:'Anual', norma:'NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Gerador', nome:'Teste mensal de funcionamento com carga', periodicidade:'Mensal', norma:'NBR ISO 8528', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Gerador', nome:'Manutenção preventiva (óleo, filtros, bateria)', periodicidade:'Semestral', norma:'NBR ISO 8528 / Fabricante', prioridade:'Alta', responsavel:'empresa especializada'},
       {grupo:'Gestão e Documentação', nome:'Acompanhamento LT-2025-09', periodicidade:'Quinzenal', norma:'LT-2025-09 / NBR 5674:2012', prioridade:'Crítico', critico:true, obs:'Monitorar evolução de todas as patologias críticas do Laudo LT-2025-09 — atualizar planilha de acompanhamento a cada visita'},
       {grupo:'Gestão e Documentação', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta', obs:'Manter ART ativa junto ao CREA-SP — renovar antes do vencimento'},
     ]
@@ -1981,6 +1995,10 @@ const CONDOMINIOS = {
       {grupo:'Incêndio', nome:'Hidrantes', periodicidade:'Trimestral', norma:'NBR 13714:2019', prioridade:'Alta'},
       {grupo:'Áreas Comuns', nome:'Guarda-corpos e corrimãos', periodicidade:'Mensal', norma:'NBR 14718:2019', prioridade:'Alta'},
       {grupo:'Áreas Comuns', nome:'Playground', periodicidade:'Mensal', norma:'NBR 16071:2012', prioridade:'Alta'},
+      {grupo:'Elevadores', nome:'Manutenção preventiva mensal (RMP)', periodicidade:'Mensal', norma:'NBR 16083:2012 / NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Inspeção anual de segurança', periodicidade:'Anual', norma:'NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Gerador', nome:'Teste mensal de funcionamento com carga', periodicidade:'Mensal', norma:'NBR ISO 8528', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Gerador', nome:'Manutenção preventiva (óleo, filtros, bateria)', periodicidade:'Semestral', norma:'NBR ISO 8528 / Fabricante', prioridade:'Alta', responsavel:'empresa especializada'},
       {grupo:'Gestão', nome:'Relatório técnico mensal (cláusula contratual)', periodicidade:'Mensal', norma:'NBR 5674:2012', prioridade:'Alta'},
       {grupo:'Gestão', nome:'ART do responsável técnico', periodicidade:'Anual', norma:'Lei 6.496/1977', prioridade:'Alta'},
     ]
@@ -2033,6 +2051,8 @@ const CONDOMINIOS = {
       {grupo:'Elétrica', nome:'Quadros elétricos — reaperto e teste DR', periodicidade:'Semestral', norma:'NBR 5410', prioridade:'Alta', responsavel:'empresa especializada'},
       {grupo:'Incêndio', nome:'Extintores — recarga e inspeção', periodicidade:'Anual', norma:'NBR 12962', prioridade:'Alta', responsavel:'empresa especializada'},
       {grupo:'Cobertura', nome:'Calhas e telhas — integridade', periodicidade:'Semestral', norma:'NBR 5674', prioridade:'Alta', responsavel:'condomínio'},
+      {grupo:'Elevadores', nome:'Manutenção preventiva mensal (RMP)', periodicidade:'Mensal', norma:'NBR 16083:2012 / NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Inspeção anual de segurança', periodicidade:'Anual', norma:'NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
     ]
   },
   'montville-residence':{
@@ -2059,6 +2079,8 @@ const CONDOMINIOS = {
       {grupo:'Incêndio', nome:'Extintores — recarga e inspeção', periodicidade:'Anual', norma:'NBR 12962', prioridade:'Alta', responsavel:'empresa especializada'},
       {grupo:'Cobertura', nome:'Calhas e telhas — integridade', periodicidade:'Semestral', norma:'NBR 5674', prioridade:'Alta', responsavel:'condomínio'},
       {grupo:'Impermeabilização', nome:'Piscina e lajes técnicas — inspeção', periodicidade:'Anual', norma:'NBR 9575', prioridade:'Média', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Manutenção preventiva mensal (RMP)', periodicidade:'Mensal', norma:'NBR 16083:2012 / NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
+      {grupo:'Elevadores', nome:'Inspeção anual de segurança', periodicidade:'Anual', norma:'NBR 16858:2020', prioridade:'Alta', responsavel:'empresa especializada'},
     ]
   }
 };
@@ -3677,8 +3699,8 @@ function renderDemandasProgramadasHome(hojeStr){
           <span style="font-size:9px;font-weight:700;background:var(--gray);color:var(--text2);padding:1px 6px;border-radius:6px;font-family:'SF Mono',Menlo,Consolas,monospace">${d.protocolo||''}</span>
           <span class="pill" style="background:${cd.cor}20;color:${cd.cor};font-size:9px;padding:1px 6px;border-radius:6px;font-weight:700">${cd.short||cd.nome}</span>
         </div>
-        <div style="font-weight:700;font-size:13px;color:var(--text);line-height:1.3">${d.tipo_programado||'Visita'}: ${d.titulo}</div>
-        ${d.descricao_programada?`<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4">${d.descricao_programada.length>90?d.descricao_programada.substring(0,90)+'…':d.descricao_programada}</div>`:''}
+        <div style="font-weight:700;font-size:13px;color:var(--text);line-height:1.3">${esc(d.tipo_programado||'Visita')}: ${esc(d.titulo)}</div>
+        ${d.descricao_programada?`<div style="font-size:11px;color:var(--text2);margin-top:2px;line-height:1.4">${esc(d.descricao_programada.length>90?d.descricao_programada.substring(0,90)+'…':d.descricao_programada)}</div>`:''}
         <div style="display:flex;gap:8px;margin-top:4px;font-size:10px;color:var(--text2);flex-wrap:wrap">
           <span>${cats[d.categoria]||d.categoria}</span>
           <span style="color:${u.cor};font-weight:700">${u.lbl}</span>
@@ -3723,18 +3745,18 @@ function abrirDemandaPMP(id){
           <span style="background:rgba(255,255,255,.22);font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700;letter-spacing:.4px;font-family:'SF Mono',Menlo,Consolas,monospace">${d.protocolo||'—'}</span>
           <span style="background:rgba(255,255,255,.22);font-size:10px;padding:2px 8px;border-radius:8px;font-weight:700">${statusLbl[d.status]||d.status}</span>
         </div>
-        <h2 style="font-size:17px;margin-top:6px;font-weight:700">${d.titulo}</h2>
-        <div style="font-size:12px;opacity:.95;margin-top:2px">${cd.nome||cd.short} · ${cats[d.categoria]||d.categoria} · ${urgs[d.urgencia]||d.urgencia}</div>
+        <h2 style="font-size:17px;margin-top:6px;font-weight:700">${esc(d.titulo)}</h2>
+        <div style="font-size:12px;opacity:.95;margin-top:2px">${esc(cd.nome||cd.short)} · ${esc(cats[d.categoria]||d.categoria)} · ${esc(urgs[d.urgencia]||d.urgencia)}</div>
       </div>
       <div style="background:rgba(13,60,68,.08);border-left:3px solid #0D3C44;padding:11px 14px;border-radius:0 8px 8px 0;margin-bottom:12px">
         <div style="font-size:10px;font-weight:800;color:#0D3C44;text-transform:uppercase;letter-spacing:.4px">📅 Programado</div>
-        <div style="font-size:15px;font-weight:700;color:#0D3C44;margin-top:3px">${d.tipo_programado||'Visita'} em ${dt}${d.hora_programada?' às '+d.hora_programada.substring(0,5):''}</div>
-        ${d.descricao_programada?`<div style="font-size:12px;color:var(--text);margin-top:5px;line-height:1.5">${d.descricao_programada}</div>`:''}
-        ${d.programado_em?`<div style="font-size:10px;color:var(--text2);margin-top:5px">Confirmado em ${new Date(d.programado_em).toLocaleString('pt-BR')}${d.programado_por?' por '+d.programado_por:''}</div>`:''}
+        <div style="font-size:15px;font-weight:700;color:#0D3C44;margin-top:3px">${esc(d.tipo_programado||'Visita')} em ${esc(dt)}${d.hora_programada?' às '+esc(d.hora_programada.substring(0,5)):''}</div>
+        ${d.descricao_programada?`<div style="font-size:12px;color:var(--text);margin-top:5px;line-height:1.5">${esc(d.descricao_programada)}</div>`:''}
+        ${d.programado_em?`<div style="font-size:10px;color:var(--text2);margin-top:5px">Confirmado em ${new Date(d.programado_em).toLocaleString('pt-BR')}${d.programado_por?' por '+esc(d.programado_por):''}</div>`:''}
       </div>
       ${d.descricao?`<div style="margin-bottom:12px">
         <div style="font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Descrição original do(a) síndico(a)</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.5;background:var(--gray);padding:10px 12px;border-radius:8px;white-space:pre-wrap">${d.descricao}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.5;background:var(--gray);padding:10px 12px;border-radius:8px;white-space:pre-wrap">${esc(d.descricao)}</div>
       </div>`:''}
       ${fotos.length?`<div style="margin-bottom:12px">
         <div style="font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">📎 ${fotos.length} anexo(s)</div>
@@ -4193,8 +4215,8 @@ function renderCondoDetail(main){
                 <span style="font-size:9px;font-weight:700;color:var(--text2);font-family:'SF Mono',Menlo,Consolas,monospace">${d.protocolo||''}</span>
                 ${atras?'<span style="background:#C00000;color:#fff;font-size:8.5px;padding:1px 5px;border-radius:5px;font-weight:800">ATRASADA</span>':''}
               </div>
-              <div style="font-weight:700;font-size:12.5px;color:var(--text);line-height:1.3"><span style="color:${condo.cor}">${d.tipo_programado||'Visita'}:</span> ${d.titulo}</div>
-              ${d.descricao_programada?`<div style="font-size:10.5px;color:var(--text2);margin-top:2px">${d.descricao_programada.substring(0,70)}${d.descricao_programada.length>70?'…':''}</div>`:''}
+              <div style="font-weight:700;font-size:12.5px;color:var(--text);line-height:1.3"><span style="color:${condo.cor}">${esc(d.tipo_programado||'Visita')}:</span> ${esc(d.titulo)}</div>
+              ${d.descricao_programada?`<div style="font-size:10.5px;color:var(--text2);margin-top:2px">${esc(d.descricao_programada.substring(0,70))}${d.descricao_programada.length>70?'…':''}</div>`:''}
             </div>
           </div>`;
         }).join('')}
@@ -4247,7 +4269,7 @@ function renderCondoDetail(main){
             <div style="font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase">${['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'][mo-1]}</div>
             <div style="font-size:9px;background:${condo.cor};color:#fff;border-radius:4px;padding:1px 4px;margin-top:3px;text-transform:uppercase">${e.tipo||'evento'}</div>
           </div>
-          <div style="flex:1;margin-left:10px"><strong style="font-size:13px;display:block">${e.titulo}</strong>${e.descricao?'<span style="font-size:11px;color:var(--text2);line-height:1.4">'+e.descricao+'</span>':''}${passou?'<div style="font-size:10px;color:#1B8A4A;font-weight:700;margin-top:3px">✓ realizado</div>':''}</div>
+          <div style="flex:1;margin-left:10px"><strong style="font-size:13px;display:block">${esc(e.titulo)}</strong>${e.descricao?'<span style="font-size:11px;color:var(--text2);line-height:1.4">'+esc(e.descricao)+'</span>':''}${passou?'<div style="font-size:10px;color:#1B8A4A;font-weight:700;margin-top:3px">✓ realizado</div>':''}</div>
           <button onclick="removerEvento('${condoDetailId}','${e.id}')" style="background:transparent;border:none;color:#C00000;cursor:pointer;font-size:14px;padding:4px 8px">🗑</button>
         </div>`;
       }).join('')}</div>`;})()}
@@ -4494,8 +4516,8 @@ function renderChecklist(main){
           <span style="font-size:9px;font-weight:700;color:var(--text2);font-family:'SF Mono',Menlo,Consolas,monospace">${d.protocolo||''}</span>
           ${d.hora_programada?`<span style="font-size:10px;color:#0D3C44;font-weight:700">⏰ ${d.hora_programada.substring(0,5)}</span>`:''}
         </div>
-        <div style="font-size:12.5px;font-weight:700;color:var(--text)"><span style="color:#0D3C44">${d.tipo_programado||'Visita'}:</span> ${d.titulo}</div>
-        ${d.descricao_programada?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${d.descricao_programada}</div>`:''}
+        <div style="font-size:12.5px;font-weight:700;color:var(--text)"><span style="color:#0D3C44">${esc(d.tipo_programado||'Visita')}:</span> ${esc(d.titulo)}</div>
+        ${d.descricao_programada?`<div style="font-size:11px;color:var(--text2);margin-top:2px">${esc(d.descricao_programada)}</div>`:''}
       </div>`).join('')}
     </div>`;
   })()}`;
@@ -8852,8 +8874,8 @@ function abrirDetalheDemandaPMP(id){
 
   const bannerHtml = d.data_programada ? `<div style="background:rgba(13,60,68,.08);border-left:3px solid #0D3C44;padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
     <span style="color:#0D3C44;font-size:11px;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:4px;font-weight:700">📅 Programado pela Diagnóstika</span>
-    <div style="font-size:13.5px;font-weight:700;color:#0D3C44">${d.tipo_programado||'Visita'} em ${fmtBR(d.data_programada)}${d.hora_programada?' às '+d.hora_programada.substring(0,5):''}</div>
-    ${d.descricao_programada?'<div style="font-size:11.5px;color:var(--text);margin-top:4px;line-height:1.4">'+d.descricao_programada+'</div>':''}
+    <div style="font-size:13.5px;font-weight:700;color:#0D3C44">${esc(d.tipo_programado||'Visita')} em ${fmtBR(d.data_programada)}${d.hora_programada?' às '+esc(d.hora_programada.substring(0,5)):''}</div>
+    ${d.descricao_programada?'<div style="font-size:11.5px;color:var(--text);margin-top:4px;line-height:1.4">'+esc(d.descricao_programada)+'</div>':''}
   </div>` : '';
 
   const respostaHtml = d.resposta ? `<div style="background:rgba(21,91,103,.10);border-left:3px solid var(--teal);padding:10px 12px;border-radius:0 6px 6px 0;font-size:12.5px;margin-bottom:12px">
@@ -8929,10 +8951,10 @@ function abrirDetalheDemandaPMP(id){
       </div>
       <div class="dem-modal-body">
         <div style="font-size:11.5px;color:var(--text2);margin-bottom:12px">
-          <span class="dt-pill ${condoClassPMP(d.condo_id)}">${c.nome||c.short}</span> · ${DEM_CATS[d.categoria]||d.categoria} · ${DEM_URGS[d.urgencia]||d.urgencia} · ${new Date(d.created_at).toLocaleString('pt-BR')}
+          <span class="dt-pill ${condoClassPMP(d.condo_id)}">${esc(c.nome||c.short)}</span> · ${esc(DEM_CATS[d.categoria]||d.categoria)} · ${esc(DEM_URGS[d.urgencia]||d.urgencia)} · ${new Date(d.created_at).toLocaleString('pt-BR')}
         </div>
         ${moradorHtml}
-        ${d.descricao?`<div style="font-size:13px;color:var(--text);line-height:1.5;background:var(--gray);padding:10px 12px;border-radius:6px;margin-bottom:12px;white-space:pre-wrap">${d.descricao}</div>`:''}
+        ${d.descricao?`<div style="font-size:13px;color:var(--text);line-height:1.5;background:var(--gray);padding:10px 12px;border-radius:6px;margin-bottom:12px;white-space:pre-wrap">${esc(d.descricao)}</div>`:''}
         ${anexosHtml}
         ${docsHtml}
         ${bannerHtml}

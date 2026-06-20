@@ -6,3 +6,7 @@ assets/extracted/
 server.js
 Abrir App.bat
 .claude/
+
+# Mockups e rascunhos visuais (não versionar)
+mockups/
+mockup-*.html
